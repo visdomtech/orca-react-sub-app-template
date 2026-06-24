@@ -271,9 +271,13 @@ createRoot(document.getElementById("root")!).render(
 
 #### `src/api/httpClient.ts`
 
-Copy verbatim from `orca-react-sub-app-template/src/api/httpClient.ts`. Do not modify this file.
+Fetch the file content from:
+```
+https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/src/api/httpClient.ts
+```
+Copy it verbatim. Do not modify.
 
-> This is a simplified HTTP client that uses `credentials: "include"` so the session cookie set by the Orca host is automatically forwarded. It does not manage session refresh (the host handles that). If the session expires the request will fail with a 401 — let the error propagate to React Query, which will surface it in the UI.
+> This client uses `credentials: "include"` so the session cookie set by the Orca host is forwarded automatically. If the session expires, the 401 propagates to React Query and surfaces in the UI.
 
 ---
 
