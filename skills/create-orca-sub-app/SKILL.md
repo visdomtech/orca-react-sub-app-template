@@ -443,7 +443,7 @@ Reads and writes app state to the Orca agents Firestore API. No backend endpoint
 import { httpClient } from "../../api/httpClient";
 import type { {{COMPONENT_NAME}}State } from "./types";
 
-const DOC_ID = "apps/{{APP_NAME}}/state";
+const DOC_ID = "apps/{{APP_NAME}}/data/state";
 
 export async function fetch{{COMPONENT_NAME}}State(): Promise<{{COMPONENT_NAME}}State> {
   try {
@@ -468,7 +468,7 @@ export async function save{{COMPONENT_NAME}}State(
 }
 ```
 
-> `DOC_ID` follows the convention `apps/<APP_NAME>/<resource>`. It must be unique per app. Each workspace gets its own document — the Orca host handles workspace scoping automatically via the session cookie.
+> `DOC_ID` must have an **even number of path segments** — Firestore alternates collection/document. Use 4 segments: `apps/<APP_NAME>/<subcollection>/<document>` (e.g. `apps/my-app/data/state`). A 3-segment path like `apps/my-app/state` points to a subcollection reference, not a document, and the API returns 500. Each workspace gets its own document — scoping is handled automatically via the session cookie.
 
 ---
 
@@ -771,8 +771,8 @@ export function useItems() {
 If the app needs to store several independent datasets, use different `docId`s:
 
 ```typescript
-const SETTINGS_DOC = "apps/my-feature/settings";
-const RESULTS_DOC  = "apps/my-feature/results";
+const SETTINGS_DOC = "apps/my-feature/config/settings";
+const RESULTS_DOC  = "apps/my-feature/data/results";
 ```
 
 ### REST backend (when you need it)
