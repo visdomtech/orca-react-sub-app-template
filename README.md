@@ -1,115 +1,165 @@
 # Orca React Sub-App Template
 
-A React micro-frontend template for building standalone Orca sub-apps using Vite Module Federation. Sub-apps live in their own repository, build independently, and plug into the Orca host at runtime — no host rebuild required.
+A template for building mini-apps that plug into the Orca platform. Each app lives in its own folder, can be built and shared independently, and shows up as a card on the Orca home page.
 
 ---
 
 ## How it works
 
-```
-Your sub-app repo                  Orca host (dfapps)
-─────────────────────              ──────────────────────────────
-src/OrcaApp.tsx  ──build──▶  dist/app.js  ◀──loadRemoteModule()──
-```
-
-1. You build the sub-app → `dist/app.js` (the Module Federation remote entry)
-2. You serve `dist/` with a static file server (CORS enabled)
-3. You register the app in the Orca sysadmin UI with the remote URL
-4. The Orca host dynamically loads it at the registered route — no host restart needed
-
-React and ReactDOM are **shared singletons** — the host provides one instance used by all sub-apps.
+You build your app, put it somewhere accessible (a URL), and tell Orca where to find it. Orca then loads it automatically and shows it on the home page — no changes to the main platform needed.
 
 ---
 
-## Step-by-step: creating and connecting a new app
+## Getting started
 
-### Step 1 — Create the app
+Choose the path that fits you:
 
-**Option A — AI-generated (recommended)**
-
-Open [claude.ai](https://claude.ai) and start a new conversation. Paste the full contents of [`skills/create-orca-sub-app/SKILL.md`](skills/create-orca-sub-app/SKILL.md) as your first message, then describe your app. The AI will scaffold all files from the template.
-
-**Option B — Clone this template manually**
-
-```bash
-git clone https://github.com/visdomtech/orca-react-sub-app-template.git my-app
-cd my-app
-rm -rf .git
-git init
-```
-
-Then:
-- Rename `name` in `vite.config.ts` (federation name — must be globally unique across all sub-apps)
-- Rename `name` in `package.json`
-- Replace `src/features/hello/` with your feature code
-- Update `src/OrcaApp.tsx` to render your feature's root page
+- **[I'm not a developer →](#option-1-using-ai-to-create-your-app)** Let AI write the app for you. You just describe what you want.
+- **[I'm a developer →](#option-2-building-the-app-yourself)** Clone the template, write your code, and wire it up.
 
 ---
 
-### Step 2 — Install and build
+## Option 1: Using AI to create your app
 
-```bash
+You don't need to write any code. An AI assistant will generate everything for you based on a description.
+
+### What you need before starting
+
+- A [Claude.ai](https://claude.ai) account (free tier works)
+- [Bun](https://bun.sh/) installed on your computer (a tool for running the app)
+- Access to the Orca platform
+
+### Step 1 — Tell the AI what to build
+
+1. Open [claude.ai](https://claude.ai) and start a new chat
+2. Copy the entire contents of the file [`skills/create-orca-sub-app/SKILL.md`](skills/create-orca-sub-app/SKILL.md) from this repository and paste it as your first message
+3. In the same message, describe your app. For example:
+
+   > *"Create an employee onboarding checklist app. It should show a list of tasks new employees need to complete, like signing contracts, setting up their laptop, and meeting their team. Each task can be checked off and the progress is saved."*
+
+4. The AI will generate all the files. When it's done, it will give you a folder name and tell you to run a few commands.
+
+### Step 2 — Run the commands the AI gives you
+
+The AI will tell you to run something like:
+
+```
+cd employee-onboarding
 bun install
 bun run build
 ```
 
-Expected output: `dist/app.js` created. If there are TypeScript errors, they surface here — fix them before proceeding.
+Run those commands in your terminal. This installs everything and packages your app into a file called `app.js` inside a `dist` folder.
 
----
+Then run this to make your app available:
 
-### Step 3 — Serve the bundle with CORS
-
-The Orca host fetches your `app.js` from this server. Keep it running while you test.
-
-```bash
+```
 bunx serve dist --cors -l 4174
 ```
 
-Verify it's reachable: open `http://localhost:4174/app.js` in the browser — you should see JavaScript, not a 404.
+Leave this window open — it keeps your app running so Orca can find it.
 
-> **Do not open `http://localhost:4174` as your app** — it won't have access to the backend APIs. You will access the app through the Orca host in Step 5.
+> This is only for running on your own computer. When you're ready to share with others, see [Deploying to production](#deploying-to-production).
+
+### Step 3 — Add your app to Orca
+
+1. Open the Orca platform and go to **Settings → Apps** (the address is `/orca/sysadmin/apps`)
+2. Click **Add App** and fill in the form:
+
+   | Field | What to put |
+   |---|---|
+   | **ID** | A short name with no spaces, like `employee-onboarding` |
+   | **Route** | Where it will live, like `/orca/employee-onboarding` |
+   | **Title** | The name shown on the card, like `Employee Onboarding` |
+   | **Description** | One sentence about what the app does |
+   | **Icon ID** | A word describing the icon, like `assignment`, `checklist`, or `star` |
+   | **Icon Background** | A color for the icon background, like `bg-indigo-500` or `bg-green-500` |
+   | **Remote URL** | `http://localhost:4174/app.js` |
+   | **Exposed Module** | `./OrcaApp` |
+
+   Leave **Badge**, **Display Order**, and **Admin Only** as they are.
+
+3. Click **Create**
+
+### Step 4 — Refresh Orca
+
+Press **Ctrl+Shift+R** (or Cmd+Shift+R on Mac) to fully reload the Orca page.
+
+Your app will now appear as a card on the Orca home page under **Extensions**. Click it to open your app.
 
 ---
 
-### Step 4 — Register in the Orca sysadmin UI
+## Option 2: Building the app yourself
 
-In the Orca host, go to `/orca/sysadmin/apps` and click **Add App**. Fill in all required fields:
+For developers who want to write their own code.
 
-| Field | Example value | Notes |
+### Step 1 — Create the app
+
+**Using AI (recommended even for developers)**
+
+Open [claude.ai](https://claude.ai), paste the contents of [`skills/create-orca-sub-app/SKILL.md`](skills/create-orca-sub-app/SKILL.md), and describe your app. The AI scaffolds all files following the correct patterns.
+
+**Cloning manually**
+
+```bash
+git clone https://github.com/visdomtech/orca-react-sub-app-template.git my-app
+cd my-app
+rm -rf .git && git init
+```
+
+Then:
+- Set a unique `name` in `vite.config.ts` (the federation name — no two sub-apps can share this)
+- Set the same name in `package.json`
+- Replace `src/features/hello/` with your feature
+- Update `src/OrcaApp.tsx` to render your root page
+
+### Step 2 — Build and serve
+
+```bash
+bun install
+bun run build
+bunx serve dist --cors -l 4174
+```
+
+`dist/app.js` is the remote entry. Verify it's reachable at `http://localhost:4174/app.js`.
+
+> Open the app via the Orca host (`http://localhost:3001/orca/my-app`), not directly at `localhost:4174`. The bundle server has no API proxy — all API calls use relative URLs that resolve against the host origin.
+
+### Step 3 — Register in the Orca sysadmin UI
+
+Go to `/orca/sysadmin/apps` → **Add App**:
+
+| Field | Example | Notes |
 |---|---|---|
 | **ID** | `my-app` | Kebab-case, unique |
 | **Route** | `/orca/my-app` | Must start with `/orca/` |
-| **Title** | `My App` | Displayed on home page card |
-| **Description** | `Short description of what this does.` | Required — shown on home page card |
-| **Icon ID** | `assignment` | Any MUI icon name (e.g. `assignment`, `star`, `apps`, `checklist`) |
+| **Title** | `My App` | Shown on home page card |
+| **Description** | `Short description.` | Required |
+| **Icon ID** | `assignment` | MUI icon name (`assignment`, `star`, `apps`, `checklist`, `groups`, `security`…) |
 | **Icon Background** | `bg-indigo-500` | Any Tailwind `bg-*` class |
-| **Badge** | *(leave empty)* | Optional label on the card (e.g. `Beta`, `New`) |
-| **Display Order** | `0` | Lower numbers appear first |
-| **Admin Only** | unchecked | Check to hide from non-admin users |
+| **Badge** | *(optional)* | `Beta`, `New`, etc. |
+| **Display Order** | `0` | Lower = appears first |
+| **Admin Only** | unchecked | Tick to hide from non-admins |
 | **Remote URL** | `http://localhost:4174/app.js` | URL to your served `app.js` |
-| **Exposed Module** | `./OrcaApp` | Must match the key in `vite.config.ts` `exposes` |
+| **Exposed Module** | `./OrcaApp` | Must match `exposes` key in `vite.config.ts` |
 
-> All of ID, Route, Title, Description, Icon ID, and Icon Background are **required**. Leaving Description, Icon ID, or Icon Background empty will cause a 500 error on save.
+> ID, Route, Title, Description, Icon ID, and Icon Background are all **required**. Leaving any of the last three empty causes a 500 on save.
 
----
+### Step 4 — Hard-refresh the host
 
-### Step 5 — Hard-refresh the Orca host
+Routes register at bootstrap. Press **Ctrl+Shift+R** after saving the DB entry.
 
-Routes are registered at bootstrap. After saving the DB entry, do a **full page reload** (`Ctrl+Shift+R`) on the Orca host.
-
-You should now see:
-- A card for your app on the Orca home page (`/orca/home`) under **Extensions**
-- Clicking the card navigates to your route and renders `OrcaApp`
+Your app card appears on `/orca/home` under **Extensions**.
 
 ---
 
 ## Data storage
 
-Sub-apps use the **Orca agents Firestore API** for persistence — no backend endpoint needed. Data is automatically scoped per workspace.
+Sub-apps store data using the built-in Orca agents API — no backend endpoint needed. Data is automatically scoped per workspace.
 
 ```typescript
 // api.ts
-const DOC_ID = "apps/my-app/data/state";   // must have 4 path segments (see below)
+const DOC_ID = "apps/my-app/data/state";  // must have 4 path segments — see rule below
 
 export async function fetchState(): Promise<MyState> {
   try {
@@ -132,16 +182,15 @@ export async function saveState(state: MyState): Promise<void> {
 }
 ```
 
-> **DocId rule — 4 segments required.** Firestore paths alternate collection/document. Use `apps/<app-name>/<subcollection>/<document>`:
+> **DocId must have exactly 4 path segments.** The storage system alternates between group names and document names. Use `apps/<app-name>/<group>/<document>`:
 > - ✅ `apps/my-app/data/state`
 > - ✅ `apps/my-app/config/settings`
-> - ❌ `apps/my-app/state` — 3 segments, points to a subcollection, returns 500
+> - ❌ `apps/my-app/state` — only 3 segments, causes a 500 error
 
-For REST backend calls (when you need server-side logic), use `secured()`:
+For REST backend calls, use `secured()`:
 
 ```typescript
 import { secured } from "../../api/secured";
-
 const response = await httpClient.get<Response<MyData>>(secured("/my-app/items"));
 ```
 
@@ -149,17 +198,15 @@ const response = await httpClient.get<Response<MyData>>(secured("/my-app/items")
 
 ## Feature structure
 
-Follow the same pattern used in the main Orca React app:
-
 ```
 src/features/myFeature/
-├── data.ts         # Hardcoded static definitions (task list, questions, etc.)
-├── types.ts        # TypeScript interfaces — item shape + Firestore state shape
-├── api.ts          # Firestore read/write functions
-├── queryKeys.ts    # React Query cache key factories
-├── hooks.ts        # useQuery / useMutation wrappers
-├── pages/          # Page-level React components
-└── components/     # Reusable UI components for this feature
+├── data.ts         # Hardcoded static content (task list, categories, etc.)
+├── types.ts        # TypeScript interfaces
+├── api.ts          # Storage read/write functions
+├── queryKeys.ts    # React Query cache keys
+├── hooks.ts        # Data hooks (merges static content with stored state)
+├── pages/          # Page components
+└── components/     # Reusable UI components
 ```
 
 ---
@@ -167,72 +214,68 @@ src/features/myFeature/
 ## Commands
 
 ```bash
-bun run dev        # Standalone dev server at http://localhost:4173
+bun run dev        # Dev server at http://localhost:4173 (UI only, no backend)
 bun run build      # Type-check + build to dist/app.js
 bun run typecheck  # Type-check only
 bun run preview    # Preview the built bundle
 ```
 
-> `bun run dev` is for UI development in isolation. API calls won't reach the backend unless you add a proxy (see Troubleshooting). For full end-to-end testing, use the build + serve + host flow described above.
-
 ---
 
 ## Deploying to production
 
-1. Build: `bun run build`
-2. Deploy `dist/` to a CDN or static host (S3, GCS, Vercel, etc.)
-3. Update the **Remote URL** in the Orca sysadmin UI to the production URL
+1. `bun run build`
+2. Deploy the `dist/` folder to any static host (S3, GCS, Vercel, Netlify, etc.)
+3. Update **Remote URL** in the Orca sysadmin UI to the production URL
 4. Hard-refresh the Orca host
 
-No host redeployment needed — the host fetches `app.js` from wherever you point it.
+No changes to the Orca platform needed — it fetches `app.js` from wherever you point it.
 
 ---
 
 ## Troubleshooting
 
-**Card doesn't appear on the home page**
-Hard-refresh the Orca host after registering the app — routes are loaded at bootstrap.
+**My app card doesn't appear on the home page**
+Press Ctrl+Shift+R to fully reload Orca after registering the app.
 
-**500 when saving app in sysadmin UI**
-Description, Icon ID, and Icon Background are required fields. Fill them all in before saving.
+**I get an error when saving the app in the settings form**
+Make sure Description, Icon ID, and Icon Background are all filled in — they are required.
 
-**500 on Firestore read/write**
-Your `docId` has an odd number of path segments. Firestore requires even segments (alternating collection/document). Use `apps/<app>/<subcollection>/<doc>` (4 segments).
+**Clicking a button or checkbox gives a 500 error**
+Check your storage path (`docId`). It must have 4 parts separated by `/`, like `apps/my-app/data/state`. A path with only 3 parts will always fail.
 
-**App renders blank or shows "Page not found"**
-- Confirm `exposedModule` in the DB entry matches the key in `vite.config.ts`'s `exposes` object exactly (e.g. `./OrcaApp`)
-- Check the browser console for federation loading errors
-- Confirm `http://localhost:4174/app.js` is reachable (CORS header present)
+**The app shows a blank page or "Page not found"**
+- Make sure **Exposed Module** in the settings form is exactly `./OrcaApp`
+- Make sure the bundle server is still running (`bunx serve dist --cors -l 4174`)
+- Open browser DevTools → Console for more detail
 
-**React hooks error (`Cannot read properties of null (reading 'useEffect')`)**
-The sub-app and host are using different React instances. Ensure both `vite.config.ts` files declare `react` and `react-dom` as `singleton: true, eager: true` in the `shared` config.
+**React error about hooks when the app loads in Orca**
+Both the sub-app and the Orca host must declare React as a shared singleton in their `vite.config.ts`. This is already set up correctly in this template — if you see this error, check that you haven't removed or modified the `shared` config.
 
-**`Failed to fetch` or CORS error on API calls**
-- The app must be accessed through the Orca host (`http://localhost:3001/orca/my-app`), not directly at `localhost:4174`
-- API calls use relative URLs — they resolve against `window.location.origin`, which must be the Orca host
-- Ensure `bunx serve dist --cors -l 4174` includes the `--cors` flag
+**API calls fail with network errors**
+Make sure you're opening the app through the Orca host (e.g. `http://localhost:3001/orca/my-app`), not directly at `localhost:4174`. The bundle server is not a full web server — it can't handle API requests.
 
-**Standalone dev (`bun run dev`) API calls fail**
-Add a proxy to `vite.config.ts` to forward API calls to the Orca host:
+**Standalone dev (`bun run dev`) can't reach the backend**
+Add a proxy to `vite.config.ts`:
 
 ```typescript
 server: {
   port: 4173,
   proxy: {
     "^/orcaagents/": { target: "http://localhost:3001", changeOrigin: true },
-    "^/app/api/": { target: "http://localhost:3001", changeOrigin: true },
+    "^/app/api/":    { target: "http://localhost:3001", changeOrigin: true },
   },
 },
 ```
 
-**CSS not applied inside host**
-Import `./index.css` in `OrcaApp.tsx` — not in `main.tsx`. The federation plugin injects the CSS when the remote module loads.
+**Styles are missing when the app loads inside Orca**
+Make sure `./index.css` is imported in `OrcaApp.tsx`, not in `main.tsx`.
 
 ---
 
 ## Host requirements
 
-The Orca host (`dfapps/frontend/orca`) must have `@originjs/vite-plugin-federation` configured as a host for React sharing to work:
+The Orca host must have `@originjs/vite-plugin-federation` configured — this is already done in the main repo:
 
 ```typescript
 federation({
@@ -244,5 +287,3 @@ federation({
   },
 })
 ```
-
-This is already configured in the main repo — no changes needed unless you're setting up a new host.
