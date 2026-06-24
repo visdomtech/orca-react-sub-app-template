@@ -271,11 +271,7 @@ createRoot(document.getElementById("root")!).render(
 
 #### `src/api/httpClient.ts`
 
-Fetch the file content from:
-```
-https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/src/api/httpClient.ts
-```
-Copy it verbatim. Do not modify.
+Fetch and copy verbatim from `src/api/httpClient.ts` in this same repository. Do not modify.
 
 > This client uses `credentials: "include"` so the session cookie set by the Orca host is forwarded automatically. If the session expires, the 401 propagates to React Query and surfaces in the UI.
 
