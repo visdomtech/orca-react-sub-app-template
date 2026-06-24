@@ -75,6 +75,7 @@ APP_NAME/
 │   ├── features/
 │   │   └── FEATURE_NAME/
 │   │       ├── api.ts
+│   │       ├── data.ts       ← hardcoded content definitions
 │   │       ├── types.ts
 │   │       ├── queryKeys.ts
 │   │       ├── hooks.ts
@@ -342,8 +343,6 @@ export const httpClient = {
 };
 ```
 
-> This client uses `credentials: "include"` so the session cookie set by the Orca host is forwarded automatically. Do not modify it. If the session expires, the 401 propagates to React Query and surfaces in the UI.
-
 > This client uses `credentials: "include"` so the session cookie set by the Orca host is forwarded automatically. If the session expires, the 401 propagates to React Query and surfaces in the UI.
 
 ---
@@ -390,64 +389,97 @@ export interface Pageable {
 
 #### `src/features/{{FEATURE_NAME}}/types.ts`
 
-Define your data model interfaces here. Example:
+Two interfaces: the item shape (definition + state merged) and the state shape stored in Firestore.
 
 ```typescript
 export interface {{COMPONENT_NAME}}Item {
-  id: number;
-  name: string;
-  createdAt: string;
+  id: string;
+  title: string;
+  description?: string;
+  completed: boolean;  // derived from Firestore state — not stored in data.ts
+}
+
+export interface {{COMPONENT_NAME}}State {
+  completedIds: string[];  // the only thing persisted to Firestore
 }
 ```
+
+Adjust field names to fit your app's domain (e.g. `approved`, `selectedIds`, `scores`).
+
+---
+
+#### `src/features/{{FEATURE_NAME}}/data.ts`
+
+Hardcoded static content — the definitions that never change. Only the completion/selection state lives in Firestore.
+
+```typescript
+import type { {{COMPONENT_NAME}}Item } from "./types";
+
+// Static definitions — rename this constant to something descriptive
+// (e.g. ONBOARDING_TASKS, REVIEW_QUESTIONS, CHECKLIST_ITEMS)
+export const ITEMS: Omit<{{COMPONENT_NAME}}Item, "completed">[] = [
+  {
+    id: "item-1",
+    title: "First item",
+    description: "What the user needs to do here.",
+  },
+  {
+    id: "item-2",
+    title: "Second item",
+  },
+  // add more items…
+];
+```
+
+If your app's content is entirely user-generated (no hardcoded list), store everything in Firestore and delete `data.ts`.
 
 ---
 
 #### `src/features/{{FEATURE_NAME}}/api.ts`
 
-Pure async functions that call the backend. Never use React hooks here.
+Reads and writes app state to the Orca agents Firestore API. No backend endpoint needed — data is stored per-workspace automatically.
 
 ```typescript
 import { httpClient } from "../../api/httpClient";
-import { secured } from "../../api/secured";
-import type { ListResponse, Response } from "../../api/types";
-import type { {{COMPONENT_NAME}}Item } from "./types";
+import type { {{COMPONENT_NAME}}State } from "./types";
 
-export async function list{{COMPONENT_NAME}}Items(): Promise<{{COMPONENT_NAME}}Item[]> {
-  const response = await httpClient.get<ListResponse<{{COMPONENT_NAME}}Item>>(
-    secured("/{{APP_NAME}}/items")
-  );
-  return response.data.items;
+const DOC_ID = "apps/{{APP_NAME}}/state";
+
+export async function fetch{{COMPONENT_NAME}}State(): Promise<{{COMPONENT_NAME}}State> {
+  try {
+    const data = await httpClient.post<{{COMPONENT_NAME}}State>(
+      "/orcaagents/db/workspace/doc/read",
+      { docId: DOC_ID }
+    );
+    if (!data?.completedIds) return { completedIds: [] };
+    return data;
+  } catch {
+    return { completedIds: [] };
+  }
 }
 
-export async function get{{COMPONENT_NAME}}Item(id: number): Promise<{{COMPONENT_NAME}}Item> {
-  const response = await httpClient.get<Response<{{COMPONENT_NAME}}Item>>(
-    secured(`/{{APP_NAME}}/items/${id}`)
-  );
-  return response.data;
-}
-
-export async function create{{COMPONENT_NAME}}Item(
-  payload: Omit<{{COMPONENT_NAME}}Item, "id" | "createdAt">
-): Promise<{{COMPONENT_NAME}}Item> {
-  const response = await httpClient.post<Response<{{COMPONENT_NAME}}Item>>(
-    secured("/{{APP_NAME}}/items"),
-    payload
-  );
-  return response.data;
+export async function save{{COMPONENT_NAME}}State(
+  state: {{COMPONENT_NAME}}State
+): Promise<void> {
+  await httpClient.post("/orcaagents/db/workspace/doc/write", {
+    docId: DOC_ID,
+    data: state,
+  });
 }
 ```
+
+> `DOC_ID` follows the convention `apps/<APP_NAME>/<resource>`. It must be unique per app. Each workspace gets its own document — the Orca host handles workspace scoping automatically via the session cookie.
 
 ---
 
 #### `src/features/{{FEATURE_NAME}}/queryKeys.ts`
 
-Centralize React Query cache keys for this feature. This prevents stale-cache bugs when invalidating after mutations.
+Centralize React Query cache keys for this feature.
 
 ```typescript
 export const {{FEATURE_NAME}}QueryKeys = {
   root: ["{{FEATURE_NAME}}"] as const,
   items: () => [...{{FEATURE_NAME}}QueryKeys.root, "items"] as const,
-  item: (id: number) => [...{{FEATURE_NAME}}QueryKeys.root, "item", id] as const,
 };
 ```
 
@@ -455,37 +487,44 @@ export const {{FEATURE_NAME}}QueryKeys = {
 
 #### `src/features/{{FEATURE_NAME}}/hooks.ts`
 
-Wrap api.ts calls in React Query hooks. One hook per logical data concern.
+Merges the hardcoded `ITEMS` definitions from `data.ts` with the completion state from Firestore.
 
 ```typescript
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  create{{COMPONENT_NAME}}Item,
-  get{{COMPONENT_NAME}}Item,
-  list{{COMPONENT_NAME}}Items,
-} from "./api";
+import { fetch{{COMPONENT_NAME}}State, save{{COMPONENT_NAME}}State } from "./api";
+import { ITEMS } from "./data";
 import { {{FEATURE_NAME}}QueryKeys } from "./queryKeys";
 import type { {{COMPONENT_NAME}}Item } from "./types";
 
 export function use{{COMPONENT_NAME}}Items() {
   return useQuery({
     queryKey: {{FEATURE_NAME}}QueryKeys.items(),
-    queryFn: list{{COMPONENT_NAME}}Items,
+    queryFn: async (): Promise<{{COMPONENT_NAME}}Item[]> => {
+      const state = await fetch{{COMPONENT_NAME}}State();
+      return ITEMS.map((item) => ({
+        ...item,
+        completed: state.completedIds.includes(item.id),
+      }));
+    },
   });
 }
 
-export function use{{COMPONENT_NAME}}Item(id: number) {
-  return useQuery({
-    queryKey: {{FEATURE_NAME}}QueryKeys.item(id),
-    queryFn: () => get{{COMPONENT_NAME}}Item(id),
-  });
-}
-
-export function useCreate{{COMPONENT_NAME}}Item() {
+export function useToggle{{COMPONENT_NAME}}Item() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: Omit<{{COMPONENT_NAME}}Item, "id" | "createdAt">) =>
-      create{{COMPONENT_NAME}}Item(payload),
+    mutationFn: async ({
+      id,
+      completed,
+    }: {
+      id: string;
+      completed: boolean;
+    }) => {
+      const state = await fetch{{COMPONENT_NAME}}State();
+      const completedIds = completed
+        ? state.completedIds.filter((cid) => cid !== id)
+        : [...state.completedIds, id];
+      await save{{COMPONENT_NAME}}State({ completedIds });
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: {{FEATURE_NAME}}QueryKeys.items(),
@@ -502,12 +541,11 @@ export function useCreate{{COMPONENT_NAME}}Item() {
 The root page component. This is what `OrcaApp.tsx` renders.
 
 ```tsx
-import { useState } from "react";
-import { use{{COMPONENT_NAME}}Items } from "../hooks";
+import { use{{COMPONENT_NAME}}Items, useToggle{{COMPONENT_NAME}}Item } from "../hooks";
 
 export function {{COMPONENT_NAME}}Page() {
   const { data: items, isLoading, error } = use{{COMPONENT_NAME}}Items();
-  const [selected, setSelected] = useState<number | null>(null);
+  const toggle = useToggle{{COMPONENT_NAME}}Item();
 
   if (isLoading) {
     return (
@@ -529,14 +567,44 @@ export function {{COMPONENT_NAME}}Page() {
     <div className="p-8">
       <h1 className="text-2xl font-bold text-slate-800 mb-6">{{DISPLAY_NAME}}</h1>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {items?.map((item) => (
           <div
             key={item.id}
-            onClick={() => setSelected(item.id)}
-            className="p-4 bg-white rounded-lg border border-slate-200 cursor-pointer hover:border-indigo-300 transition-colors"
+            onClick={() =>
+              toggle.mutate({ id: item.id, completed: item.completed })
+            }
+            className={`p-4 bg-white rounded-lg border cursor-pointer transition-colors ${
+              item.completed
+                ? "border-green-300 bg-green-50"
+                : "border-slate-200 hover:border-indigo-300"
+            }`}
           >
-            <p className="text-sm font-medium text-slate-700">{item.name}</p>
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-5 h-5 rounded-full border-2 flex-shrink-0 ${
+                  item.completed
+                    ? "bg-green-500 border-green-500"
+                    : "border-slate-300"
+                }`}
+              />
+              <div>
+                <p
+                  className={`text-sm font-medium ${
+                    item.completed
+                      ? "text-slate-500 line-through"
+                      : "text-slate-700"
+                  }`}
+                >
+                  {item.title}
+                </p>
+                {item.description && (
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {item.description}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         ))}
         {items?.length === 0 && (
@@ -616,28 +684,105 @@ Sub-apps follow the same feature-based architecture as the main Orca React app. 
 ```
 features/
 └── featureName/
-    ├── api.ts          # Pure async fetch functions (no React hooks)
-    ├── types.ts        # TypeScript interfaces for this feature's data
+    ├── data.ts         # Hardcoded static definitions (task list, categories, questions…)
+    ├── types.ts        # TypeScript interfaces — item shape and Firestore state shape
+    ├── api.ts          # Firestore read/write functions (no React hooks)
     ├── queryKeys.ts    # React Query cache key factories
-    ├── hooks.ts        # useQuery / useMutation wrappers
+    ├── hooks.ts        # useQuery / useMutation wrappers — merges data.ts + Firestore state
     ├── pages/          # Page-level React components
     └── components/     # Reusable UI components for this feature
 ```
 
 **Rules:**
 - `api.ts` is pure TypeScript — no React, no hooks, no side effects
-- `hooks.ts` depends on `api.ts` and `queryKeys.ts` — never the other way around
+- `data.ts` contains only static exports — no imports from `api.ts` or `hooks.ts`
+- `hooks.ts` depends on `api.ts`, `data.ts`, and `queryKeys.ts` — never the other way around
 - `pages/` depends on `hooks.ts` — page components call hooks, not api.ts directly
 - Each feature owns its query keys — never import another feature's queryKeys
 
 ---
 
-## API Call Patterns
+## Data Storage
 
-### GET — fetch a list
+Sub-apps use the **Orca agents Firestore API** as the default persistence layer. No backend endpoint is needed — data is automatically scoped per workspace.
+
+### Firestore read/write (default pattern)
 
 ```typescript
-// api.ts
+// api.ts — read and write a single document per app
+const DOC_ID = "apps/my-feature/state";
+
+export async function fetchState(): Promise<MyState> {
+  try {
+    const data = await httpClient.post<MyState>(
+      "/orcaagents/db/workspace/doc/read",
+      { docId: DOC_ID }
+    );
+    if (!data) return { completedIds: [] };  // return safe default when doc is empty
+    return data;
+  } catch {
+    return { completedIds: [] };
+  }
+}
+
+export async function saveState(state: MyState): Promise<void> {
+  await httpClient.post("/orcaagents/db/workspace/doc/write", {
+    docId: DOC_ID,
+    data: state,
+  });
+}
+```
+
+> - **`docId`** follows `apps/<APP_NAME>/<resource>`. Use different resource names for different documents within the same app (e.g. `apps/my-app/config`, `apps/my-app/results`).
+> - The Orca host scopes documents to the current workspace automatically. Two users in different workspaces read/write separate documents even with the same `docId`.
+> - Always return a safe default in the `catch` block — a missing document returns an error, not an empty object.
+
+### Merging static definitions with Firestore state
+
+When the app has a fixed list of items (tasks, questions, steps) and only the completion state is dynamic:
+
+```typescript
+// data.ts — static definitions
+export const ITEMS = [
+  { id: "step-1", title: "Do the first thing" },
+  { id: "step-2", title: "Do the second thing" },
+];
+
+// api.ts — only store which IDs are "done"
+export interface AppState { completedIds: string[] }
+
+// hooks.ts — merge at query time
+export function useItems() {
+  return useQuery({
+    queryKey: myFeatureQueryKeys.items(),
+    queryFn: async () => {
+      const state = await fetchState();
+      return ITEMS.map((item) => ({
+        ...item,
+        completed: state.completedIds.includes(item.id),
+      }));
+    },
+  });
+}
+```
+
+### Multiple documents
+
+If the app needs to store several independent datasets, use different `docId`s:
+
+```typescript
+const SETTINGS_DOC = "apps/my-feature/settings";
+const RESULTS_DOC  = "apps/my-feature/results";
+```
+
+### REST backend (when you need it)
+
+Use a REST backend only when the app needs server-side logic, multi-user sync, file storage, or access to existing backend data. Use `secured()` to prefix the path:
+
+```typescript
+import { secured } from "../../api/secured";
+
+// api.ts — REST call to existing backend endpoint
 export async function listItems(): Promise<Item[]> {
   const response = await httpClient.get<ListResponse<Item>>(
     secured("/my-feature/items")
@@ -645,85 +790,14 @@ export async function listItems(): Promise<Item[]> {
   return response.data.items;
 }
 
-// hooks.ts
-export function useItems() {
-  return useQuery({
-    queryKey: myFeatureQueryKeys.items(),
-    queryFn: listItems,
-  });
-}
-```
-
-### GET — fetch a single record
-
-```typescript
-// api.ts
-export async function getItem(id: number): Promise<Item> {
-  const response = await httpClient.get<Response<Item>>(
-    secured(`/my-feature/items/${id}`)
-  );
-  return response.data;
-}
-
-// hooks.ts
-export function useItem(id: number) {
-  return useQuery({
-    queryKey: myFeatureQueryKeys.item(id),
-    queryFn: () => getItem(id),
-  });
-}
-```
-
-### POST — create
-
-```typescript
-// api.ts
-export async function createItem(payload: CreateItemRequest): Promise<Item> {
+export async function createItem(
+  payload: Omit<Item, "id" | "createdAt">
+): Promise<Item> {
   const response = await httpClient.post<Response<Item>>(
     secured("/my-feature/items"),
     payload
   );
   return response.data;
-}
-
-// hooks.ts
-export function useCreateItem() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: createItem,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: myFeatureQueryKeys.items() });
-    },
-  });
-}
-```
-
-### Paginated list (cursor-based)
-
-```typescript
-// api.ts
-export async function listItemsPage(
-  pageKey?: string
-): Promise<{ items: Item[]; pageKey?: string }> {
-  const params = pageKey ? `?pageKey=${pageKey}` : "";
-  const response = await httpClient.get<ListResponse<Item>>(
-    secured(`/my-feature/items${params}`)
-  );
-  return {
-    items: response.data.items,
-    pageKey: response.data.pageKey,
-  };
-}
-
-// hooks.ts
-export function useItemsInfinite() {
-  return useInfiniteQuery({
-    queryKey: myFeatureQueryKeys.items(),
-    queryFn: ({ pageParam }: { pageParam?: string }) =>
-      listItemsPage(pageParam),
-    getNextPageParam: (lastPage) => lastPage.pageKey,
-    initialPageParam: undefined as string | undefined,
-  });
 }
 ```
 
