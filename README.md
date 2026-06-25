@@ -21,71 +21,34 @@ Choose the path that fits you:
 
 ## Option 1: Using AI to create your app
 
-You don't need to write any code. An AI assistant will generate everything for you based on a description.
+You don't need to write any code. Just describe what you want — Claude handles the rest.
 
 ### What you need before starting
 
-- A [Claude.ai](https://claude.ai) account (free tier works)
-- [Bun](https://bun.sh/) installed on your computer (a tool for running the app)
+- [Claude Desktop](https://claude.ai/download) installed on your computer
 - Access to the Orca platform
 
-### Step 1 — Tell the AI what to build
+### Step 1 — Create and run your app
 
-1. Open [claude.ai](https://claude.ai) and start a new chat
-2. Copy the entire contents of the file [`skills/create-orca-sub-app/SKILL.md`](skills/create-orca-sub-app/SKILL.md) from this repository and paste it as your first message
+1. Open Claude Desktop and start a new chat
+2. Copy the entire contents of [`skills/create-orca-sub-app/SKILL.md`](skills/create-orca-sub-app/SKILL.md) and paste it as your first message
 3. In the same message, describe your app. For example:
 
    > *"Create an employee onboarding checklist app. It should show a list of tasks new employees need to complete, like signing contracts, setting up their laptop, and meeting their team. Each task can be checked off and the progress is saved."*
 
-4. The AI will generate all the files. When it's done, it will give you a folder name and tell you to run a few commands.
+Claude will create all the files on your computer, install any required tools, build the app, and start a local server. When it's done, it will tell you the app is ready.
 
-### Step 2 — Run the commands the AI gives you
-
-The AI will tell you to run something like:
-
-```
-cd employee-onboarding
-bun install
-bun run build
-```
-
-Run those commands in your terminal. This installs everything and packages your app into a file called `app.js` inside a `dist` folder.
-
-Then run this to make your app available:
-
-```
-bunx serve dist --cors -l 4174
-```
-
-Leave this window open — it keeps your app running so Orca can find it.
+Leave the terminal window that Claude opens running — closing it stops your app.
 
 > This is only for running on your own computer. When you're ready to share with others, see [Deploying to production](#deploying-to-production).
 
-### Step 3 — Add your app to Orca
+### Step 2 — Add your app to Orca
+
+At the end of Step 1, Claude will give you a table with all the values you need.
 
 1. Open the Orca platform and go to **Settings → Apps** (the address is `/orca/sysadmin/apps`)
-2. Click **Add App** and fill in the form:
-
-   | Field | What to put |
-   |---|---|
-   | **ID** | A short name with no spaces, like `employee-onboarding` |
-   | **Route** | Where it will live, like `/orca/employee-onboarding` |
-   | **Title** | The name shown on the card, like `Employee Onboarding` |
-   | **Description** | One sentence about what the app does |
-   | **Icon ID** | A word describing the icon, like `assignment`, `checklist`, or `star` |
-   | **Icon Background** | A color for the icon background, like `bg-indigo-500` or `bg-green-500` |
-   | **Remote URL** | `http://localhost:4174/app.js` |
-   | **Exposed Module** | `./OrcaApp` |
-
-   Leave **Badge**, **Display Order**, and **Admin Only** as they are.
-
-3. Click **Create**
-
-### Step 4 — Refresh Orca
-
-Press **Ctrl+Shift+R** (or Cmd+Shift+R on Mac) to fully reload the Orca page.
-
-Your app will now appear as a card on the Orca home page under **Extensions**. Click it to open your app.
+2. Click **Add App** and copy the values Claude gave you into the form
+3. Click **Create** and refresh the page — your app will appear as a card under **Extensions**.
 
 ---
 
