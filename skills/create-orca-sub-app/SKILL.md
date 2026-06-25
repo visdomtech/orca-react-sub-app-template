@@ -52,18 +52,26 @@ Derive it from context:
 
 ## Steps
 
-### 1. Check for name collisions
+### 1. Ask where to save the app and create the folder
 
-Federation `name` must be globally unique across all running sub-apps:
+Before writing any files, ask the user:
 
-```bash
-# Ask the user or check existing sub-app repos
-# Federation names must not clash — two sub-apps with the same name will conflict at runtime
-```
+> "Where would you like me to save your app folder? I'll create it for you. For example, your Desktop or Documents folder."
 
-If a collision is found, ask the user to choose a different name.
+If they are unsure, suggest the Desktop as the default.
 
-### 2. Create the directory structure
+Use computer use to create the folder at the chosen location:
+
+- **Windows:** `mkdir "$env:USERPROFILE\Desktop\{{APP_NAME}}"`
+- **Mac / Linux:** `mkdir -p ~/Desktop/{{APP_NAME}}`
+
+Do not open a file picker — create the folder directly via the terminal.
+
+### 2. Check for name collisions
+
+Federation `name` must be globally unique across all running sub-apps. Ask the user or check existing sub-app repos — two sub-apps with the same name will conflict at runtime. If a collision is found, ask the user to choose a different name.
+
+### 4. Create the directory structure
 
 ```
 APP_NAME/
@@ -91,7 +99,7 @@ APP_NAME/
 └── vite.config.ts
 ```
 
-### 3. Write each file
+### 5. Write each file
 
 Replace every `{{APP_NAME}}`, `{{COMPONENT_NAME}}`, `{{DISPLAY_NAME}}`, `{{FEATURE_NAME}}`, and `{{ROUTE}}` with the computed values.
 
@@ -627,53 +635,72 @@ node_modules
 
 ---
 
-### 4. Install and verify
+### 6. Install, build, and serve — do this automatically without waiting for the user to ask
+
+Immediately after writing all files, use computer use to open a terminal and run the following commands. Do not show the commands and wait — execute them now.
+
+**Check if Bun is installed:**
+
+```bash
+bun --version
+```
+
+If the command is not found, install Bun first:
+
+- **Windows (PowerShell):**
+  ```
+  powershell -ExecutionPolicy Bypass -Command "irm bun.sh/install.ps1 | iex"
+  ```
+  Then set the path for the current session:
+  ```
+  $env:PATH = "$env:USERPROFILE\.bun\bin;$env:PATH"
+  ```
+
+- **Mac / Linux:**
+  ```
+  curl -fsSL https://bun.sh/install | bash
+  ```
+  Then reload the shell or set:
+  ```
+  export PATH="$HOME/.bun/bin:$PATH"
+  ```
+
+**Navigate to the app folder and run:**
 
 ```bash
 cd {{APP_NAME}}
 bun install
 bun run build
-```
-
-Expected: `dist/app.js` is created. TypeScript errors surface here — fix before proceeding.
-
-Verify standalone dev:
-
-```bash
-bun run dev
-# Opens at http://localhost:4173
-```
-
----
-
-### 5. Serve and register with the Orca host
-
-**Serve the built bundle with CORS:**
-
-```bash
 bunx serve dist --cors -l 4174
 ```
 
-The remote entry is now at `http://localhost:4174/app.js`.
+If `bun run build` fails due to TypeScript errors, fix them before running `bunx serve`.
 
-**Register in the sysadmin UI** — go to `/sysadmin/orca/apps` and create an entry:
+Leave the terminal running — do not close it.
+
+---
+
+### 7. Tell the user the app is ready
+
+Once the server is running, tell the user:
+
+> "Your app is ready and running at http://localhost:4174. Keep the terminal window open — closing it will stop the app.
+>
+> To add it to Orca, go to **Settings → Apps** (`/orca/sysadmin/apps`), click **Add App**, and fill in every field using these values:"
 
 | Field | Value |
 |---|---|
 | ID | `{{APP_NAME}}` |
 | Route | `{{ROUTE}}` |
 | Title | `{{DISPLAY_NAME}}` |
-| Description | Short description of what the app does |
+| Description | *(one sentence summarising what this app does, derived from the user's description)* |
+| Icon ID | *(choose the most fitting word from: `assignment`, `checklist`, `groups`, `star`, `security`, `apps`, `inventory`, `person`, `work`)* |
+| Icon Background | `bg-indigo-500` |
+| Badge | *(leave empty)* |
+| Display Order | `0` |
+| Admin Only | unchecked |
 | Remote URL | `http://localhost:4174/app.js` |
 | Exposed Module | `./OrcaApp` |
-| Icon BG | `bg-indigo-500` (any Tailwind `bg-*` class) |
-| Admin Only | `false` |
-
-**Hard-refresh the Orca host.** Routes are registered at bootstrap — a full page reload is required after adding the DB entry.
-
-You should see:
-- A card for the sub-app on the Orca home page (`/orca/home`)
-- Clicking it navigates to `{{ROUTE}}` and renders `OrcaApp`
 
 ---
 

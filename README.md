@@ -30,13 +30,15 @@ You don't need to write any code. Just describe what you want — Claude handles
 
 ### Step 1 — Create and run your app
 
-1. Open Claude Desktop and start a new chat
+1. Open Claude Desktop, select **Code** at the top, and start a new chat
 2. Copy the entire contents of [`skills/create-orca-sub-app/SKILL.md`](skills/create-orca-sub-app/SKILL.md) and paste it as your first message
 3. In the same message, describe your app. For example:
 
    > *"Create an employee onboarding checklist app. It should show a list of tasks new employees need to complete, like signing contracts, setting up their laptop, and meeting their team. Each task can be checked off and the progress is saved."*
 
-Claude will create all the files on your computer, install any required tools, build the app, and start a local server. When it's done, it will tell you the app is ready.
+4. Claude will ask where to save your app folder — your Desktop is a good choice
+
+Claude will create the folder, write all the files, install any required tools, build the app, and start a local server. When it's done, it will tell you the app is ready.
 
 Leave the terminal window that Claude opens running — closing it stops your app.
 
