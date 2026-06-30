@@ -1,6 +1,6 @@
 ---
 name: guide-react-app
-description: Walk a non-technical user through creating a frontend React app using Claude Desktop App as a visual guide. Reads demo-data.json in this folder and presents each step as a clear, human-friendly conversation with visual context. Use when a user has no coding background and wants to build their first React app.
+description: Walk a non-technical user through creating a frontend React app. Generates a self-contained HTML guide page and opens it in the browser as the primary UI — no terminal interaction required. Use when a user has no coding background and wants to build their first React app.
 ---
 
 # Guide: Build Your First React App (Non-Technical)
@@ -9,22 +9,26 @@ description: Walk a non-technical user through creating a frontend React app usi
 
 - A user says "I want to build a website / app but I don't know how to code"
 - A product manager or designer wants to prototype a React frontend
-- You're running a demo of Claude Desktop App guiding a non-technical person
-- Someone wants a visual, step-by-step walkthrough without terminal fear
+- Someone wants a visual, step-by-step walkthrough without touching a terminal
+
+---
 
 ## How It Works
 
-This skill reads `demo-data.json` (in the same folder) to load a structured list of
-guided steps. Each step has:
+**The primary UI is an HTML page, not the chat window.**
 
-- A **plain-English title** the user sees
-- A **what-happens** explanation (no jargon)
-- A **command** Claude runs on behalf of the user
-- An **expected output** snippet so the user knows things worked
-- A **screenshot hint** describing what Claude Desktop App should show visually
+When this skill starts, Claude generates a single self-contained `guide.html` file
+from `demo-data.json` and opens it in the user's default browser. That page becomes
+the visual control panel for the entire session. Claude's chat replies are kept
+minimal — the HTML page does the talking.
 
-Claude walks the user through steps one at a time, confirms before proceeding, and
-explains any error in plain English before retrying.
+```
+demo-data.json  ──▶  Claude generates  ──▶  guide.html  ──▶  browser opens
+                                                │
+                          user reads steps, clicks "Run" buttons
+                                                │
+                          Claude executes commands, updates page
+```
 
 ---
 
@@ -33,124 +37,213 @@ explains any error in plain English before retrying.
 | Field | Required | Description |
 |-------|----------|-------------|
 | `app_name` | Yes | The name the user wants for their app (e.g. "my-portfolio") |
-| `destination` | No | Directory to create the app in (defaults to `~/Desktop`) |
+| `destination` | No | Where to create the app (defaults to `~/Desktop`) |
+
+Ask for these upfront in a single friendly message before generating the page.
 
 ---
 
 ## Step-by-Step Flow
 
-### 0. Load demo data
+### 1. Collect inputs
 
-```javascript
-// Claude reads the step list from demo-data.json
-const steps = require('./demo-data.json').steps;
+Ask the user:
+
+> "What do you want to call your app? (e.g. 'my-portfolio', 'recipe-site') — no
+> spaces, use dashes."
+
+### 2. Read demo-data.json
+
+Load all steps, the glossary, and meta from `demo-data.json` in this folder.
+Substitute `{app_name}` and `{user_name}` in command and explanation strings.
+
+### 3. Generate guide.html
+
+Write `guide.html` to a temp location (e.g. `/tmp/guide-react-app/guide.html`).
+The page must be **fully self-contained** (no CDN, no external fetches) and include:
+
+#### Page structure
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  🚀  Build Your First React App          10 min  7 steps     │
+├──────────────────────────────────────────────────────────────┤
+│  ████████████░░░░░░░░░░  Step 3 of 7                        │
+├──────────────────┬───────────────────────────────────────────┤
+│  STEPS SIDEBAR   │  ACTIVE STEP PANEL                        │
+│                  │                                           │
+│  ✅ Step 1       │  Step 3: Install all the ingredients      │
+│  ✅ Step 2       │  ─────────────────────────────────────    │
+│  ▶  Step 3  ◀   │  Your app needs a few helper libraries    │
+│     Step 4       │  — like ingredients in a recipe.          │
+│     Step 5       │  I'm downloading them now. ~15 sec.       │
+│     Step 6       │                                           │
+│     Step 7       │  ┌─ Command (Claude will run this) ─────┐ │
+│                  │  │  $ bun install                       │ │
+│                  │  └──────────────────────────────────────┘ │
+│                  │                                           │
+│  ──────────────  │  [ ▶ Run this step ]  [ Skip ]           │
+│  📖 Glossary     │                                           │
+│  React           │  ── Output ──────────────────────────── │ │
+│  Bun             │  (appears here after Claude runs it)     │ │
+│  Port            │                                           │
+└──────────────────┴───────────────────────────────────────────┘
 ```
 
-### 1. Greet and set expectations
+#### Required HTML sections
 
-Tell the user in one friendly paragraph:
-- What React is (a tool for building websites)
-- What will happen in the next ~10 minutes
-- That Claude will type all the scary commands for them
+**Progress bar** — updates as steps complete (use `data-step` attributes + JS).
 
-> "Great! I'll help you build your first React app. Think of React as LEGO for
-> websites — we snap pieces together. I'll handle all the technical parts.
-> You just tell me what you want and click Approve when I ask."
+**Sidebar** — lists all step titles. Each item shows one of:
+- ⬜ not started (grey)
+- ⏳ in progress (blue, pulsing)
+- ✅ success (green)
+- ❌ failed (red, with retry button)
 
-### 2. Walk each step from demo-data.json
+**Active step panel** — shows for the current step:
+- Step number and title (large, friendly font)
+- Plain-English explanation paragraph
+- Command block (monospace, dark background, read-only — user never types here)
+- A prominent **"Tell Claude to run this"** button
+- Output area (empty until Claude reports back)
+- Success / error banner
 
-For each step in `steps`:
+**Glossary sidebar** — collapsible list of jargon terms from `demo-data.json`.
+User can click any term to see the plain-English definition inline.
 
-1. **Show the step card** — title, plain-English explanation, and the command (greyed out, for info only)
-2. **Ask for approval** — "Ready? I'll run this now."
-3. **Run the command** via Bash
-4. **Show expected vs actual output** — highlight any differences
-5. **Confirm success** before moving to the next step
+**Completion screen** — replaces the panel when all steps finish:
+- "🎉 You built a React app!" heading
+- Summary of what was created
+- Three next-step buttons from `demo-data.json`
 
-If a step fails:
-- Translate the error into plain English
-- Suggest the most likely fix
-- Ask the user whether to retry or skip
+#### HTML style requirements
 
-### 3. Open in browser
+- Clean, calm design: white background, `#4f46e5` accent, `#f8fafc` sidebar
+- Large readable font (`system-ui`, 16px base, 1.6 line-height)
+- No jargon in any visible label — use plain English everywhere
+- Mobile-friendly (single column below 700px)
+- All CSS and JS inline in the `<style>` and `<script>` tags — zero dependencies
 
-After all steps complete, open `http://localhost:5173` in the default browser and
-say: "Your app is live! Open that tab — you'll see a spinning React logo. That's
-YOUR website."
+#### "Tell Claude to run this" button
 
-### 4. Celebrate + next steps
+When the user clicks this button it does **not** run anything itself. Instead it
+copies a short prompt to the clipboard and shows a banner:
 
-Show a short "What you just built" summary and offer three optional next steps:
-- "Change the text on the page"
-- "Add a button that does something"
-- "Deploy it to the internet for free"
+> "Copied! Paste this into the Claude chat and press Enter."
+
+The copied text is:
+```
+/run-step {step_id}
+```
+
+Claude listens for this pattern and responds by executing the step's command,
+then reports back in a structured format the page can display (see below).
+
+Alternatively, if the Claude Desktop App supports direct tool invocation from the
+page, wire the button to `window.claude?.runBash(command)` if available, falling
+back to the clipboard approach.
+
+### 4. Open the page
+
+```bash
+open /tmp/guide-react-app/guide.html   # macOS
+# or
+xdg-open /tmp/guide-react-app/guide.html  # Linux
+```
+
+Tell the user in chat:
+> "I've opened your guide in the browser. Follow the steps there — click
+> 'Tell Claude to run this' for each step and paste it back here."
+
+### 5. Execute steps on demand
+
+When the user pastes `/run-step {id}`, Claude:
+
+1. Looks up the step in `demo-data.json`
+2. Runs the command via Bash
+3. Checks output against `expected_output_snippet`
+4. Replies with a structured result block:
+
+```
+STEP_RESULT
+id: {step_id}
+status: success | failure
+output: {trimmed stdout, max 10 lines}
+message: {plain-English sentence}
+END_STEP_RESULT
+```
+
+The user pastes this back into the guide page's output area (or the page polls for
+it if Claude Desktop App exposes a message bus). The sidebar and progress bar update
+automatically via JS.
+
+### 6. Handle failures
+
+On failure, the page shows an error panel:
+- Red banner: plain-English error message from `failure_message`
+- Two buttons: **"Try again"** and **"Skip this step"**
+- Collapsible "Show technical details" for the raw error (hidden by default)
+
+### 7. Completion
+
+When step 7 completes, the page transitions to the celebration screen. Claude sends
+one final chat message:
+> "Your app is live at http://localhost:5173 — the guide page will open it for you!"
 
 ---
 
-## Demo Data File
+## guide.html Generation Template
 
-All step content lives in `demo-data.json` next to this skill file. Edit that file
-to update steps, expected outputs, or screenshot hints without touching this skill.
+Claude must write the HTML from scratch each time (not hardcode it), drawing content
+from `demo-data.json`. The structure below is the required skeleton — fill in real
+step data from the JSON:
 
-Schema:
-
-```json
-{
-  "steps": [
-    {
-      "id": 1,
-      "title": "Human-readable step title",
-      "explanation": "Plain-English description for the user",
-      "command": "shell command Claude will run",
-      "expected_output_snippet": "key text that should appear in the output",
-      "screenshot_hint": "Description of what Claude Desktop App should show visually",
-      "duration_seconds": 10
-    }
-  ]
-}
-```
-
----
-
-## Visualization in Claude Desktop App
-
-Claude Desktop App renders tool calls and their outputs inline. This skill is
-designed to exploit that: each Bash tool call produces output that Claude narrates
-in plain English immediately below. The result is a live, visual log the user can
-follow like a recipe.
-
-```
-┌─────────────────────────────────────────────────────┐
-│  Step 1 of 7: Install Node.js package manager      │
-│  ─────────────────────────────────────────────────  │
-│  "This installs the toolbox React needs. ~15 sec."  │
-│                                                     │
-│  > bun install                                      │
-│                                                     │
-│  ✅ bun install v1.2.x — done in 3.4s              │
-│     14 packages installed                           │
-│                                                     │
-│  ✔ Step complete! Moving to Step 2...              │
-└─────────────────────────────────────────────────────┘
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Build Your First React App</title>
+  <style>
+    /* All styles inline — no external CSS */
+    :root { --accent: #4f46e5; --success: #16a34a; --error: #dc2626; }
+    /* ... full styles here ... */
+  </style>
+</head>
+<body>
+  <header><!-- title + progress bar --></header>
+  <main>
+    <nav id="sidebar"><!-- step list + glossary --></nav>
+    <section id="step-panel"><!-- active step --></section>
+  </main>
+  <script>
+    const STEPS = /* paste steps array from demo-data.json here */;
+    // step navigation, status updates, clipboard copy logic
+  </script>
+</body>
+</html>
 ```
 
 ---
 
 ## Error Handling
 
-| Error pattern | Plain-English translation | Auto-fix |
-|---------------|--------------------------|----------|
+| Error pattern | Plain-English shown on page | Auto-fix |
+|---|---|---|
 | `ENOENT` / `not found` | "The tool isn't installed yet." | Run install step |
 | `EADDRINUSE` | "Another app is using that port." | Suggest port 3001 |
-| `SyntaxError` | "There's a typo in the code I generated." | Show the bad line, retry |
-| `permission denied` | "Your computer needs permission for this." | Prefix with `sudo` after user approves |
+| `SyntaxError` | "There's a typo in the code I generated." | Show line, retry |
+| `permission denied` | "Your computer needs permission." | Confirm then `sudo` |
 
 ---
 
 ## Notes
 
-- This skill intentionally avoids the word "terminal", "CLI", "npm", or "Node" in
-  user-facing text — replace with "toolbox", "installer", "package manager" etc.
-- All commands should be non-destructive and reversible
-- Never run `rm -rf` or anything destructive without an explicit user confirmation
-  block that names exactly what will be deleted
+- Never show raw command output directly to the user — always wrap it in a
+  plain-English sentence before displaying
+- Never use the words "terminal", "CLI", "npm", "Node", "shell" in the HTML UI —
+  replace with "toolbox", "installer", "package manager", "command window"
+- All destructive operations (`rm`, overwrite) must show a confirmation modal in the
+  HTML page before Claude executes them
+- The HTML page is the source of truth for progress; Claude's chat is support-only
