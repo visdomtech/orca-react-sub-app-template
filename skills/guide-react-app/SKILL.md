@@ -1,22 +1,25 @@
 ---
 name: guide-react-app
-description: Triggered automatically from the Orca Desktop guide UI. Receives app name and description, then runs all build steps automatically.
+description: Receives app name and description from the user message, then runs all steps to create and build the Orca sub-app automatically. No UI required.
 ---
 
-# Build an Orca Sub-App
+# Create an Orca Sub-App
 
-The guide UI sends this message when the user clicks Next:
+## Step 1 — Parse inputs
+
+Extract from the user message:
+
+- `APP_NAME` — the value after `App name:` (must be kebab-case, no spaces, e.g. `leave-tracker`)
+- `DESCRIPTION` — the value after `What it does:`
+
+If either value is missing or blank, ask the user for it before continuing. Do not proceed with placeholders.
+
+## Step 2 — Start immediately
+
+Do not summarise, confirm, or ask follow-up questions. Fetch and follow the full build instructions at:
 
 ```
-/guide-react-app
-App name: leave-tracker
-What it does: A checklist for new employees to complete their onboarding tasks.
+https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/create-orca-sub-app/SKILL.md
 ```
 
-When invoked:
-
-1. Extract `App name` → use as `APP_NAME`
-2. Extract `What it does` → use as the app description
-3. Follow **create-orca-sub-app** — run all steps automatically
-
-**The user does not need to open a terminal.** Claude runs every command. The only thing the user does after clicking Next is fill in the Orca registration form in step 6.
+Use the `APP_NAME` and `DESCRIPTION` extracted above as the skill inputs and run every step automatically.
