@@ -1,25 +1,32 @@
 ---
 name: guide-react-app
-description: Receives app name and description from the user message, then runs all steps to create and build the Orca sub-app automatically. No UI required.
+description: Interactively collects app name and description from the user, then runs all steps to create and build the Orca sub-app automatically. No UI required.
 ---
 
 # Create an Orca Sub-App
 
-## Step 1 — Parse inputs
+## Step 1 — Collect app name
 
-Extract from the user message:
+Ask the user this exact question and wait for their reply before doing anything else:
 
-- `APP_NAME` — the value after `App name:` (must be kebab-case, no spaces, e.g. `leave-tracker`)
-- `DESCRIPTION` — the value after `What it does:`
+> What would you like to name your app? (use kebab-case, e.g. `leave-tracker`)
 
-If either value is missing or blank, ask the user for it before continuing. Do not proceed with placeholders.
+Store the reply as `APP_NAME`.
 
-## Step 2 — Start immediately
+## Step 2 — Collect app description
 
-Do not summarise, confirm, or ask follow-up questions. Fetch and follow the full build instructions at:
+Once you have `APP_NAME`, ask this exact question and wait for their reply:
+
+> What does your app do? (one or two sentences is fine)
+
+Store the reply as `DESCRIPTION`.
+
+## Step 3 — Start immediately
+
+Do not summarise, confirm, or ask further questions. Fetch and follow the full build instructions at:
 
 ```
 https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/create-orca-sub-app/SKILL.md
 ```
 
-Use the `APP_NAME` and `DESCRIPTION` extracted above as the skill inputs and run every step automatically.
+Use the `APP_NAME` and `DESCRIPTION` collected above as the skill inputs and run every step automatically.
