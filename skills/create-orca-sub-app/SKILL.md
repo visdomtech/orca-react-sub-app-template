@@ -341,7 +341,7 @@ If `bun run build` fails with TypeScript errors, fix them before continuing — 
 
 ---
 
-## Step 5 — Create the zip and offer it for download
+## Step 5 — Create the zip
 
 Zip the `dist/` folder only — that's what Orca needs. Save the zip inside the app folder.
 
@@ -355,7 +355,29 @@ zip -r ~/{{APP_NAME}}/{{APP_NAME}}.zip ~/{{APP_NAME}}/dist
 Compress-Archive -Path "$env:USERPROFILE\{{APP_NAME}}\dist" -DestinationPath "$env:USERPROFILE\{{APP_NAME}}\{{APP_NAME}}.zip" -Force
 ```
 
-Then open the folder so the user can save the zip wherever they like:
+---
+
+## Step 6 — Start the local dev server
+
+Run from inside the app folder (leave it running in the background):
+
+**Mac / Linux:**
+```bash
+bun run dev &
+```
+
+**Windows (PowerShell):**
+```powershell
+Start-Process bun -ArgumentList "run", "dev" -NoNewWindow
+```
+
+---
+
+## Step 7 — Present deliverables
+
+Open the zip folder, then show all three deliverables in a **single message**. Never split them across separate messages.
+
+Open the folder with the zip selected:
 
 **Mac / Linux:**
 ```bash
@@ -367,30 +389,39 @@ open -R ~/{{APP_NAME}}/{{APP_NAME}}.zip
 explorer.exe /select,"$env:USERPROFILE\{{APP_NAME}}\{{APP_NAME}}.zip"
 ```
 
-Tell the user:
-> "A file explorer window has opened with **{{APP_NAME}}.zip** selected. Save it to a location you'll remember — you'll need to upload it to Orca in the next step."
+Then output this summary with all placeholders substituted:
 
 ---
 
-## Step 6 — Start the local server
+**Your app is ready. Here are your deliverables:**
 
-Run from inside the app folder:
+**1 — Registration info**
 
-```bash
-bunx serve dist --cors -l 4174
-```
+Go to **System Admin → Sub-App Registry**, click **Add App**, and fill in the fields below. Leave **Remote URL blank** — you will add it after uploading and building.
 
-Leave the server running. Closing the terminal stops the app.
+| Field | Value |
+|---|---|
+| ID | `{{APP_NAME}}` |
+| Route | `/orca/{{APP_NAME}}` |
+| Title | `{{DISPLAY_NAME}}` |
+| Description | *(one sentence from the user's original description)* |
+| Icon ID | *(pick best fit: `assignment` `checklist` `groups` `star` `security` `apps` `inventory` `person` `work`)* |
+| Icon Background | `bg-indigo-500` |
+| Badge | *(leave empty)* |
+| Display Order | `0` |
+| Admin Only | unchecked |
+| Remote URL | *(leave blank)* |
+| Exposed Module | `./OrcaApp` |
+
+**2 — Local preview**
+
+[http://localhost:4173](http://localhost:4173) — opens with mock data so you can review the UI without the Orca backend.
+
+**3 — Zip file**
+
+A file explorer window has opened with **{{APP_NAME}}.zip** selected. Save it somewhere you'll find it — you'll need to upload it to Orca in the next step.
 
 ---
-
-## Step 7 — Register in Orca
-
-Fetch and follow:
-
-```
-https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/register-orca-sub-app/SKILL.md
-```
 
 ---
 
@@ -402,9 +433,9 @@ Before declaring done:
 - [ ] All boilerplate files written with `{{APP_NAME}}` substituted
 - [ ] Feature files generated and typecheck passes
 - [ ] `dist/app.js` exists after build
-- [ ] Deployment zip saved on Desktop as `{{APP_NAME}}.zip`
-- [ ] Server running at `http://localhost:4174`
-- [ ] Registration table shown with all fields filled in
+- [ ] Zip created at `~/{{APP_NAME}}/{{APP_NAME}}.zip`
+- [ ] Dev server running at `http://localhost:4173`
+- [ ] All three deliverables shown in a single message: registration table, local URL, zip file
 
 ---
 

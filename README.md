@@ -6,7 +6,7 @@ Mini-apps that plug into the Orca platform. Build it, host it, and Orca loads it
 
 ## Step 1 — Create your app
 
-Open **Claude Desktop**, click **Code**, and paste this:
+Open **Claude Desktop**, click **Code**, and paste this (replace the placeholders with your app name and description):
 
 ```
 Fetch and follow the skill at: https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/guide-react-app/SKILL.md
@@ -23,14 +23,7 @@ Allow every permission Claude asks for. When it finishes, a file explorer will o
 
 Go to **System Admin → Sub-App Registry** (`/orca/sysadmin/apps`) and follow these steps:
 
-**2a — Create the app entry**
-Click **Add App**, fill in the fields Claude provides, and leave **Remote URL blank**.
-
-**2b — Upload and build**
-Click the **Builds** icon on your app row → **New Build** → select the zip → **Start Build**.
-
-**2c — Set the Remote URL**
-Once the build succeeds, copy the Remote URL the system shows. Edit your app and paste it into the **Remote URL** field.
-
-**2d — Reload Orca**
-Press **Ctrl+Shift+R**. Your app will appear under Extensions.
+- Click **Add App**, fill in the fields Claude provides, and leave **Remote URL blank**
+- Click the **Builds** icon on your app row → **New Build** → select the zip → **Start Build**
+- Once the build succeeds, copy the Remote URL the system shows. Edit your app and paste it into the **Remote URL** field
+- Press **Ctrl+Shift+R** to reload. Your app will appear under Extensions
