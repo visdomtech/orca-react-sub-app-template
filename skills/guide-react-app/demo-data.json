@@ -1,0 +1,140 @@
+{
+  "meta": {
+    "skill": "guide-react-app",
+    "version": "1.0.0",
+    "description": "Demo data for the non-technical React app walkthrough. Each step is shown as a visual card in Claude Desktop App.",
+    "total_duration_estimate_minutes": 10,
+    "audience": "non-technical users with no coding background"
+  },
+  "steps": [
+    {
+      "id": 1,
+      "phase": "Setup",
+      "title": "Check your toolbox is ready",
+      "explanation": "Before we build anything, I need to make sure your computer has the tools React needs. Think of this like checking you have flour before baking a cake. This takes about 5 seconds.",
+      "command": "node --version && bun --version",
+      "expected_output_snippet": "v",
+      "success_message": "Your computer is ready to go!",
+      "failure_message": "One of the tools isn't installed yet. I'll install it for you now — this only happens once.",
+      "screenshot_hint": "Claude Desktop App shows a green checkmark next to two version numbers like v22.x.x and 1.x.x",
+      "duration_seconds": 5,
+      "on_failure": {
+        "fix_command": "curl -fsSL https://bun.sh/install | bash",
+        "fix_explanation": "Installing the 'Bun' toolbox — this is a one-time setup. About 30 seconds."
+      }
+    },
+    {
+      "id": 2,
+      "phase": "Setup",
+      "title": "Create your app folder",
+      "explanation": "I'm going to create a brand-new folder on your Desktop called '{app_name}'. Everything for your website will live inside it. It's like opening a fresh sketchbook.",
+      "command": "bunx create-vite@latest {app_name} --template react-ts",
+      "expected_output_snippet": "Done. Now run",
+      "success_message": "Your app folder is created! It already has a working website inside.",
+      "failure_message": "Couldn't create the folder. Most likely the name has a space or special character — I'll try a safe version of the name.",
+      "screenshot_hint": "Claude Desktop App shows a folder tree animation with files appearing: index.html, src/App.tsx, package.json",
+      "duration_seconds": 8,
+      "variables": {
+        "app_name": "my-first-app"
+      }
+    },
+    {
+      "id": 3,
+      "phase": "Setup",
+      "title": "Step inside your new app",
+      "explanation": "Now I need to 'walk into' the folder I just created. This is like opening a book to the first page before you can read it.",
+      "command": "cd {app_name}",
+      "expected_output_snippet": "",
+      "success_message": "We're inside your app folder. Ready for the next step.",
+      "failure_message": "Couldn't find the folder — let me double-check it was created.",
+      "screenshot_hint": "Claude Desktop App shows the current directory path updating to ~/Desktop/my-first-app",
+      "duration_seconds": 1,
+      "variables": {
+        "app_name": "my-first-app"
+      }
+    },
+    {
+      "id": 4,
+      "phase": "Setup",
+      "title": "Install all the ingredients",
+      "explanation": "Your app needs a few helper libraries — like ingredients in a recipe. I'm downloading them now from the internet. This is the slowest step, about 15 seconds. You'll see a progress bar.",
+      "command": "bun install",
+      "expected_output_snippet": "packages installed",
+      "success_message": "All ingredients downloaded! Your app is fully stocked.",
+      "failure_message": "Download failed — your internet connection might have hiccupped. I'll retry once.",
+      "screenshot_hint": "Claude Desktop App shows a live progress bar with package names scrolling by, then a final count like '14 packages installed in 3.4s'",
+      "duration_seconds": 15
+    },
+    {
+      "id": 5,
+      "phase": "Customize",
+      "title": "Put your name on it",
+      "explanation": "Let's make this feel like YOUR app. I'll change the heading on the homepage from the default 'Vite + React' to your name. You'll see the change the moment the browser refreshes — like magic.",
+      "command": "sed -i '' 's/Vite + React/{user_name}\\x27s App/g' src/App.tsx",
+      "expected_output_snippet": "",
+      "success_message": "Done! Your name is now on the homepage.",
+      "failure_message": "Couldn't update the file. I'll try a different approach.",
+      "screenshot_hint": "Claude Desktop App shows a side-by-side diff: left has 'Vite + React' in red, right has the user's name in green",
+      "duration_seconds": 2,
+      "variables": {
+        "user_name": "Alex"
+      },
+      "note": "Uses sed for demo simplicity. In production skill, use Edit tool for reliability."
+    },
+    {
+      "id": 6,
+      "phase": "Launch",
+      "title": "Start your website",
+      "explanation": "This is the exciting part. I'm starting a private web server on your computer so you can see your app in the browser. It only runs while your computer is on — we'll talk about sharing it with the world in the last step.",
+      "command": "bun run dev",
+      "expected_output_snippet": "localhost:5173",
+      "success_message": "Your website is running! Opening it in your browser now...",
+      "failure_message": "The server didn't start. Another app might be using the same door number (port). I'll try a different one.",
+      "screenshot_hint": "Claude Desktop App shows a terminal output block with a clickable URL: http://localhost:5173, and then a browser preview thumbnail of the React logo spinning",
+      "duration_seconds": 3,
+      "run_in_background": true,
+      "on_success_open_url": "http://localhost:5173"
+    },
+    {
+      "id": 7,
+      "phase": "Celebrate",
+      "title": "Your app is live!",
+      "explanation": "You built a real React app. It runs in the browser, has your name on it, and is ready to grow. Here's what you have so far and three things you can do next.",
+      "command": null,
+      "expected_output_snippet": null,
+      "success_message": "Congratulations! You just built your first React app.",
+      "failure_message": null,
+      "screenshot_hint": "Claude Desktop App shows a summary card with a green 'Done' banner, a screenshot of the running app, and three large next-step buttons",
+      "duration_seconds": 0,
+      "next_steps": [
+        {
+          "id": "a",
+          "label": "Change the text on the page",
+          "description": "I'll show you exactly which line to edit and what to type.",
+          "skill_or_prompt": "Open src/App.tsx and help me change the paragraph text."
+        },
+        {
+          "id": "b",
+          "label": "Add a button that does something",
+          "description": "We'll add a button that shows a message when you click it.",
+          "skill_or_prompt": "Add a button to my React app that shows an alert when clicked."
+        },
+        {
+          "id": "c",
+          "label": "Deploy it to the internet for free",
+          "description": "Put your app on a real URL anyone can visit using Netlify (free).",
+          "skill_or_prompt": "Deploy my React app to Netlify for free."
+        }
+      ]
+    }
+  ],
+  "glossary": {
+    "React": "A popular toolkit for building websites and apps. Made by Meta.",
+    "Bun": "A fast installer that downloads the tools your app needs.",
+    "Terminal / Shell": "The text window where I type commands. You don't need to use it directly.",
+    "Port": "Like a door number on your computer — each running app needs its own.",
+    "Dev server": "A mini web server that runs locally so only you can see it.",
+    "Build": "Packaging your app into a small, fast file ready for the internet.",
+    "Deploy": "Putting your app on the internet so anyone with the URL can visit it."
+  }
+}
