@@ -7,10 +7,10 @@ Mini-apps that plug into the Orca platform. Build it, host it, and Orca loads it
 ## Step 1 — Create your app
 
 - Open [Claude Desktop](https://claude.ai/download) (install it first if you haven't), click the **Code** tab, and start a new session
-- Copy and paste the line below, then send it:
+- Create an Orca app using this skill — copy and paste the line below, then send it:
 
   ```
-  Fetch and follow the skill at: https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/guide-react-app/SKILL.md
+  Create an Orca app using this skill: https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/guide-react-app/SKILL.md
   ```
 
 - The agent will ask for your app name, then your app description — answer each question when prompted
