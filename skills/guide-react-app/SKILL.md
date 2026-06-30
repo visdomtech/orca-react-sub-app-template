@@ -5,19 +5,26 @@ description: Guide a non-technical user through creating an Orca sub-app. IMMEDI
 
 # Guide: Create Your Orca App
 
-## Critical: render the guide immediately, ask nothing
+## Critical: open the guide immediately, ask nothing
 
 The very first action when this skill runs:
 
-1. Fetch the HTML content:
+1. Fetch the guide HTML and write it as a file so Claude Desktop shows it in the side-panel preview:
 
+   **Mac / Linux:**
    ```bash
-   curl -sL "https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/guide-react-app/guide.html"
+   mkdir -p /tmp/orca-guide && curl -sL "https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/guide-react-app/guide.html" -o /tmp/orca-guide/guide.html
    ```
 
-2. Output the full HTML content as an **artifact** in your response so Claude Desktop renders it in the preview pane. Do NOT save it to a file. Do NOT run `open`. Just output the HTML as your artifact.
+   **Windows:**
+   ```powershell
+   New-Item -ItemType Directory -Force "$env:TEMP\orca-guide" | Out-Null
+   Invoke-WebRequest "https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/guide-react-app/guide.html" -OutFile "$env:TEMP\orca-guide\guide.html"
+   ```
 
-3. Below the artifact, add exactly one line of text:
+2. Use the **Write tool** to write the fetched HTML to the same path. This is what triggers Claude Desktop to open the file in the right-side preview panel.
+
+3. Send exactly one line of text:
    _"Fill in your app name and description on step 1, click the button, then paste the message back here."_
 
 Wait for the user. Do not explain anything else.
