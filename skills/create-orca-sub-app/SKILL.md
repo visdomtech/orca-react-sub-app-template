@@ -1,74 +1,27 @@
 ---
 name: create-orca-sub-app
-description: Clone the Orca sub-app template, configure it with the app name, build it, and start the local server. Called automatically from the guide UI after the user fills in their app name and description.
+description: Create all app files from scratch, build, zip, and start the local server. No git clone required. Called by guide-react-app after parsing the app name and description.
 ---
 
 # Create Orca Sub-App
 
 ## Inputs
 
-Received from `guide-react-app`:
-
 - `APP_NAME` — kebab-case identifier (e.g. `invoice-viewer`)
-- App description — used when registering in Orca
+- `DESCRIPTION` — one sentence describing what the app does
 
-Derived values:
+Derived values (compute before starting):
 
 | Variable | Rule | Example |
 |---|---|---|
-| `APP_NAME` | input | `invoice-viewer` |
-| `DISPLAY_NAME` | Title-cased words | `Invoice Viewer` |
+| `DISPLAY_NAME` | Title-cased words from APP_NAME | `Invoice Viewer` |
 | `ROUTE` | `/orca/APP_NAME` | `/orca/invoice-viewer` |
+| `COMPONENT_NAME` | PascalCase of APP_NAME | `InvoiceViewer` |
+| `FEATURE_NAME` | camelCase of APP_NAME | `invoiceViewer` |
 
 ---
 
-## Step 1 — Check and install prerequisites
-
-Check each tool and install it if missing. Do not skip this step even if you think the tool is already installed.
-
-### Git
-
-```bash
-git --version
-```
-
-If not found, install:
-
-**Windows:**
-```powershell
-winget install --id Git.Git -e --source winget
-```
-If `winget` is unavailable, download and run the installer silently:
-```powershell
-$installer = "$env:TEMP\git-installer.exe"
-Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/v2.47.0.windows.1/Git-2.47.0-64-bit.exe" -OutFile $installer
-Start-Process $installer -ArgumentList "/SILENT /NORESTART" -Wait
-$env:PATH = "C:\Program Files\Git\bin;$env:PATH"
-```
-
-**Mac:**
-```bash
-xcode-select --install
-```
-Or with Homebrew if Xcode tools are already installed:
-```bash
-brew install git
-```
-
-**Linux (Debian / Ubuntu):**
-```bash
-sudo apt-get update && sudo apt-get install -y git
-```
-**Linux (CentOS / RHEL / Fedora):**
-```bash
-sudo dnf install -y git
-```
-
-After installing, verify with `git --version` before continuing.
-
----
-
-### Bun
+## Step 1 — Check and install Bun
 
 ```bash
 bun --version
@@ -82,69 +35,302 @@ curl -fsSL https://bun.sh/install | bash
 export PATH="$HOME/.bun/bin:$PATH"
 ```
 
-**Windows:**
+**Windows (PowerShell):**
 ```powershell
 powershell -ExecutionPolicy Bypass -Command "irm bun.sh/install.ps1 | iex"
 $env:PATH = "$env:USERPROFILE\.bun\bin;$env:PATH"
 ```
 
-After installing, verify with `bun --version` before continuing.
+Verify with `bun --version` before continuing.
 
 ---
 
-## Step 2 — Clone the template
+## Step 2 — Create the app folder and boilerplate files
 
-Save to the user's Desktop by default. No need to ask.
+Create the folder on the user's Desktop:
 
-**Mac / Linux:**
-```bash
-git clone https://github.com/visdomtech/orca-react-sub-app-template.git ~/Desktop/{{APP_NAME}}
-```
+**Mac / Linux:** `~/Desktop/{{APP_NAME}}/`
+**Windows:** `$env:USERPROFILE\Desktop\{{APP_NAME}}\`
 
-**Windows:**
-```powershell
-git clone https://github.com/visdomtech/orca-react-sub-app-template.git "$env:USERPROFILE\Desktop\{{APP_NAME}}"
-```
+Then write every file below exactly as shown, substituting `{{APP_NAME}}` throughout.
 
 ---
 
-## Step 3 — Set the app name
+### `package.json`
 
-Two files need updating inside the cloned folder:
-
-**`package.json`** — change the `name` field:
 ```json
-"name": "{{APP_NAME}}"
+{
+  "name": "{{APP_NAME}}",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.62.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@originjs/vite-plugin-federation": "^1.4.1",
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0"
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "react-dom": "^19"
+  }
+}
 ```
-
-**`vite.config.ts`** — change the federation `name`:
-```ts
-federation({
-  name: "{{APP_NAME}}",
-  ...
-})
-```
-
-The federation `name` must be globally unique across all running sub-apps.
 
 ---
 
-## Step 3b — Generate feature code
+### `vite.config.ts`
 
-Compute these derived values before continuing:
+```typescript
+import { resolve } from "path";
+import federation from "@originjs/vite-plugin-federation";
+import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 
-| Variable | Rule | Example |
-|---|---|---|
-| `COMPONENT_NAME` | PascalCase of APP_NAME | `InvoiceViewer` |
-| `FEATURE_NAME` | camelCase of APP_NAME | `invoiceViewer` |
+export default defineConfig({
+  plugins: [
+    react(),
+    tailwindcss(),
+    federation({
+      name: "{{APP_NAME}}",
+      filename: "app.js",
+      exposes: {
+        "./OrcaApp": "./src/OrcaApp.tsx",
+      },
+      shared: {
+        react: { singleton: true, requiredVersion: "^19", eager: true },
+        "react-dom": { singleton: true, requiredVersion: "^19", eager: true },
+      },
+    }),
+  ],
+  build: {
+    target: "esnext",
+    outDir: resolve(__dirname, "dist"),
+    assetsDir: "",
+    sourcemap: true,
+  },
+  server: {
+    port: 4173,
+  },
+});
+```
 
-Then follow **scaffold-orca-sub-app** to generate the feature-specific source files tailored to the user's app description.
+---
+
+### `tsconfig.json`
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleDetection": "force"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+---
+
+### `index.html`
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{DISPLAY_NAME}} — Dev Preview</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+```
+
+---
+
+### `src/main.tsx`
+
+```tsx
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import OrcaApp from "./OrcaApp";
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <OrcaApp />
+  </StrictMode>
+);
+```
+
+---
+
+### `src/index.css`
+
+```css
+@import "tailwindcss";
+```
+
+---
+
+### `src/api/httpClient.ts`
+
+```typescript
+const DEFAULT_TIMEOUT = 30_000;
+
+export class HttpError extends Error {
+  response?: { code?: string; message?: string };
+
+  constructor(message: string, response?: { code?: string; message?: string }) {
+    super(message);
+    this.name = "HttpError";
+    this.response = response;
+  }
+}
+
+async function rawRequest<R>(
+  method: string,
+  endpoint: string,
+  payload?: unknown
+): Promise<R> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
+
+  try {
+    const response = await fetch(endpoint, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: payload !== undefined ? JSON.stringify(payload) : undefined,
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      let errorBody: { code?: string; message?: string } | undefined;
+      try {
+        errorBody = await response.json();
+      } catch {
+        // response body is not JSON
+      }
+      throw new HttpError(
+        errorBody?.message ?? `HTTP ${response.status}: ${response.statusText}`,
+        errorBody
+      );
+    }
+
+    if (response.status === 204) return undefined as R;
+    return response.json() as Promise<R>;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof HttpError) throw error;
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new HttpError("Request timed out");
+    }
+    throw new HttpError(error instanceof Error ? error.message : "Network error");
+  }
+}
+
+export const httpClient = {
+  get: <R>(endpoint: string): Promise<R> =>
+    rawRequest<R>("GET", endpoint),
+  post: <R, P = unknown>(endpoint: string, payload: P): Promise<R> =>
+    rawRequest<R>("POST", endpoint, payload),
+  put: <R, P = unknown>(endpoint: string, payload: P): Promise<R> =>
+    rawRequest<R>("PUT", endpoint, payload),
+  patch: <R, P = unknown>(endpoint: string, payload: P): Promise<R> =>
+    rawRequest<R>("PATCH", endpoint, payload),
+  delete: <R>(endpoint: string): Promise<R> =>
+    rawRequest<R>("DELETE", endpoint),
+};
+```
+
+---
+
+### `src/api/secured.ts`
+
+```typescript
+export const secured = (path: string) => "/app/api/v1/s" + path;
+export const securedv2 = (path: string) => "/app/api/v2/s" + path;
+export const securedv3 = (path: string) => "/app/api/v3/s" + path;
+export const securedv4 = (path: string) => "/app/api/v4/s" + path;
+```
+
+---
+
+### `src/api/types.ts`
+
+```typescript
+export interface Response<T> {
+  success: true;
+  data: T;
+}
+
+export type ListResponse<T> = Response<{ items: T[]; pageKey?: string }>;
+
+export interface ValidationError {
+  field: string;
+  message: string;
+}
+
+export interface ResponseError {
+  response?: { code?: string; errors?: ValidationError[] };
+}
+
+export interface Pageable {
+  pageKey?: string;
+  size?: number | "all";
+}
+```
+
+---
+
+## Step 3 — Generate feature code
+
+Fetch and follow:
+
+```
+https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/scaffold-orca-sub-app/SKILL.md
+```
+
+Pass `APP_NAME`, `COMPONENT_NAME`, `FEATURE_NAME`, `DISPLAY_NAME`, and `DESCRIPTION` as inputs.
 
 ---
 
 ## Step 4 — Install and build
 
-Run from inside the cloned folder. Wait for each command to finish.
+Run from inside the app folder. Wait for each command to finish.
 
 ```bash
 bun install
@@ -155,9 +341,9 @@ If `bun run build` fails with TypeScript errors, fix them before continuing — 
 
 ---
 
-## Step 5 — Create the deployment zip
+## Step 5 — Create the zip
 
-Zip only the `dist/` folder — that's all the remote server needs to serve.
+Zip the `dist/` folder only — that's what Orca needs.
 
 **Mac / Linux:**
 ```bash
@@ -165,7 +351,7 @@ cd ~/Desktop
 zip -r {{APP_NAME}}.zip {{APP_NAME}}/dist
 ```
 
-**Windows:**
+**Windows (PowerShell):**
 ```powershell
 Compress-Archive -Path "$env:USERPROFILE\Desktop\{{APP_NAME}}\dist" -DestinationPath "$env:USERPROFILE\Desktop\{{APP_NAME}}.zip" -Force
 ```
@@ -177,6 +363,8 @@ Tell the user:
 
 ## Step 6 — Start the local server
 
+Run from inside the app folder:
+
 ```bash
 bunx serve dist --cors -l 4174
 ```
@@ -187,7 +375,11 @@ Leave the server running. Closing the terminal stops the app.
 
 ## Step 7 — Register in Orca
 
-Follow **register-orca-sub-app** to show the completed registration table.
+Fetch and follow:
+
+```
+https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/register-orca-sub-app/SKILL.md
+```
 
 ---
 
@@ -195,10 +387,11 @@ Follow **register-orca-sub-app** to show the completed registration table.
 
 Before declaring done:
 
-- [ ] `git --version` and `bun --version` both succeed
-- [ ] `name` in `vite.config.ts` and `package.json` both equal `APP_NAME`
-- [ ] `bun run build` succeeded — `dist/app.js` exists
-- [ ] Deployment zip created on Desktop as `{{APP_NAME}}.zip`
+- [ ] `bun --version` succeeds
+- [ ] All boilerplate files written with `{{APP_NAME}}` substituted
+- [ ] Feature files generated and typecheck passes
+- [ ] `dist/app.js` exists after build
+- [ ] Deployment zip saved on Desktop as `{{APP_NAME}}.zip`
 - [ ] Server running at `http://localhost:4174`
 - [ ] Registration table shown with all fields filled in
 
