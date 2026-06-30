@@ -165,7 +165,7 @@ const STEPS = [
 ];
 
 let current = 0;
-let appName = "my-orca-app";
+let appName = "";
 let appDescription = "";
 
 function toTitle(s) {
@@ -192,19 +192,27 @@ function render() {
       <div class="step-title">${step.title}</div>
       <div class="step-text">${step.text}</div>
       <label>App name <span style="color:#334155;font-weight:400">(no spaces — e.g. leave-tracker)</span></label>
-      <input type="text" id="nameInput" value="${appName}" placeholder="my-orca-app" />
+      <input type="text" id="nameInput" placeholder="my-orca-app" />
       <label>What should it do?</label>
       <textarea id="descInput" placeholder="e.g. A checklist for new employees to complete their onboarding tasks.">${appDescription}</textarea>
+      <label style="margin-top:4px">Message for Claude <span style="color:#334155;font-weight:400">(copy &amp; paste into the chat)</span></label>
+      <div style="position:relative;margin-bottom:18px">
+        <textarea id="msgPreview" readonly style="background:#0a0a14;border:1.5px solid #1e2030;border-radius:8px;width:100%;padding:12px 14px 12px 14px;color:#818cf8;font-family:'Courier New',monospace;font-size:0.8rem;line-height:1.6;min-height:88px;resize:none;margin-bottom:0"></textarea>
+        <button class="copy-btn" style="top:8px;right:8px" onclick="copyMsg()">copy</button>
+      </div>
       <div class="btn-row">
-        <button class="btn-primary" onclick="startBuild()">Ask Claude to build this →</button>
+        <button class="btn-primary" onclick="startBuild()">Next →</button>
       </div>
     `;
     document.getElementById("nameInput").addEventListener("input", e => {
       appName = e.target.value.trim().replace(/\s+/g, "-").toLowerCase() || "my-orca-app";
+      refreshMsg();
     });
     document.getElementById("descInput").addEventListener("input", e => {
       appDescription = e.target.value.trim();
+      refreshMsg();
     });
+    refreshMsg();
 
   } else if (step.type === "auto") {
     const cmd = sub(step.command);
@@ -248,19 +256,39 @@ function render() {
   renderDots();
 }
 
+function buildMsg() {
+  const name = appName || "my-orca-app";
+  const desc = appDescription || "(to be described)";
+  return `Please build an Orca sub-app for me.\nApp name: ${name}\nWhat it does: ${desc}`;
+}
+
+function refreshMsg() {
+  const el = document.getElementById("msgPreview");
+  if (el) el.value = buildMsg();
+}
+
+function copyMsg() {
+  const msg = buildMsg();
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(msg)
+        .then(() => showToast("Copied! Paste into Claude chat."))
+        .catch(() => showToast("Select the text above and copy manually."));
+    } else {
+      showToast("Select the text above and copy manually.");
+    }
+  } catch(e) {
+    showToast("Select the text above and copy manually.");
+  }
+}
+
 function startBuild() {
   const nameEl = document.getElementById("nameInput");
   const descEl = document.getElementById("descInput");
-  appName = (nameEl?.value || "my-orca-app").trim().replace(/\s+/g, "-").toLowerCase() || "my-orca-app";
+  appName = (nameEl?.value || "").trim().replace(/\s+/g, "-").toLowerCase() || "my-orca-app";
   appDescription = descEl?.value?.trim() || "";
-  const msg = `Please build an Orca sub-app for me.\nApp name: ${appName}\nWhat it does: ${appDescription || "(to be described)"}`;
-  navigator.clipboard.writeText(msg).then(() => {
-    showToast("Copied! Paste into Claude chat and press Enter.");
-    setTimeout(() => go(1), 1400);
-  }).catch(() => {
-    showToast("Click inside the chat and paste manually.");
-    setTimeout(() => go(1), 1400);
-  });
+  copyMsg();
+  go(1);
 }
 
 function go(n) {
