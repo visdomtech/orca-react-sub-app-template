@@ -131,7 +131,7 @@ const STEPS = [
   {
     label: "Step 2 of 6",
     title: "Check your tools",
-    text: "<strong>Claude runs this for you.</strong> It checks that Git and Bun are installed on your computer. Takes about 5 seconds.",
+    text: "<strong>Claude runs this for you.</strong> It checks whether Git and Bun are installed — and installs either one automatically if it's missing. Usually takes under a minute.",
     type: "auto",
     command: "git --version && bun --version",
   },
@@ -145,7 +145,7 @@ const STEPS = [
   {
     label: "Step 4 of 6",
     title: "Build your app",
-    text: "<strong>Claude runs this for you.</strong> It packages everything into a single file that Orca can load. Takes 10–20 seconds.",
+    text: "<strong>Claude runs this for you.</strong> It packages everything into a single file that Orca can load, then saves a <strong>deployment zip</strong> to your Desktop so you can upload it to a remote server later. Takes 10–20 seconds.",
     type: "auto",
     command: "cd {name} && bun run build",
   },
@@ -195,24 +195,16 @@ function render() {
       <input type="text" id="nameInput" placeholder="my-orca-app" />
       <label>What should it do?</label>
       <textarea id="descInput" placeholder="e.g. A checklist for new employees to complete their onboarding tasks.">${appDescription}</textarea>
-      <label style="margin-top:4px">Message for Claude <span style="color:#334155;font-weight:400">(copy &amp; paste into the chat)</span></label>
-      <div style="position:relative;margin-bottom:18px">
-        <textarea id="msgPreview" readonly style="background:#0a0a14;border:1.5px solid #1e2030;border-radius:8px;width:100%;padding:12px 14px 12px 14px;color:#818cf8;font-family:'Courier New',monospace;font-size:0.8rem;line-height:1.6;min-height:88px;resize:none;margin-bottom:0"></textarea>
-        <button class="copy-btn" style="top:8px;right:8px" onclick="copyMsg()">copy</button>
-      </div>
       <div class="btn-row">
         <button class="btn-primary" onclick="startBuild()">Next →</button>
       </div>
     `;
     document.getElementById("nameInput").addEventListener("input", e => {
       appName = e.target.value.trim().replace(/\s+/g, "-").toLowerCase() || "my-orca-app";
-      refreshMsg();
     });
     document.getElementById("descInput").addEventListener("input", e => {
       appDescription = e.target.value.trim();
-      refreshMsg();
     });
-    refreshMsg();
 
   } else if (step.type === "auto") {
     const cmd = sub(step.command);
@@ -256,38 +248,13 @@ function render() {
   renderDots();
 }
 
-function buildMsg() {
-  const name = appName || "my-orca-app";
-  const desc = appDescription || "(to be described)";
-  return `Please build an Orca sub-app for me.\nApp name: ${name}\nWhat it does: ${desc}`;
-}
-
-function refreshMsg() {
-  const el = document.getElementById("msgPreview");
-  if (el) el.value = buildMsg();
-}
-
-function copyMsg() {
-  const msg = buildMsg();
-  try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(msg)
-        .then(() => showToast("Copied! Paste into Claude chat."))
-        .catch(() => showToast("Select the text above and copy manually."));
-    } else {
-      showToast("Select the text above and copy manually.");
-    }
-  } catch(e) {
-    showToast("Select the text above and copy manually.");
-  }
-}
-
 function startBuild() {
   const nameEl = document.getElementById("nameInput");
   const descEl = document.getElementById("descInput");
   appName = (nameEl?.value || "").trim().replace(/\s+/g, "-").toLowerCase() || "my-orca-app";
   appDescription = descEl?.value?.trim() || "";
-  copyMsg();
+  const msg = `/guide-react-app\nApp name: ${appName}\nWhat it does: ${appDescription || "(to be described)"}`;
+  sendPrompt(msg);
   go(1);
 }
 
@@ -302,7 +269,11 @@ function finish() {
     <div class="complete-title">Your app is live in Orca!</div>
     <div class="complete-text">
       Open Orca and go to <strong>/orca/${appName}</strong> to see it.<br><br>
-      Keep the terminal window Claude opened running —<br>closing it stops the app.
+      To deploy remotely, find <strong>${appName}.zip</strong> on your Desktop —
+      upload it to your server, extract the <code style="background:#1e2030;padding:2px 6px;border-radius:4px;font-size:0.85em">dist/</code> folder,
+      and serve <code style="background:#1e2030;padding:2px 6px;border-radius:4px;font-size:0.85em">app.js</code> with CORS enabled.
+      Then update the Remote URL in Orca to point to your server.<br><br>
+      Keep the terminal window Claude opened running —<br>closing it stops the local server.
     </div>
     <div class="btn-row">
       <button class="btn-primary" onclick="location.reload()">Build another app</button>
@@ -311,7 +282,16 @@ function finish() {
 }
 
 function copyText(text) {
-  navigator.clipboard.writeText(text.replace(/\\n/g, "\n")).then(() => showToast("Copied!"));
+  const str = text.replace(/\\n/g, "\n");
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(str).then(() => showToast("Copied!")).catch(() => showToast("Copy failed."));
+    } else {
+      showToast("Copy not available.");
+    }
+  } catch(e) {
+    showToast("Copy not available.");
+  }
 }
 
 function showToast(msg) {
