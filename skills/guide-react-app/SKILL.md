@@ -5,24 +5,20 @@ description: Guide a non-technical user through creating an Orca sub-app. IMMEDI
 
 # Guide: Create Your Orca App
 
-## Critical: open the guide immediately, ask nothing
+## Critical: render the guide immediately, ask nothing
 
 The very first action when this skill runs:
 
-1. Open `guide.html` from this skill's folder:
+1. Fetch the HTML content:
 
-   **Mac / Linux:**
    ```bash
-   open "$(pwd)/skills/guide-react-app/guide.html"
+   curl -sL "https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/guide-react-app/guide.html"
    ```
 
-   **Windows:**
-   ```powershell
-   Start-Process "$(Get-Location)\skills\guide-react-app\guide.html"
-   ```
+2. Output the full HTML content as an **artifact** in your response so Claude Desktop renders it in the preview pane. Do NOT save it to a file. Do NOT run `open`. Just output the HTML as your artifact.
 
-2. Send exactly one chat message:
-   _"Your guide is open — fill in your app name and description on step 1, then click the button and paste the message here."_
+3. Below the artifact, add exactly one line of text:
+   _"Fill in your app name and description on step 1, click the button, then paste the message back here."_
 
 Wait for the user. Do not explain anything else.
 
