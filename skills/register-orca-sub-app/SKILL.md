@@ -13,7 +13,7 @@ description: Show the Orca registration table with all field values filled in fo
 
 Tell the user:
 
-> "To add your app to Orca, go to **Settings → Apps** (`/orca/sysadmin/apps`), click **Add App**, and fill in every field using the values below:"
+> "To add your app to Orca, go to **System Admin → Sub-App Registry** (`/orca/sysadmin/apps`), click **Add App**, and fill in every field using the values below:"
 
 Then show this table with all placeholders substituted:
 
@@ -28,9 +28,9 @@ Then show this table with all placeholders substituted:
 | Badge | *(leave empty)* |
 | Display Order | `0` |
 | Admin Only | unchecked |
-| Remote URL | `http://localhost:4174/app.js` |
+| Remote URL | *(leave blank — you will fill this in after uploading and building)* |
 | Exposed Module | `./OrcaApp` |
 
 Then tell the user:
 
-> "After clicking Save, press **Ctrl+Shift+R** in Orca to reload the route registry. Your app card will appear on the home page under Extensions."
+> "After clicking **Create**, click the **Builds** icon (hammer) on your app row. Click **New Build**, upload the zip file you just downloaded, and click **Start Build**. Once the build succeeds, copy the Remote URL the system shows you, then edit your app and paste it into the **Remote URL** field. Finally, press **Ctrl+Shift+R** to reload Orca — your app card will appear under Extensions."
