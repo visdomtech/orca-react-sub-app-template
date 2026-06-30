@@ -1,6 +1,6 @@
 ---
 name: guide-react-app
-description: Walk a non-technical user through creating a frontend React app. Generates a self-contained HTML guide page and opens it in the browser as the primary UI — no terminal interaction required. Use when a user has no coding background and wants to build their first React app.
+description: Walk a non-technical user through creating a frontend React app. IMMEDIATELY generates a self-contained HTML guide page and opens it in the browser — do NOT ask any questions first, do NOT wait for input. Use when a user has no coding background and wants to build their first React app.
 ---
 
 # Guide: Build Your First React App (Non-Technical)
@@ -13,53 +13,60 @@ description: Walk a non-technical user through creating a frontend React app. Ge
 
 ---
 
+## CRITICAL: Act First, Ask Nothing
+
+**DO NOT ask the user any questions before generating the HTML page.**
+**DO NOT collect inputs upfront.**
+**DO NOT explain what you are about to do.**
+
+The very first action when this skill runs is:
+1. Read `demo-data.json`
+2. Write `guide.html` to `/tmp/guide-react-app/guide.html`
+3. Run `open /tmp/guide-react-app/guide.html`
+4. Say one sentence in chat: "Your guide is open in the browser — follow the steps there."
+
+Use `my-first-app` as the default `app_name`. The HTML page has an editable name
+field so the user can change it without ever coming back to chat.
+
+---
+
 ## How It Works
 
 **The primary UI is an HTML page, not the chat window.**
 
-When this skill starts, Claude generates a single self-contained `guide.html` file
-from `demo-data.json` and opens it in the user's default browser. That page becomes
-the visual control panel for the entire session. Claude's chat replies are kept
-minimal — the HTML page does the talking.
-
 ```
-demo-data.json  ──▶  Claude generates  ──▶  guide.html  ──▶  browser opens
-                                                │
-                          user reads steps, clicks "Run" buttons
-                                                │
-                          Claude executes commands, updates page
+demo-data.json  ──▶  Claude writes guide.html  ──▶  open in browser  ──▶  done
+                                                           │
+                              user reads steps, clicks "Run this step"
+                                                           │
+                              Claude executes, page updates with result
 ```
-
----
-
-## Inputs
-
-| Field | Required | Description |
-|-------|----------|-------------|
-| `app_name` | Yes | The name the user wants for their app (e.g. "my-portfolio") |
-| `destination` | No | Where to create the app (defaults to `~/Desktop`) |
-
-Ask for these upfront in a single friendly message before generating the page.
 
 ---
 
 ## Step-by-Step Flow
 
-### 1. Collect inputs
-
-Ask the user:
-
-> "What do you want to call your app? (e.g. 'my-portfolio', 'recipe-site') — no
-> spaces, use dashes."
-
-### 2. Read demo-data.json
+### 1. Read demo-data.json
 
 Load all steps, the glossary, and meta from `demo-data.json` in this folder.
-Substitute `{app_name}` and `{user_name}` in command and explanation strings.
+Default `{app_name}` to `my-first-app` and `{user_name}` to `there` — the user
+overrides these inside the HTML page, never in chat.
 
-### 3. Generate guide.html
+### 2. Write guide.html and open it immediately
 
-Write `guide.html` to a temp location (e.g. `/tmp/guide-react-app/guide.html`).
+Write to `/tmp/guide-react-app/guide.html` then open it:
+
+```bash
+mkdir -p /tmp/guide-react-app
+# write file, then:
+open /tmp/guide-react-app/guide.html
+```
+
+After opening, send exactly one chat message: _"Your guide is open in the browser —
+follow the steps there."_ Say nothing else.
+
+### 3. guide.html requirements
+
 The page must be **fully self-contained** (no CDN, no external fetches) and include:
 
 #### Page structure
@@ -99,6 +106,10 @@ The page must be **fully self-contained** (no CDN, no external fetches) and incl
 - ⏳ in progress (blue, pulsing)
 - ✅ success (green)
 - ❌ failed (red, with retry button)
+
+**App name field** — shown at the top of the page, pre-filled with `my-first-app`.
+The user can edit it in-place; JS substitutes it into all command previews on change.
+This replaces any need to ask the user for their app name in chat.
 
 **Active step panel** — shows for the current step:
 - Step number and title (large, friendly font)
@@ -143,19 +154,7 @@ Alternatively, if the Claude Desktop App supports direct tool invocation from th
 page, wire the button to `window.claude?.runBash(command)` if available, falling
 back to the clipboard approach.
 
-### 4. Open the page
-
-```bash
-open /tmp/guide-react-app/guide.html   # macOS
-# or
-xdg-open /tmp/guide-react-app/guide.html  # Linux
-```
-
-Tell the user in chat:
-> "I've opened your guide in the browser. Follow the steps there — click
-> 'Tell Claude to run this' for each step and paste it back here."
-
-### 5. Execute steps on demand
+### 4. Execute steps on demand
 
 When the user pastes `/run-step {id}`, Claude:
 
@@ -177,14 +176,14 @@ The user pastes this back into the guide page's output area (or the page polls f
 it if Claude Desktop App exposes a message bus). The sidebar and progress bar update
 automatically via JS.
 
-### 6. Handle failures
+### 5. Handle failures
 
 On failure, the page shows an error panel:
 - Red banner: plain-English error message from `failure_message`
 - Two buttons: **"Try again"** and **"Skip this step"**
 - Collapsible "Show technical details" for the raw error (hidden by default)
 
-### 7. Completion
+### 6. Completion
 
 When step 7 completes, the page transitions to the celebration screen. Claude sends
 one final chat message:
