@@ -13,12 +13,15 @@ Orca fetches your app's built file (`dist/app.js`) from a URL you register in th
 ## Create your app
 
 1. Install [Claude Desktop](https://claude.ai/download) if you don't have it
-2. Open Claude Desktop, select the **Code** tab at the top, and start a new chat
-3. Copy the block below and paste it as your first message
+2. Open Claude Desktop and select the **Code** tab at the top
+3. Click **New Session** to start a fresh chat
+4. Copy the block below and paste it as your first message
 
 ```
 Please follow the skill at this URL to help me create an Orca sub-app:
 https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/guide-react-app/SKILL.md
 ```
+
+5. Click **Allow** whenever Claude asks for permission — it needs access to create files and run commands on your computer to build the app for you
 
 Claude will open a visual guide in your browser and walk you through every step.
