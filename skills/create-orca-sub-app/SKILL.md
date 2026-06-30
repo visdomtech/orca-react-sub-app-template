@@ -47,10 +47,10 @@ Verify with `bun --version` before continuing.
 
 ## Step 2 — Create the app folder and boilerplate files
 
-Create the folder on the user's Desktop:
+Create the folder in the user's home directory:
 
-**Mac / Linux:** `~/Desktop/{{APP_NAME}}/`
-**Windows:** `$env:USERPROFILE\Desktop\{{APP_NAME}}\`
+**Mac / Linux:** `~/{{APP_NAME}}/`
+**Windows:** `$env:USERPROFILE\{{APP_NAME}}\`
 
 Then write every file below exactly as shown, substituting `{{APP_NAME}}` throughout.
 
@@ -341,23 +341,34 @@ If `bun run build` fails with TypeScript errors, fix them before continuing — 
 
 ---
 
-## Step 5 — Create the zip
+## Step 5 — Create the zip and offer it for download
 
-Zip the `dist/` folder only — that's what Orca needs.
+Zip the `dist/` folder only — that's what Orca needs. Save the zip inside the app folder.
 
 **Mac / Linux:**
 ```bash
-cd ~/Desktop
-zip -r {{APP_NAME}}.zip {{APP_NAME}}/dist
+zip -r ~/{{APP_NAME}}/{{APP_NAME}}.zip ~/{{APP_NAME}}/dist
 ```
 
 **Windows (PowerShell):**
 ```powershell
-Compress-Archive -Path "$env:USERPROFILE\Desktop\{{APP_NAME}}\dist" -DestinationPath "$env:USERPROFILE\Desktop\{{APP_NAME}}.zip" -Force
+Compress-Archive -Path "$env:USERPROFILE\{{APP_NAME}}\dist" -DestinationPath "$env:USERPROFILE\{{APP_NAME}}\{{APP_NAME}}.zip" -Force
+```
+
+Then open the folder so the user can save the zip wherever they like:
+
+**Mac / Linux:**
+```bash
+open -R ~/{{APP_NAME}}/{{APP_NAME}}.zip
+```
+
+**Windows (PowerShell):**
+```powershell
+explorer.exe /select,"$env:USERPROFILE\{{APP_NAME}}\{{APP_NAME}}.zip"
 ```
 
 Tell the user:
-> "Your deployment zip is saved as **{{APP_NAME}}.zip** on your Desktop. Upload it to your server, extract the `dist/` folder, and serve `app.js` with CORS enabled. Then update the Remote URL in Orca to point to your server."
+> "A file explorer window has opened with **{{APP_NAME}}.zip** selected. Save it to a location you'll remember — you'll need to upload it to Orca in the next step."
 
 ---
 
