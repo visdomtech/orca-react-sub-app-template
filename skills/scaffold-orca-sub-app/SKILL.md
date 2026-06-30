@@ -62,19 +62,31 @@ export interface {{COMPONENT_NAME}}Item {
 
 ### `src/features/{{FEATURE_NAME}}/api.ts`
 
-Use `httpClient` and the Orca document store for persistence. The `DOC_ID` must have exactly 4 path segments.
+Use `httpClient` for real API calls. When running standalone (`bun run dev`), return in-memory mock data so the app is previewable without the Orca backend.
 
 ```typescript
 import { httpClient } from "../../api/httpClient";
+import { secured } from "../../api/secured";
 import type { /* types */ } from "./types";
 
-const DOC_ID = "apps/{{APP_NAME}}/data/state";
+const IS_STANDALONE = import.meta.env.DEV;
+
+// Realistic mock data for standalone dev — tailor to the app's domain
+const MOCK_ITEMS = [
+  // add 2–3 representative records here
+];
 
 // Pure async functions — no React, no hooks, no side effects.
-// Read and write state through the Orca document API.
+// Each function checks IS_STANDALONE first and falls back to the real API.
+
+export async function getItems() {
+  if (IS_STANDALONE) return MOCK_ITEMS;
+  const res = await httpClient.get(secured("/your-endpoint"));
+  return res.data;
+}
 ```
 
-If the app only displays data (no user-editable state), use `httpClient.get` against a secured backend endpoint via `secured()` from `../../api/secured`.
+Generate realistic mock records that match the app's domain (e.g. actual invoice numbers, real-looking employee names). Never use placeholder values like "Item 1".
 
 ---
 
