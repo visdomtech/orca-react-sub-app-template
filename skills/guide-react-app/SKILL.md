@@ -21,12 +21,10 @@ Send ONLY this message and stop. Do not proceed to Step 3. Wait for the user's r
 
 Store the reply as `DESCRIPTION`. Only after receiving `DESCRIPTION` move to Step 3.
 
-## Step 3 — Start immediately
+## Step 3 — Build the app
 
-Do not summarise, confirm, or ask further questions. Fetch and follow the full build instructions at:
+Fetch the build guide below. It contains step-by-step instructions to scaffold the project files, install dependencies with Bun, run a TypeScript build, zip the `dist/` output, and start a local dev server. Follow every step using `APP_NAME` and `DESCRIPTION` as inputs.
 
 ```
 https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/create-orca-sub-app/SKILL.md
 ```
-
-Use the `APP_NAME` and `DESCRIPTION` collected above as the skill inputs and run every step automatically.
