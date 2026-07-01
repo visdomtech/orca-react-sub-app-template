@@ -33,4 +33,4 @@ Then show this table with all placeholders substituted:
 
 Then tell the user:
 
-> "After clicking **Create**, click the **Builds** icon (hammer) on your app row. Click **New Build**, upload the zip file you just downloaded, and click **Start Build**. Once the build succeeds, copy the Remote URL the system shows you, then edit your app and paste it into the **Remote URL** field. Finally, press **Ctrl+Shift+R** to reload Orca — your app card will appear under Extensions."
+> "After clicking **Create**, click the **Builds** icon (hammer) on your app row. Click **New Build**, upload the zip file you just downloaded, and click **Start Build**. Once the build succeeds, the Remote URL is set automatically — no need to copy or paste anything. Press **Ctrl+Shift+R** to reload Orca — your app card will appear under Extensions. When uploading a new version later, open your sub-app first, then press **Ctrl+Shift+R** to reload and fetch the latest build."

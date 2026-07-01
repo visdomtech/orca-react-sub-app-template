@@ -14,7 +14,7 @@ Mini-apps that plug into the Orca platform. Build it, host it, and Orca loads it
   ```
 
 - The agent will ask for your app name, then your app description — answer each question when prompted
-- Allow every permission Claude asks for. When it finishes, a file explorer will open with your zip file — save it somewhere you'll find it.
+- Allow every permission Claude asks for.
 - You will end up with a ready-to-deploy `.zip` file, registration details to paste into Orca, and a local address where your app is already running for preview.
 
 ---
@@ -25,5 +25,5 @@ Go to **System Admin → Sub-App Registry** (`/orca/sysadmin/apps`) and follow t
 
 - Click **Add App**, fill in the fields Claude provides, and leave **Remote URL blank**
 - Click the **Builds** icon on your app row → **New Build** → select the zip → **Start Build**
-- Once the build succeeds, copy the Remote URL the system shows. Edit your app and paste it into the **Remote URL** field
-- Press **Ctrl+Shift+R** to reload. Your app will appear under Extensions
+
+- Once the build completes, open the sub-app and press **Ctrl+Shift+R** to reload and fetch the latest build.
