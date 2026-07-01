@@ -343,16 +343,25 @@ If `bun run build` fails with TypeScript errors, fix them before continuing — 
 
 ## Step 5 — Create the zip
 
-Zip the `dist/` folder only — that's what Orca needs. Save the zip inside the app folder.
+Zip the source files (excluding `dist`, `node_modules`, and `.git`) — the host will build the app from source when you upload this zip. Run from the parent folder of the app:
 
 **Mac / Linux:**
 ```bash
-zip -r ~/{{APP_NAME}}/{{APP_NAME}}.zip ~/{{APP_NAME}}/dist
+cd ~
+zip -r {{APP_NAME}}.zip {{APP_NAME}} \
+  --exclude '{{APP_NAME}}/dist/*' \
+  --exclude '{{APP_NAME}}/node_modules/*' \
+  --exclude '{{APP_NAME}}/.git/*'
+mv ~/{{APP_NAME}}.zip ~/{{APP_NAME}}/{{APP_NAME}}.zip
 ```
 
 **Windows (PowerShell):**
 ```powershell
-Compress-Archive -Path "$env:USERPROFILE\{{APP_NAME}}\dist" -DestinationPath "$env:USERPROFILE\{{APP_NAME}}\{{APP_NAME}}.zip" -Force
+$src = "$env:USERPROFILE\{{APP_NAME}}"
+$out = "$env:USERPROFILE\{{APP_NAME}}\{{APP_NAME}}.zip"
+Get-ChildItem -Path $src -Recurse |
+  Where-Object { $_.FullName -notmatch '\\dist\\' -and $_.FullName -notmatch '\\node_modules\\' -and $_.FullName -notmatch '\\.git\\' } |
+  Compress-Archive -DestinationPath $out -Force
 ```
 
 ---

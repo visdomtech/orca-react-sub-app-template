@@ -49,12 +49,13 @@ Leave the server running. Closing the terminal stops the app.
 
 ## Step 3 — Create the zip file
 
-Create a zip of the project (excluding `node_modules` and `.git`) next to the app folder so the user can share or archive the source.
+Create a zip of the source files (excluding `dist`, `node_modules`, and `.git`) next to the app folder. The host builds the app from source when you upload this zip.
 
 **Mac / Linux** (run from the parent folder):
 ```bash
 cd ..
 zip -r {{APP_NAME}}.zip {{APP_NAME}} \
+  --exclude '{{APP_NAME}}/dist/*' \
   --exclude '{{APP_NAME}}/node_modules/*' \
   --exclude '{{APP_NAME}}/.git/*'
 ```
@@ -64,7 +65,7 @@ zip -r {{APP_NAME}}.zip {{APP_NAME}} \
 $src = "{{APP_NAME}}"
 $out = "{{APP_NAME}}.zip"
 Get-ChildItem -Path $src -Recurse |
-  Where-Object { $_.FullName -notmatch '\\node_modules\\' -and $_.FullName -notmatch '\\.git\\' } |
+  Where-Object { $_.FullName -notmatch '\\dist\\' -and $_.FullName -notmatch '\\node_modules\\' -and $_.FullName -notmatch '\\.git\\' } |
   Compress-Archive -DestinationPath $out -Force
 ```
 
@@ -76,4 +77,4 @@ Tell the user:
 
 > "Your app is built and running at **http://localhost:4174**. Keep this window open — closing it stops the app.
 >
-> I've also saved **{{APP_NAME}}.zip** next to your app folder. You can share this file with a developer to deploy, or upload the `dist/` folder inside it to any static hosting service and update the Remote URL in Orca."
+> I've also saved **{{APP_NAME}}.zip** next to your app folder. Upload it to Orca via **Builds → New Build** and the host will build it automatically."
