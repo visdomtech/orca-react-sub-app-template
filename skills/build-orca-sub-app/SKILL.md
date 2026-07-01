@@ -55,18 +55,20 @@ Create a zip of the source files (excluding `dist`, `node_modules`, and `.git`) 
 ```bash
 cd ..
 zip -r {{APP_NAME}}.zip {{APP_NAME}} \
-  --exclude '{{APP_NAME}}/dist/*' \
-  --exclude '{{APP_NAME}}/node_modules/*' \
-  --exclude '{{APP_NAME}}/.git/*'
+  --exclude '*/dist/*' \
+  --exclude '*/node_modules/*' \
+  --exclude '*/.git/*'
 ```
 
 **Windows (PowerShell)** (run from the parent folder):
 ```powershell
-$src = "{{APP_NAME}}"
-$out = "{{APP_NAME}}.zip"
-Get-ChildItem -Path $src -Recurse |
-  Where-Object { $_.FullName -notmatch '\\dist\\' -and $_.FullName -notmatch '\\node_modules\\' -and $_.FullName -notmatch '\\.git\\' } |
-  Compress-Archive -DestinationPath $out -Force
+$app = Join-Path $PWD "{{APP_NAME}}"
+$stage = "$env:TEMP\{{APP_NAME}}-stage"
+$out = Join-Path $PWD "{{APP_NAME}}.zip"
+Remove-Item -Recurse -Force $stage -ErrorAction SilentlyContinue
+robocopy $app "$stage\{{APP_NAME}}" /E /XD dist node_modules .git | Out-Null
+Compress-Archive -Path "$stage\{{APP_NAME}}" -DestinationPath $out -Force
+Remove-Item -Recurse -Force $stage -ErrorAction SilentlyContinue
 ```
 
 ---
