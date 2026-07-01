@@ -76,7 +76,7 @@ Then write every file below exactly as shown, substituting `{{APP_NAME}}` throug
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@originjs/vite-plugin-federation": "^1.4.1",
+    "@module-federation/vite": "^1.16.12",
     "@tailwindcss/vite": "^4.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
@@ -98,7 +98,7 @@ Then write every file below exactly as shown, substituting `{{APP_NAME}}` throug
 
 ```typescript
 import { resolve } from "path";
-import federation from "@originjs/vite-plugin-federation";
+import { federation } from "@module-federation/vite";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
@@ -114,8 +114,8 @@ export default defineConfig({
         "./OrcaApp": "./src/OrcaApp.tsx",
       },
       shared: {
-        react: { singleton: true, requiredVersion: "^19", eager: true },
-        "react-dom": { singleton: true, requiredVersion: "^19", eager: true },
+        react: { singleton: true, requiredVersion: "^19" },
+        "react-dom": { singleton: true, requiredVersion: "^19" },
       },
     }),
   ],
@@ -442,7 +442,7 @@ Before declaring done:
 ## Troubleshooting
 
 **React / hooks error after loading in Orca host**
-Both the sub-app and host must share the same React singleton. Verify `vite.config.ts` has `react` and `react-dom` in `shared` with `singleton: true, eager: true`.
+Both the sub-app and host must share the same React singleton. Verify `vite.config.ts` has `react` and `react-dom` in `shared` with `singleton: true`.
 
 **CORS error in devtools**
 The static server must be started with `--cors`. Restart it if the flag is missing.
