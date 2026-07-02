@@ -50,9 +50,14 @@ src/
 ### API calls
 
 - Always use `httpClient` from `src/api/httpClient.ts` — never use raw `fetch` directly
-- Always use `secured()` / `securedv2()` from `src/api/secured.ts` for authenticated endpoints
+- Store and read all app-owned data via the **OrcaAgents DB API** — never invent custom endpoints:
+  - Write: `httpClient.post("/orcaagents/db/workspace/doc/write", { docId: "apps/<appName>/<collection>/<id>", data })`
+  - Read list: `httpClient.post("/orcaagents/db/workspace/doc/subcollection/docs", { docId: "apps/<appName>", subCollectionId: "<collection>" })`
+  - Read one: `httpClient.post("/orcaagents/db/workspace/doc/read", { docId: "apps/<appName>/<collection>/<id>" })`
+  - Current user: `httpClient.get("/orcaagents/auth/userinfo")`
+- Use `secured()` / `securedv2()` from `src/api/secured.ts` **only** when calling existing Orca host backend endpoints (e.g. payroll, HR, leave — endpoints that already exist on the host)
 - `api.ts` files must be pure TypeScript — no React, no hooks, no side effects
-- All API responses follow the `Response<T>` wrapper pattern from `src/api/types.ts`
+- All Orca host API responses follow the `Response<T>` wrapper pattern from `src/api/types.ts`
 
 ### Data fetching pattern
 
