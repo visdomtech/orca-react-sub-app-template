@@ -66,6 +66,7 @@ All data storage and retrieval goes through the **OrcaAgents DB API** — never 
 
 ```typescript
 import { httpClient } from "../../api/httpClient";
+import { orcaagents } from "../../api/secured";
 import type { {{COMPONENT_NAME}}Item } from "./types";
 
 const IS_STANDALONE = import.meta.env.DEV;
@@ -88,7 +89,7 @@ const COLLECTION = "items";
 export async function getItems(): Promise<{{COMPONENT_NAME}}Item[]> {
   if (IS_STANDALONE) return MOCK_ITEMS;
   const res = await httpClient.post<Record<string, {{COMPONENT_NAME}}Item>>(
-    "/orcaagents/db/workspace/doc/subcollection/docs",
+    orcaagents("/db/workspace/doc/subcollection/docs"),
     { docId: DOC_BASE, subCollectionId: COLLECTION }
   );
   return Object.values(res);
@@ -102,7 +103,7 @@ export async function createItem(
     return;
   }
   const id = crypto.randomUUID();
-  await httpClient.post("/orcaagents/db/workspace/doc/write", {
+  await httpClient.post(orcaagents("/db/workspace/doc/write"), {
     docId: `${DOC_BASE}/${COLLECTION}/${id}`,
     data: { id, ...data },
   });
@@ -118,10 +119,10 @@ export async function updateItem(
     return;
   }
   const current = await httpClient.post<{{COMPONENT_NAME}}Item>(
-    "/orcaagents/db/workspace/doc/read",
+    orcaagents("/db/workspace/doc/read"),
     { docId: `${DOC_BASE}/${COLLECTION}/${id}` }
   );
-  await httpClient.post("/orcaagents/db/workspace/doc/write", {
+  await httpClient.post(orcaagents("/db/workspace/doc/write"), {
     docId: `${DOC_BASE}/${COLLECTION}/${id}`,
     data: { ...current, ...data },
   });
@@ -129,7 +130,7 @@ export async function updateItem(
 
 // Call this when you need the current user's identity (e.g. for "createdBy" fields).
 export async function getCurrentUser(): Promise<{ email: string; subject: string }> {
-  return httpClient.get("/orcaagents/auth/userinfo");
+  return httpClient.get(orcaagents("/auth/userinfo"));
 }
 ```
 
