@@ -207,15 +207,38 @@ createRoot(document.getElementById("root")!).render(
 
 ```typescript
 const DEFAULT_TIMEOUT = 30_000;
+const DEV_API_BASE = "https://devorcaapi.doublefin.com";
+const DEV_API_KEY = "mgyyywu3ntetnzizms00yjfkltkwmwetmwrlmduzzjzmztmw";
 
 export class HttpError extends Error {
-  response?: { code?: string; message?: string };
+  response?: { code?: string; message?: string; error?: string };
 
-  constructor(message: string, response?: { code?: string; message?: string }) {
+  constructor(
+    message: string,
+    response?: { code?: string; message?: string; error?: string }
+  ) {
     super(message);
     this.name = "HttpError";
     this.response = response;
   }
+}
+
+function isProduction(): boolean {
+  return window.location.host.endsWith(".doublefin.com");
+}
+
+async function orcaFetch(path: string, init?: RequestInit): Promise<Response> {
+  if (isProduction()) {
+    return fetch(path, init);
+  }
+
+  const url = `${DEV_API_BASE}${path}`;
+  const { credentials: _unused, ...rest } = init ?? {};
+  const devHeaders = {
+    ...(rest.headers as Record<string, string>),
+    "X-doublefin-api-key": DEV_API_KEY,
+  };
+  return fetch(url, { ...rest, headers: devHeaders });
 }
 
 async function rawRequest<R>(
@@ -227,7 +250,7 @@ async function rawRequest<R>(
   const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
 
   try {
-    const response = await fetch(endpoint, {
+    const response = await orcaFetch(endpoint, {
       method,
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -238,14 +261,14 @@ async function rawRequest<R>(
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      let errorBody: { code?: string; message?: string } | undefined;
+      let errorBody: { code?: string; message?: string; error?: string } | undefined;
       try {
         errorBody = await response.json();
       } catch {
         // response body is not JSON
       }
       throw new HttpError(
-        errorBody?.message ?? `HTTP ${response.status}: ${response.statusText}`,
+        errorBody?.error ?? errorBody?.message ?? `HTTP ${response.status}: ${response.statusText}`,
         errorBody
       );
     }
@@ -281,10 +304,7 @@ export const httpClient = {
 ### `src/api/secured.ts`
 
 ```typescript
-export const secured = (path: string) => "/app/api/v1/s" + path;
-export const securedv2 = (path: string) => "/app/api/v2/s" + path;
-export const securedv3 = (path: string) => "/app/api/v3/s" + path;
-export const securedv4 = (path: string) => "/app/api/v4/s" + path;
+export const orcaagents = (path: string) => `/orcaagents${path}`;
 ```
 
 ---
@@ -292,6 +312,8 @@ export const securedv4 = (path: string) => "/app/api/v4/s" + path;
 ### `src/api/types.ts`
 
 ```typescript
+// ─── Orca host API types ──────────────────────────────────────────────────────
+
 export interface Response<T> {
   success: true;
   data: T;
@@ -311,6 +333,134 @@ export interface ResponseError {
 export interface Pageable {
   pageKey?: string;
   size?: number | "all";
+}
+
+// ─── OrcaAgents DB types ──────────────────────────────────────────────────────
+
+export type DocData = Record<string, unknown>;
+
+// ─── OrcaAgents Auth types ────────────────────────────────────────────────────
+
+export interface UserInfo {
+  workspaceId: string;
+  email: string;
+  subject: string;
+}
+
+// ─── OrcaAgents Workflow types ────────────────────────────────────────────────
+
+export interface WorkflowAttachment {
+  filename: string;
+  contentType: string;
+  data: string; // base64-encoded
+  inline?: boolean;
+}
+
+export interface WorkflowSendEmailRequest {
+  from?: string;
+  to: string[];
+  cc?: string[];
+  bcc?: string[];
+  subject: string;
+  text?: string;
+  html?: string;
+  attachments?: WorkflowAttachment[];
+}
+
+export interface WorkflowSendEmailResponse {
+  sent: boolean;
+  messageId: string;
+}
+
+// ─── OrcaAgents Approval types ────────────────────────────────────────────────
+
+export type ApprovalStatus = "FUTURE" | "PENDING" | "COMPLETED" | "CANCELLED";
+export type ApprovalDecision = "UNDECIDED" | "APPROVED" | "REJECTED";
+
+export interface ApprovalInstance {
+  instanceId: number;
+  workspaceId: string;
+  definitionId?: number;
+  status: ApprovalStatus;
+  decision: ApprovalDecision;
+  currentPhaseId?: number;
+  createdBy: string;
+  created: string; // ISO 8601
+  updated: string;
+}
+
+export interface ApprovalApprover {
+  approverId: number;
+  instanceId: number;
+  phaseId: number;
+  userId: string;
+  status: ApprovalStatus;
+  decision: ApprovalDecision;
+  decisionTime?: string;
+  decisionTakenBy?: string;
+}
+
+export interface ApprovalPhase {
+  phaseId: number;
+  instanceId: number;
+  previousPhaseId?: number;
+  minRequiredApprovers: number;
+  status: ApprovalStatus;
+  startTime?: string;
+  endTime?: string;
+  approvers: ApprovalApprover[];
+}
+
+export interface ApprovalDecisionResult {
+  instance: ApprovalInstance;
+  phases: ApprovalPhase[];
+}
+
+export interface ApprovalProcessSpec {
+  definitionId?: number;
+  createdBy: string;
+  phases: {
+    approvers: string[];
+    minRequiredApprovers: number;
+  }[];
+}
+
+export interface ApprovalUserDef {
+  description?: string;
+  conditionSrc?: string;
+  userId: string;
+}
+
+export interface ApprovalPhaseDef {
+  type: "manual" | "dynamic";
+  description?: string;
+  conditionSrc?: string;
+  minRequiredApprovers: number;
+  approvers?: ApprovalUserDef[];
+  variant?: string;
+  data?: unknown;
+}
+
+export interface ApprovalFallbackStrategy {
+  type: "approve" | "reject" | "manual";
+  phases?: ApprovalPhaseDef[];
+}
+
+export interface ApprovalBlueprint {
+  description?: string;
+  conditionSrc?: string;
+  phases: ApprovalPhaseDef[];
+  fallbackStrategy: ApprovalFallbackStrategy;
+}
+
+export interface ApprovalDefinition {
+  definitionId: number;
+  workspaceId: string;
+  name: string;
+  description: string;
+  blueprint: ApprovalBlueprint;
+  created: string;
+  updated: string;
 }
 ```
 
