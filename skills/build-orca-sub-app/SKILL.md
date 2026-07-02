@@ -62,12 +62,26 @@ zip -r {{APP_NAME}}.zip {{APP_NAME}} \
 
 **Windows (PowerShell)** (run from the parent folder):
 ```powershell
+Add-Type -AssemblyName System.IO.Compression.FileSystem
 $app = Join-Path $PWD "{{APP_NAME}}"
 $stage = "$env:TEMP\{{APP_NAME}}-stage"
 $out = Join-Path $PWD "{{APP_NAME}}.zip"
 Remove-Item -Recurse -Force $stage -ErrorAction SilentlyContinue
 robocopy $app "$stage\{{APP_NAME}}" /E /XD dist node_modules .git | Out-Null
-Compress-Archive -Path "$stage\{{APP_NAME}}" -DestinationPath $out -Force
+if (Test-Path $out) { Remove-Item $out -Force }
+$zipStream = [System.IO.File]::Create($out)
+$zip = [System.IO.Compression.ZipArchive]::new($zipStream, [System.IO.Compression.ZipArchiveMode]::Create)
+Get-ChildItem -Path $stage -Recurse -File | ForEach-Object {
+    $relative = $_.FullName.Substring($stage.Length + 1).Replace('\', '/')
+    $entry = $zip.CreateEntry($relative)
+    $entryStream = $entry.Open()
+    $fileStream = [System.IO.File]::OpenRead($_.FullName)
+    $fileStream.CopyTo($entryStream)
+    $fileStream.Close()
+    $entryStream.Close()
+}
+$zip.Dispose()
+$zipStream.Close()
 Remove-Item -Recurse -Force $stage -ErrorAction SilentlyContinue
 ```
 
