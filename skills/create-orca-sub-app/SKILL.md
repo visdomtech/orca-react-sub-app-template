@@ -478,7 +478,8 @@ cd ~
 zip -r {{APP_NAME}}/{{APP_NAME}}.zip {{APP_NAME}} \
   --exclude '*/dist/*' \
   --exclude '*/node_modules/*' \
-  --exclude '*/.git/*'
+  --exclude '*/.git/*' \
+  --exclude '*/.mf/*'
 ```
 
 **Windows (PowerShell):**
@@ -487,29 +488,29 @@ Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 $appDir = "$env:USERPROFILE\{{APP_NAME}}"
+$tmpZip = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "{{APP_NAME}}-$(Get-Random).zip")
 $outZip = "$appDir\{{APP_NAME}}.zip"
-$rootName = "{{APP_NAME}}"
-$bs = [char]92
-$excludeDirs = @('dist', 'node_modules', '.git', '.mf')
+$skip   = @('dist', 'node_modules', '.git', '.mf')
 
-if (Test-Path $outZip) { [System.IO.File]::Delete($outZip) }
-
-$files = Get-ChildItem -Path $appDir -Recurse -File | Where-Object {
-    $relPath = $_.FullName.Substring($appDir.Length + 1)
-    $parts = $relPath.Split($bs)
-    -not ($parts | Where-Object { $excludeDirs -contains $_ })
-}
-
-$zip = [System.IO.Compression.ZipFile]::Open($outZip, [System.IO.Compression.ZipArchiveMode]::Create)
+$zipFile = [System.IO.Compression.ZipFile]::Open($tmpZip, [System.IO.Compression.ZipArchiveMode]::Create)
 try {
-    foreach ($file in $files) {
-        $relPath = $file.FullName.Substring($appDir.Length + 1)
-        $entryName = "$rootName/" + ($relPath.Replace($bs, '/'))
-        [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $file.FullName, $entryName, [System.IO.Compression.CompressionLevel]::Optimal) | Out-Null
+    Get-ChildItem -Path $appDir -Recurse -File | ForEach-Object {
+        $rel = $_.FullName.Substring($appDir.Length + 1)
+        if (-not ($rel -split '\\' | Where-Object { $skip -contains $_ })) {
+            [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
+                $zipFile, $_.FullName,
+                '{{APP_NAME}}/' + $rel.Replace('\', '/'),
+                [System.IO.Compression.CompressionLevel]::Optimal
+            ) | Out-Null
+        }
     }
 } finally {
-    $zip.Dispose()
+    $zipFile.Dispose()
 }
+
+if (Test-Path $outZip) { Remove-Item $outZip -Force }
+Move-Item $tmpZip $outZip -Force
+Write-Host "Created: $outZip"
 ```
 
 ---
