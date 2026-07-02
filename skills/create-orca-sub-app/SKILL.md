@@ -356,13 +356,33 @@ zip -r {{APP_NAME}}/{{APP_NAME}}.zip {{APP_NAME}} \
 
 **Windows (PowerShell):**
 ```powershell
-$app = "$env:USERPROFILE\{{APP_NAME}}"
-$stage = "$env:TEMP\{{APP_NAME}}-stage"
-$out = "$app\{{APP_NAME}}.zip"
-Remove-Item -Recurse -Force $stage -ErrorAction SilentlyContinue
-robocopy $app "$stage\{{APP_NAME}}" /E /XD dist node_modules .git | Out-Null
-Compress-Archive -Path "$stage\{{APP_NAME}}" -DestinationPath $out -Force
-Remove-Item -Recurse -Force $stage -ErrorAction SilentlyContinue
+Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+$appDir = "$env:USERPROFILE\{{APP_NAME}}"
+$outZip = "$appDir\{{APP_NAME}}.zip"
+$rootName = "{{APP_NAME}}"
+$bs = [char]92
+$excludeDirs = @('dist', 'node_modules', '.git', '.mf')
+
+if (Test-Path $outZip) { [System.IO.File]::Delete($outZip) }
+
+$files = Get-ChildItem -Path $appDir -Recurse -File | Where-Object {
+    $relPath = $_.FullName.Substring($appDir.Length + 1)
+    $parts = $relPath.Split($bs)
+    -not ($parts | Where-Object { $excludeDirs -contains $_ })
+}
+
+$zip = [System.IO.Compression.ZipFile]::Open($outZip, [System.IO.Compression.ZipArchiveMode]::Create)
+try {
+    foreach ($file in $files) {
+        $relPath = $file.FullName.Substring($appDir.Length + 1)
+        $entryName = "$rootName/" + ($relPath.Replace($bs, '/'))
+        [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $file.FullName, $entryName, [System.IO.Compression.CompressionLevel]::Optimal) | Out-Null
+    }
+} finally {
+    $zip.Dispose()
+}
 ```
 
 ---
@@ -462,3 +482,6 @@ Check that `exposedModule` in the Orca DB entry is exactly `./OrcaApp` — it mu
 
 **CSS missing inside the host**
 `./index.css` must be imported in `OrcaApp.tsx`, not `main.tsx`.
+
+**Zip upload fails with "appears to use backslashes as path separators"**
+This happens on Windows when `Compress-Archive` is used instead of the ZipArchive-based Step 5 script above — `Compress-Archive` writes native backslash separators into zip entries, which Linux-based unpackers reject. Always use the .NET ZipArchive approach on Windows.
