@@ -1,11 +1,11 @@
 ---
 name: build-orca-sub-app
-description: Install dependencies, build, start the local server, and create a zip archive for an Orca sub-app. Called by create-orca-sub-app after scaffolding. Also usable standalone when rebuilding an existing app.
+description: Install dependencies, build, create a zip archive, and serve the built bundle for host testing. Steps 1–3 are the canonical install/build/zip sequence — create-orca-sub-app delegates to those steps after scaffolding. Also usable standalone to rebuild an existing app.
 ---
 
 # Build Orca Sub-App
 
-Installs dependencies, builds the project, starts the local server, and creates a zip file. Run every command from inside the app folder.
+Installs dependencies, builds the project, creates a zip for uploading, and serves the built bundle for Orca host integration testing. Run every command from inside the app folder.
 
 ---
 
@@ -31,19 +31,16 @@ $env:PATH = "$env:USERPROFILE\.bun\bin;$env:PATH"
 
 ---
 
-## Step 2 — Install, build, and serve
+## Step 2 — Install and build
 
 Run these in order. Wait for each to finish before running the next.
 
 ```bash
 bun install
 bun run build
-bunx serve dist --cors -l 4174
 ```
 
 If `bun run build` fails with TypeScript errors, fix them before continuing — `bun run typecheck` lists them all.
-
-Leave the server running. Closing the terminal stops the app.
 
 ---
 
@@ -57,37 +54,56 @@ cd ..
 zip -r {{APP_NAME}}.zip {{APP_NAME}} \
   --exclude '*/dist/*' \
   --exclude '*/node_modules/*' \
-  --exclude '*/.git/*'
+  --exclude '*/.git/*' \
+  --exclude '*/.mf/*'
 ```
 
 **Windows (PowerShell)** (run from the parent folder):
 ```powershell
+Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-$app = Join-Path $PWD "{{APP_NAME}}"
-$stage = "$env:TEMP\{{APP_NAME}}-stage"
-$out = Join-Path $PWD "{{APP_NAME}}.zip"
-Remove-Item -Recurse -Force $stage -ErrorAction SilentlyContinue
-robocopy $app "$stage\{{APP_NAME}}" /E /XD dist node_modules .git | Out-Null
-if (Test-Path $out) { Remove-Item $out -Force }
-$zipStream = [System.IO.File]::Create($out)
-$zip = [System.IO.Compression.ZipArchive]::new($zipStream, [System.IO.Compression.ZipArchiveMode]::Create)
-Get-ChildItem -Path $stage -Recurse -File | ForEach-Object {
-    $relative = $_.FullName.Substring($stage.Length + 1).Replace('\', '/')
-    $entry = $zip.CreateEntry($relative)
-    $entryStream = $entry.Open()
-    $fileStream = [System.IO.File]::OpenRead($_.FullName)
-    $fileStream.CopyTo($entryStream)
-    $fileStream.Close()
-    $entryStream.Close()
+
+$appDir = Join-Path $PWD "{{APP_NAME}}"
+$tmpZip = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "{{APP_NAME}}-$(Get-Random).zip")
+$outZip = Join-Path $PWD "{{APP_NAME}}.zip"
+$skip   = @('dist', 'node_modules', '.git', '.mf')
+
+$zipFile = [System.IO.Compression.ZipFile]::Open($tmpZip, [System.IO.Compression.ZipArchiveMode]::Create)
+try {
+    Get-ChildItem -Path $appDir -Recurse -File | ForEach-Object {
+        $rel = $_.FullName.Substring($appDir.Length + 1)
+        if (-not ($rel -split '\\' | Where-Object { $skip -contains $_ })) {
+            [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
+                $zipFile, $_.FullName,
+                '{{APP_NAME}}/' + $rel.Replace('\', '/'),
+                [System.IO.Compression.CompressionLevel]::Optimal
+            ) | Out-Null
+        }
+    }
+} finally {
+    $zipFile.Dispose()
 }
-$zip.Dispose()
-$zipStream.Close()
-Remove-Item -Recurse -Force $stage -ErrorAction SilentlyContinue
+
+if (Test-Path $outZip) { Remove-Item $outZip -Force }
+Move-Item $tmpZip $outZip -Force
+Write-Host "Created: $outZip"
 ```
 
 ---
 
-## Step 4 — Confirm with the user
+## Step 4 — Serve the built bundle
+
+Start the static server so the Orca host can load the app for integration testing:
+
+```bash
+bunx serve dist --cors -l 4174
+```
+
+Leave the server running. Closing the terminal stops the app.
+
+---
+
+## Step 5 — Confirm with the user
 
 Tell the user:
 

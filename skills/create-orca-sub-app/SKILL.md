@@ -207,38 +207,15 @@ createRoot(document.getElementById("root")!).render(
 
 ```typescript
 const DEFAULT_TIMEOUT = 30_000;
-const DEV_API_BASE = "https://devorcaapi.doublefin.com";
-const DEV_API_KEY = "mgyyywu3ntetnzizms00yjfkltkwmwetmwrlmduzzjzmztmw";
 
 export class HttpError extends Error {
-  response?: { code?: string; message?: string; error?: string };
+  response?: { code?: string; error?: string };
 
-  constructor(
-    message: string,
-    response?: { code?: string; message?: string; error?: string }
-  ) {
+  constructor(message: string, response?: { code?: string; error?: string }) {
     super(message);
     this.name = "HttpError";
     this.response = response;
   }
-}
-
-function isProduction(): boolean {
-  return window.location.host.endsWith(".doublefin.com");
-}
-
-async function orcaFetch(path: string, init?: RequestInit): Promise<Response> {
-  if (isProduction()) {
-    return fetch(path, init);
-  }
-
-  const url = `${DEV_API_BASE}${path}`;
-  const { credentials: _unused, ...rest } = init ?? {};
-  const devHeaders = {
-    ...(rest.headers as Record<string, string>),
-    "X-doublefin-api-key": DEV_API_KEY,
-  };
-  return fetch(url, { ...rest, headers: devHeaders });
 }
 
 async function rawRequest<R>(
@@ -250,7 +227,7 @@ async function rawRequest<R>(
   const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT);
 
   try {
-    const response = await orcaFetch(endpoint, {
+    const response = await fetch(endpoint, {
       method,
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -261,14 +238,14 @@ async function rawRequest<R>(
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      let errorBody: { code?: string; message?: string; error?: string } | undefined;
+      let errorBody: { code?: string; error?: string } | undefined;
       try {
         errorBody = await response.json();
       } catch {
         // response body is not JSON
       }
       throw new HttpError(
-        errorBody?.error ?? errorBody?.message ?? `HTTP ${response.status}: ${response.statusText}`,
+        errorBody?.error ?? `HTTP ${response.status}: ${response.statusText}`,
         errorBody
       );
     }
@@ -478,66 +455,19 @@ Pass `APP_NAME`, `COMPONENT_NAME`, `FEATURE_NAME`, `DISPLAY_NAME`, and `DESCRIPT
 
 ---
 
-## Step 4 — Install and build
+## Step 4 — Install, build, and zip
 
-Run from inside the app folder. Wait for each command to finish.
+Fetch and follow **Steps 1–3** of:
 
-```bash
-bun install
-bun run build
+```
+https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/build-orca-sub-app/SKILL.md
 ```
 
-If `bun run build` fails with TypeScript errors, fix them before continuing — `bun run typecheck` lists them all.
+Stop after Step 3 (zip created). Do **not** follow Step 4 (serve) or Step 5 (confirm) — the dev server and deliverables summary are handled below.
 
 ---
 
-## Step 5 — Create the zip
-
-Zip the source files (excluding `dist`, `node_modules`, and `.git`) — the host will build the app from source when you upload this zip.
-
-**Mac / Linux:**
-```bash
-cd ~
-zip -r {{APP_NAME}}/{{APP_NAME}}.zip {{APP_NAME}} \
-  --exclude '*/dist/*' \
-  --exclude '*/node_modules/*' \
-  --exclude '*/.git/*'
-```
-
-**Windows (PowerShell):**
-```powershell
-Add-Type -AssemblyName System.IO.Compression
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-
-$appDir = "$env:USERPROFILE\{{APP_NAME}}"
-$outZip = "$appDir\{{APP_NAME}}.zip"
-$rootName = "{{APP_NAME}}"
-$bs = [char]92
-$excludeDirs = @('dist', 'node_modules', '.git', '.mf')
-
-if (Test-Path $outZip) { [System.IO.File]::Delete($outZip) }
-
-$files = Get-ChildItem -Path $appDir -Recurse -File | Where-Object {
-    $relPath = $_.FullName.Substring($appDir.Length + 1)
-    $parts = $relPath.Split($bs)
-    -not ($parts | Where-Object { $excludeDirs -contains $_ })
-}
-
-$zip = [System.IO.Compression.ZipFile]::Open($outZip, [System.IO.Compression.ZipArchiveMode]::Create)
-try {
-    foreach ($file in $files) {
-        $relPath = $file.FullName.Substring($appDir.Length + 1)
-        $entryName = "$rootName/" + ($relPath.Replace($bs, '/'))
-        [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $file.FullName, $entryName, [System.IO.Compression.CompressionLevel]::Optimal) | Out-Null
-    }
-} finally {
-    $zip.Dispose()
-}
-```
-
----
-
-## Step 6 — Start the local dev server
+## Step 5 — Start the local dev server
 
 Run from inside the app folder (leave it running in the background):
 
@@ -553,7 +483,7 @@ Start-Process bun -ArgumentList "run", "dev" -NoNewWindow
 
 ---
 
-## Step 7 — Present deliverables
+## Step 6 — Present deliverables
 
 Open the zip folder, then show all three deliverables in a **single message**. Never split them across separate messages.
 
@@ -634,4 +564,4 @@ Check that `exposedModule` in the Orca DB entry is exactly `./OrcaApp` — it mu
 `./index.css` must be imported in `OrcaApp.tsx`, not `main.tsx`.
 
 **Zip upload fails with "appears to use backslashes as path separators"**
-This happens on Windows when `Compress-Archive` is used instead of the ZipArchive-based Step 5 script above — `Compress-Archive` writes native backslash separators into zip entries, which Linux-based unpackers reject. Always use the .NET ZipArchive approach on Windows.
+This happens on Windows when `Compress-Archive` is used instead of the ZipArchive-based script in `build-orca-sub-app` Step 3 — `Compress-Archive` writes native backslash separators into zip entries, which Linux-based unpackers reject. Always use the .NET ZipArchive approach on Windows.
