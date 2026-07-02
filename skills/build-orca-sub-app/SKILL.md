@@ -1,11 +1,11 @@
 ---
 name: build-orca-sub-app
-description: Install dependencies, build, start the local server, and create a zip archive for an Orca sub-app. Called by create-orca-sub-app after scaffolding. Also usable standalone when rebuilding an existing app.
+description: Install dependencies, build, create a zip archive, and serve the built bundle for host testing. Steps 1–3 are the canonical install/build/zip sequence — create-orca-sub-app delegates to those steps after scaffolding. Also usable standalone to rebuild an existing app.
 ---
 
 # Build Orca Sub-App
 
-Installs dependencies, builds the project, starts the local server, and creates a zip file. Run every command from inside the app folder.
+Installs dependencies, builds the project, creates a zip for uploading, and serves the built bundle for Orca host integration testing. Run every command from inside the app folder.
 
 ---
 
@@ -31,19 +31,16 @@ $env:PATH = "$env:USERPROFILE\.bun\bin;$env:PATH"
 
 ---
 
-## Step 2 — Install, build, and serve
+## Step 2 — Install and build
 
 Run these in order. Wait for each to finish before running the next.
 
 ```bash
 bun install
 bun run build
-bunx serve dist --cors -l 4174
 ```
 
 If `bun run build` fails with TypeScript errors, fix them before continuing — `bun run typecheck` lists them all.
-
-Leave the server running. Closing the terminal stops the app.
 
 ---
 
@@ -94,7 +91,19 @@ Write-Host "Created: $outZip"
 
 ---
 
-## Step 4 — Confirm with the user
+## Step 4 — Serve the built bundle
+
+Start the static server so the Orca host can load the app for integration testing:
+
+```bash
+bunx serve dist --cors -l 4174
+```
+
+Leave the server running. Closing the terminal stops the app.
+
+---
+
+## Step 5 — Confirm with the user
 
 Tell the user:
 
