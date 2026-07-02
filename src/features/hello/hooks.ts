@@ -2,17 +2,17 @@ import { useQuery } from "@tanstack/react-query";
 import type { HelloStats } from "./types";
 import { helloQueryKeys } from "./queryKeys";
 
-// Replace this with a real API call using httpClient + secured():
+// Replace this with a real API call using httpClient + orcaagents():
 //
 //   import { httpClient } from "../../api/httpClient";
-//   import { secured } from "../../api/secured";
-//   import type { Response } from "../../api/types";
+//   import { orcaagents } from "../../api/secured";
 //
 //   async function fetchHelloStats(): Promise<HelloStats> {
-//     const response = await httpClient.get<Response<HelloStats>>(
-//       secured("/hello/stats")
+//     const res = await httpClient.post<HelloStats>(
+//       orcaagents("/db/workspace/doc/read"),
+//       { docId: "apps/hello/stats/current" }
 //     );
-//     return response.data;
+//     return res;
 //   }
 
 function fetchHelloStats(): Promise<HelloStats> {
