@@ -278,14 +278,6 @@ export const httpClient = {
 
 ---
 
-### `src/api/secured.ts`
-
-```typescript
-export const orcaagents = (path: string) => `/orcaagents${path}`;
-```
-
----
-
 ### `src/api/types.ts`
 
 ```typescript

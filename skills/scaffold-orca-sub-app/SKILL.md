@@ -62,31 +62,78 @@ export interface {{COMPONENT_NAME}}Item {
 
 ### `src/features/{{FEATURE_NAME}}/api.ts`
 
-Use `httpClient` for real API calls. When running standalone (`bun run dev`), return in-memory mock data so the app is previewable without the Orca backend.
+All data storage and retrieval goes through the **OrcaAgents DB API** — never call `secured()` or invent custom endpoints. When running standalone (`bun run dev`), return in-memory mock data so the app is previewable without the backend.
 
 ```typescript
 import { httpClient } from "../../api/httpClient";
-import { secured } from "../../api/secured";
-import type { /* types */ } from "./types";
+import type { {{COMPONENT_NAME}}Item } from "./types";
 
 const IS_STANDALONE = import.meta.env.DEV;
 
-// Realistic mock data for standalone dev — tailor to the app's domain
-const MOCK_ITEMS = [
+// Realistic mock data for standalone dev — tailor to the app's domain.
+// Use real-looking values (e.g. actual names, dates, amounts) — never "Item 1".
+const MOCK_ITEMS: {{COMPONENT_NAME}}Item[] = [
   // add 2–3 representative records here
 ];
 
-// Pure async functions — no React, no hooks, no side effects.
-// Each function checks IS_STANDALONE first and falls back to the real API.
+// Namespace for all documents owned by this app.
+const DOC_BASE = "apps/{{APP_NAME}}";
 
-export async function getItems() {
+// The sub-collection name under DOC_BASE that holds the list of items.
+// Choose a name that matches the domain (e.g. "incidents", "tasks", "requests").
+const COLLECTION = "items";
+
+// Pure async functions — no React, no hooks, no side effects.
+
+export async function getItems(): Promise<{{COMPONENT_NAME}}Item[]> {
   if (IS_STANDALONE) return MOCK_ITEMS;
-  const res = await httpClient.get(secured("/your-endpoint"));
-  return res.data;
+  const res = await httpClient.post<Record<string, {{COMPONENT_NAME}}Item>>(
+    "/orcaagents/db/workspace/doc/subcollection/docs",
+    { docId: DOC_BASE, subCollectionId: COLLECTION }
+  );
+  return Object.values(res);
+}
+
+export async function createItem(
+  data: Omit<{{COMPONENT_NAME}}Item, "id">
+): Promise<void> {
+  if (IS_STANDALONE) {
+    MOCK_ITEMS.push({ id: crypto.randomUUID(), ...data } as {{COMPONENT_NAME}}Item);
+    return;
+  }
+  const id = crypto.randomUUID();
+  await httpClient.post("/orcaagents/db/workspace/doc/write", {
+    docId: `${DOC_BASE}/${COLLECTION}/${id}`,
+    data: { id, ...data },
+  });
+}
+
+export async function updateItem(
+  id: string,
+  data: Partial<Omit<{{COMPONENT_NAME}}Item, "id">>
+): Promise<void> {
+  if (IS_STANDALONE) {
+    const idx = MOCK_ITEMS.findIndex((i) => i.id === id);
+    if (idx !== -1) MOCK_ITEMS[idx] = { ...MOCK_ITEMS[idx], ...data };
+    return;
+  }
+  const current = await httpClient.post<{{COMPONENT_NAME}}Item>(
+    "/orcaagents/db/workspace/doc/read",
+    { docId: `${DOC_BASE}/${COLLECTION}/${id}` }
+  );
+  await httpClient.post("/orcaagents/db/workspace/doc/write", {
+    docId: `${DOC_BASE}/${COLLECTION}/${id}`,
+    data: { ...current, ...data },
+  });
+}
+
+// Call this when you need the current user's identity (e.g. for "createdBy" fields).
+export async function getCurrentUser(): Promise<{ email: string; subject: string }> {
+  return httpClient.get("/orcaagents/auth/userinfo");
 }
 ```
 
-Generate realistic mock records that match the app's domain (e.g. actual invoice numbers, real-looking employee names). Never use placeholder values like "Item 1".
+Adapt the functions above to the app's domain — rename `getItems`/`createItem`/`updateItem` to match the entity (e.g. `getIncidents`/`createIncident`). Add or remove functions as the description requires. Always pass the current user's email to any "created by" or "reported by" field by calling `getCurrentUser()` — never leave it empty.
 
 ---
 
