@@ -53,7 +53,7 @@ interface FeatureProgress {
 }
 
 async function getFeatureStatus(featureName: string): Promise<FeatureProgress> {
-  const res = await fetch(
+  const res = await orcaFetch(
     `/orcaagents/featureprogress/features/${featureName}/status`,
     { credentials: "include" }
   );
@@ -65,11 +65,11 @@ async function updateFeatureStatus(
   featureName: string,
   status: string
 ): Promise<FeatureProgress> {
-  const res = await fetch(
+  const res = await orcaFetch(
     `/orcaagents/featureprogress/features/${featureName}/actions/updatestatus`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: headers(),
       credentials: "include",
       body: JSON.stringify({ status }),
     }

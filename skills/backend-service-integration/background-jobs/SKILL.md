@@ -96,7 +96,7 @@ async function listJobs(filter?: ListJobsFilter): Promise<AppJob[]> {
   if (filter?.limit) params.set("limit", String(filter.limit));
 
   const qs = params.toString() ? `?${params}` : "";
-  const res = await fetch(`/orcaagents/jobs${qs}`, {
+  const res = await orcaFetch(`/orcaagents/jobs${qs}`, {
     credentials: "include",
   });
   if (!res.ok) throw new Error((await res.json()).error);
@@ -108,7 +108,7 @@ async function listJobs(filter?: ListJobsFilter): Promise<AppJob[]> {
 
 ```ts
 async function getJob(jobId: string): Promise<AppJob> {
-  const res = await fetch(`/orcaagents/jobs/${jobId}`, {
+  const res = await orcaFetch(`/orcaagents/jobs/${jobId}`, {
     credentials: "include",
   });
   if (!res.ok) throw new Error((await res.json()).error);

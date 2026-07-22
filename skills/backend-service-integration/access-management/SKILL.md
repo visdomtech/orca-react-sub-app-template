@@ -70,7 +70,7 @@
 
 ```ts
 async function listUsers(): Promise<UserCustomer[]> {
-  const res = await fetch("/orcaagents/access/users", {
+  const res = await orcaFetch("/orcaagents/access/users", {
     credentials: "include",
   });
   if (!res.ok) throw new Error((await res.json()).error);
@@ -89,9 +89,9 @@ interface CreateUserRequest {
 }
 
 async function createUser(req: CreateUserRequest): Promise<{ globalId: string }> {
-  const res = await fetch("/orcaagents/access/users", {
+  const res = await orcaFetch("/orcaagents/access/users", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: headers(),
     credentials: "include",
     body: JSON.stringify(req),
   });
@@ -112,11 +112,11 @@ async function addRoleToUser(
   userId: number,
   roleId: number
 ): Promise<RoleMember> {
-  const res = await fetch(
+  const res = await orcaFetch(
     `/orcaagents/access/workspaces/${workspaceId}/users/${userId}/roles`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: headers(),
       credentials: "include",
       body: JSON.stringify({ roleId }),
     }
@@ -138,9 +138,9 @@ interface LoginAsResponse {
 }
 
 async function loginAs(userId: number, assumedBy: string): Promise<LoginAsResponse> {
-  const res = await fetch(`/orcaagents/access/users/${userId}/loginas`, {
+  const res = await orcaFetch(`/orcaagents/access/users/${userId}/loginas`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: headers(),
     credentials: "include",
     body: JSON.stringify({ assumedBy }),
   });

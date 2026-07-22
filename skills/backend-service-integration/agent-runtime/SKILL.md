@@ -69,9 +69,9 @@ async function runAgent(
   message: string,
   sessionID?: string
 ): AsyncGenerator<any> {
-  const res = await fetch("/orcaagents/app/run", {
+  const res = await orcaFetch("/orcaagents/app/run", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: headers(),
     credentials: "include",
     body: JSON.stringify({ agentName, message, sessionID }),
   });
@@ -110,7 +110,7 @@ interface AgentInfo {
 }
 
 async function listAgents(): Promise<AgentInfo[]> {
-  const res = await fetch("/orcaagents/app/agents", {
+  const res = await orcaFetch("/orcaagents/app/agents", {
     credentials: "include",
   });
   if (!res.ok) throw new Error((await res.json()).error);
@@ -128,9 +128,9 @@ interface SetFriendlyIdRequest {
 }
 
 async function setFriendlyId(req: SetFriendlyIdRequest): Promise<void> {
-  const res = await fetch("/orcaagents/app/session/friendly-id", {
+  const res = await orcaFetch("/orcaagents/app/session/friendly-id", {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: headers(),
     credentials: "include",
     body: JSON.stringify(req),
   });

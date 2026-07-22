@@ -37,6 +37,13 @@
 | `GET` | `/orcaagents/appregistry/admin/apps/{id}/builds/{buildId}` | `adminGetBuild` | Get build status |
 | `GET` | `/orcaagents/appregistry/admin/apps/{id}/builds/{buildId}/logs` | `adminGetBuildLogs` | Get/download build logs |
 
+### Workspace (System Admin)
+
+| Method | Path | Operation | Description |
+|--------|------|-----------|-------------|
+| `GET` | `/orcaagents/appregistry/workspace/apps` | `listWorkspaceApps` | List all apps with workspace enabled status |
+| `PUT` | `/orcaagents/appregistry/workspace/apps/{id}` | `setWorkspaceAppEnabled` | Enable/disable app for caller's workspace |
+
 ---
 
 ## App Descriptor
@@ -71,9 +78,9 @@ interface BuildRecord {
 }
 
 async function triggerBuild(appId: string, fileId: string): Promise<BuildRecord> {
-  const res = await fetch(`/orcaagents/appregistry/admin/apps/${appId}/build`, {
+  const res = await orcaFetch(`/orcaagents/appregistry/admin/apps/${appId}/build`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: headers(),
     credentials: "include",
     body: JSON.stringify({ fileId }),
   });
@@ -90,11 +97,11 @@ async function setAppEnabled(
   workspaceId: string,
   enabled: boolean
 ): Promise<void> {
-  const res = await fetch(
+  const res = await orcaFetch(
     `/orcaagents/appregistry/admin/apps/${appId}/workspaces/${workspaceId}`,
     {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: headers(),
       credentials: "include",
       body: JSON.stringify({ enabled }),
     }
@@ -102,6 +109,60 @@ async function setAppEnabled(
   if (!res.ok) throw new Error((await res.json()).error);
 }
 ```
+
+---
+
+## List Workspace Apps
+
+```http
+GET /orcaagents/appregistry/workspace/apps
+```
+
+Lists all app descriptors with enabled status for the caller's workspace. System admin only.
+
+### TypeScript
+
+```ts
+interface AppWithStatus extends AppDescriptor {
+  enabled: boolean;
+}
+
+async function listWorkspaceApps(): Promise<AppWithStatus[]> {
+  const res = await orcaFetch("/orcaagents/appregistry/workspace/apps", {
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error((await res.json()).error);
+  return res.json();
+}
+```
+
+---
+
+## Set Workspace App Enabled
+
+```http
+PUT /orcaagents/appregistry/workspace/apps/{id}
+```
+
+Enables or disables an app for the caller's workspace. System admin only.
+
+### TypeScript
+
+```ts
+async function setWorkspaceAppEnabled(
+  appId: string,
+  enabled: boolean
+): Promise<void> {
+  const res = await orcaFetch(`/orcaagents/appregistry/workspace/apps/${appId}`, {
+    method: "PUT",
+    headers: headers(),
+    credentials: "include",
+    body: JSON.stringify({ enabled }),
+  });
+  if (!res.ok) throw new Error((await res.json()).error);
+}
+```
+
 
 ---
 

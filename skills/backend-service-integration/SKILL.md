@@ -33,6 +33,11 @@ The OrcaAgents backend exposes REST endpoints under `/orcaagents/*` for frontend
 | 13 | [RAG Agent Configs](rag-agents/SKILL.md) | `/orcaagents/ragagent` | `rag-agents/SKILL.md` | Custom RAG agent configuration CRUD |
 | 14 | [Vertex AI](vertex-ai/SKILL.md) | `/orcaagents/vertexai` | `vertex-ai/SKILL.md` | Vertex AI RAG corpus management and file sync |
 | 15 | [Admin](admin/SKILL.md) | `/orcaagents/admin` | `admin/SKILL.md` | System hot-reload and prompt cache management |
+| 16 | [Audit Log](audit-log/SKILL.md) | `/orcaagents/audit` | `audit-log/SKILL.md` | Workspace-scoped audit trail (admin-only read, tx-aware logging from Go/SQL) |
+| 17 | [Regulations](regulations/SKILL.md) | `/orcaagents/regulations` | `regulations/SKILL.md` | Source-of-truth regulation records with batch upload + AI extraction pipeline |
+| 18 | [Policy](policy/SKILL.md) | `/orcaagents/orca` | `policy/SKILL.md` | AI-powered policy draft generation, refinement, versioning, and PDF export |
+| 19 | [Notifications](notifications/SKILL.md) | `/orcaagents/notification` | `notifications/SKILL.md` | OAuth2 channel connection and test notification sending |
+| 20 | [Render Configs](render-configs/SKILL.md) | `/orcaagents/renderconfig` | `render-configs/SKILL.md` | JsonLogic-based render configurations for agent output UI |
 
 ---
 

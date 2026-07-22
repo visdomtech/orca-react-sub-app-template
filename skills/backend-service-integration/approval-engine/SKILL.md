@@ -25,23 +25,23 @@
 
 | Method | Path | Operation | Description |
 |--------|------|-----------|-------------|
-| `POST` | `/orcaagents/approval/processes/{id}/phases/{phaseId}/approvers` | `addApprover` | Add approver to a phase |
+| `POST` | `/orcaagents/approval/processes/{id}/phases/{phaseId}/approvers` | `addPhaseApprover` | Add approver to a phase |
 | `DELETE` | `/orcaagents/approval/processes/{id}/approvers/{approverId}` | `removeApprover` | Remove an approver |
-| `PATCH` | `/orcaagents/approval/processes/{id}/phases/{phaseId}` | `changeRequired` | Change min required approvers for a phase |
+| `PATCH` | `/orcaagents/approval/processes/{id}/phases/{phaseId}` | `updatePhaseThreshold` | Change min required approvers for a phase |
 
 ### Decisions
 
 | Method | Path | Operation | Description |
 |--------|------|-----------|-------------|
-| `POST` | `/orcaagents/approval/approvers/{id}/approve` | `approve` | Record approval decision |
-| `POST` | `/orcaagents/approval/approvers/{id}/reject` | `reject` | Record rejection decision |
+| `POST` | `/orcaagents/approval/approvers/{id}/approve` | `approveStep` | Record approval decision |
+| `POST` | `/orcaagents/approval/approvers/{id}/reject` | `rejectStep` | Record rejection decision |
 
 ### Items (link processes to business objects)
 
 | Method | Path | Operation | Description |
 |--------|------|-----------|-------------|
-| `POST` | `/orcaagents/approval/items` | `attachApproval` | Attach process to a business object |
-| `GET` | `/orcaagents/approval/items?type=X&id=Y` | `getApprovalForObject` | Get process attached to an object |
+| `POST` | `/orcaagents/approval/items` | `createItem` | Attach process to a business object |
+| `GET` | `/orcaagents/approval/items?type=X&id=Y` | `listItems` | Get process attached to an object |
 
 ### Definitions (reusable blueprints)
 
@@ -52,7 +52,7 @@
 | `GET` | `/orcaagents/approval/definitions/{id}` | `getDefinition` | Get a definition |
 | `PUT` | `/orcaagents/approval/definitions/{id}` | `updateDefinition` | Update a definition |
 | `DELETE` | `/orcaagents/approval/definitions/{id}` | `deleteDefinition` | Delete a definition |
-| `POST` | `/orcaagents/approval/definitions/evaluate` | `evaluateDefinitions` | Evaluate definitions to produce a process spec |
+| `POST` | `/orcaagents/approval/definitions/evaluate` | `evaluateDefinition` | Evaluate definitions to produce a process spec |
 
 ---
 
@@ -127,9 +127,9 @@ async function createApprovalProcess(phases: {
   approvers: string[];
   minRequiredApprovers: number;
 }[]): Promise<{ instanceId: number }> {
-  const res = await fetch("/orcaagents/approval/processes", {
+  const res = await orcaFetch("/orcaagents/approval/processes", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: headers(),
     credentials: "include",
     body: JSON.stringify({ phases }),
   });
@@ -138,7 +138,7 @@ async function createApprovalProcess(phases: {
 }
 
 async function startProcess(id: number): Promise<void> {
-  const res = await fetch(`/orcaagents/approval/processes/${id}/start`, {
+  const res = await orcaFetch(`/orcaagents/approval/processes/${id}/start`, {
     method: "POST",
     credentials: "include",
   });
@@ -150,7 +150,7 @@ async function startProcess(id: number): Promise<void> {
 
 ```ts
 async function approve(approverId: number): Promise<ApprovalDecisionResult> {
-  const res = await fetch(`/orcaagents/approval/approvers/${approverId}/approve`, {
+  const res = await orcaFetch(`/orcaagents/approval/approvers/${approverId}/approve`, {
     method: "POST",
     credentials: "include",
   });

@@ -64,15 +64,15 @@ interface RagAgentConfigInput {
 }
 
 async function listEnabledRagAgents(): Promise<RagAgentConfig[]> {
-  const res = await fetch("/orcaagents/ragagent/agents", { credentials: "include" });
+  const res = await orcaFetch("/orcaagents/ragagent/agents", { credentials: "include" });
   if (!res.ok) throw new Error((await res.json()).error);
   return res.json();
 }
 
 async function createRagAgent(input: RagAgentConfigInput): Promise<RagAgentConfig> {
-  const res = await fetch("/orcaagents/ragagent/admin/agents", {
+  const res = await orcaFetch("/orcaagents/ragagent/admin/agents", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: headers(),
     credentials: "include",
     body: JSON.stringify(input),
   });

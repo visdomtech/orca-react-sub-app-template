@@ -67,9 +67,9 @@ interface DownloadURLRequest { id: string; }
 interface DownloadURLResponse { downloadUrl: string; expiresAt: string; }
 
 async function downloadFile(fileId: string): Promise<void> {
-  const res = await fetch("/orcaagents/files/download-url", {
+  const res = await orcaFetch("/orcaagents/files/download-url", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: headers(),
     credentials: "include",
     body: JSON.stringify({ id: fileId }),
   });
@@ -94,7 +94,7 @@ interface FileRecord {
 }
 
 async function listFiles(): Promise<{ files: FileRecord[] }> {
-  const res = await fetch("/orcaagents/files", { credentials: "include" });
+  const res = await orcaFetch("/orcaagents/files", { credentials: "include" });
   if (!res.ok) throw new Error((await res.json()).error);
   return res.json();
 }

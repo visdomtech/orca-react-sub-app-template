@@ -46,15 +46,15 @@ interface FeatureFlagInfo {
 }
 
 async function listFeatureFlags(): Promise<FeatureFlagInfo[]> {
-  const res = await fetch("/orcaagents/featureflags", { credentials: "include" });
+  const res = await orcaFetch("/orcaagents/featureflags", { credentials: "include" });
   if (!res.ok) throw new Error((await res.json()).error);
   return res.json();
 }
 
 async function addFeatureFlag(name: string): Promise<void> {
-  const res = await fetch("/orcaagents/featureflags", {
+  const res = await orcaFetch("/orcaagents/featureflags", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: headers(),
     credentials: "include",
     body: JSON.stringify({ name }),
   });
@@ -62,7 +62,7 @@ async function addFeatureFlag(name: string): Promise<void> {
 }
 
 async function listModuleFlags(): Promise<string[]> {
-  const res = await fetch("/orcaagents/moduleflags", { credentials: "include" });
+  const res = await orcaFetch("/orcaagents/moduleflags", { credentials: "include" });
   if (!res.ok) throw new Error((await res.json()).error);
   return res.json();
 }

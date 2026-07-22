@@ -61,7 +61,7 @@ interface UpsertJurisdictionRequest {
 
 async function listJurisdictions(type?: string): Promise<Jurisdiction[]> {
   const qs = type ? `?type=${type}` : "";
-  const res = await fetch(`/orcaagents/jurisdictions${qs}`, {
+  const res = await orcaFetch(`/orcaagents/jurisdictions${qs}`, {
     credentials: "include",
   });
   if (!res.ok) throw new Error((await res.json()).error);
@@ -69,7 +69,7 @@ async function listJurisdictions(type?: string): Promise<Jurisdiction[]> {
 }
 
 async function searchJurisdictions(query: string): Promise<Jurisdiction[]> {
-  const res = await fetch(`/orcaagents/jurisdictions?q=${encodeURIComponent(query)}`, {
+  const res = await orcaFetch(`/orcaagents/jurisdictions?q=${encodeURIComponent(query)}`, {
     credentials: "include",
   });
   if (!res.ok) throw new Error((await res.json()).error);
@@ -77,7 +77,7 @@ async function searchJurisdictions(query: string): Promise<Jurisdiction[]> {
 }
 
 async function getByCode(code: string): Promise<Jurisdiction> {
-  const res = await fetch(`/orcaagents/jurisdictions/by-code/${code}`, {
+  const res = await orcaFetch(`/orcaagents/jurisdictions/by-code/${code}`, {
     credentials: "include",
   });
   if (!res.ok) throw new Error((await res.json()).error);

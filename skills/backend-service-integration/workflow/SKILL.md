@@ -14,7 +14,7 @@
 
 | Method | Path | Operation | Description |
 |--------|------|-----------|-------------|
-| `POST` | `/orcaagents/workflow/email/send` | `sendEmail` | Send an email via Mailgun |
+| `POST` | `/orcaagents/workflow/email/send` | `sendWorkflowEmail` | Send an email via Mailgun |
 
 ---
 
@@ -60,10 +60,10 @@ interface WorkflowSendEmailResponse {
 ### TypeScript
 
 ```ts
-async function sendEmail(req: WorkflowSendEmailRequest): Promise<WorkflowSendEmailResponse> {
-  const res = await fetch("/orcaagents/workflow/email/send", {
+async function sendWorkflowEmail(req: WorkflowSendEmailRequest): Promise<WorkflowSendEmailResponse> {
+  const res = await orcaFetch("/orcaagents/workflow/email/send", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: headers(),
     credentials: "include",
     body: JSON.stringify(req),
   });
