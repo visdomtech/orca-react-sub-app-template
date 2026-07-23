@@ -133,4 +133,37 @@ If the app needs multiple pages, add `react-router`:
 bun add react-router
 ```
 
-Use `<Routes>` in `OrcaApp.tsx` — at runtime it works inside the host's `BrowserRouter`. For standalone dev, wrap `main.tsx` with its own `<BrowserRouter>`.
+The host passes a `basename` prop (e.g. `/ng/orca/apps/my-app`) so the sub-app's router knows its mount point. Accept it and create your own data router:
+
+```tsx
+import { useState } from "react";
+import { createBrowserRouter, RouterProvider } from "react-router";
+import { HomePage } from "./features/home/pages/HomePage";
+import { SettingsPage } from "./features/settings/pages/SettingsPage";
+
+const routes = [
+  { path: "/", element: <HomePage /> },
+  { path: "/settings", element: <SettingsPage /> },
+];
+
+interface OrcaAppProps {
+  basename?: string;
+}
+
+export function OrcaApp({ basename }: OrcaAppProps) {
+  // Router is created once on mount; basename is set by the host and never changes.
+  const [router] = useState(() => createBrowserRouter(routes, { basename }));
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  );
+}
+
+export default OrcaApp;
+```
+
+For standalone dev (`bun run dev`), `basename` is `undefined` so the router mounts at `/` — no changes to `main.tsx` needed.
+
+Navigate between pages with `<Link>` or `useNavigate()` using paths relative to the app root (e.g. `to="/settings"`), never the full `/ng/orca/apps/...` prefix.
