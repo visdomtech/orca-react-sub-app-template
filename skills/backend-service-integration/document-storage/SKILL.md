@@ -18,17 +18,70 @@
 | **Workspace** | Data shared across all workspace members | Read: any member; Write: admin |
 | **User** | Data scoped to the authenticated user only | Read/Write: owner only |
 
-## Document ID Format
+## Input Validation: `docId` & `subCollectionId`
 
-Documents use **slash-separated Firestore paths**: `collection/doc[/collection/doc/...]`. A bare name like `"settings"` (no slash) returns `400`.
+> **Applies to every DB API endpoint that accepts `docId` or `subCollectionId`.**
+> Both fields are validated against Firestore path rules **before** any database
+> call. Invalid values are rejected with `400` and never reach Firestore.
+
+### `docId` - must be a valid Firestore document path
+
+A Firestore document path is an **even number** of slash-separated segments.
+Segments alternate `collection` / `doc`, so a valid path always **ends on a
+document**, never on a collection:
 
 ```
-// Bad: bare names
-"settings"                    // 400
-// Good: collection/doc paths
-"apps/myapp"                  // OK
-"apps/myapp/preferences/ui"   // OK
+collection/doc                     // 2 segments  -> valid
+collection/doc/subcollection/doc   // 4 segments  -> valid
 ```
+
+**Valid examples:**
+
+| `docId` | Segments | Why valid |
+|---------|----------|-----------|
+| `"apps/myapp"` | 2 | collection `apps`, doc `myapp` |
+| `"apps/myapp/preferences/ui"` | 4 | nested path, ends on a document |
+| `"docs/abc"` | 2 | collection `docs`, doc `abc` |
+
+**Error examples (all return `400`):**
+
+| `docId` | Why invalid |
+|---------|-------------|
+| `""` | empty -> `400 "missing docId"` (handler rejects before path validation) |
+| `"settings"` | no `/` - a bare name is a collection, not a document path |
+| `"/myapp"` | leading `/` - first segment is empty |
+| `"apps/"` | trailing `/` after first segment - second segment is empty |
+| `"apps/myapp/preferences"` | 3 segments (odd) - ends on a collection, not a document |
+| `"apps//myapp"` | empty segment in the middle - invalid path |
+
+> Validation lives in `service/db.SplitDocPath` (`client.go`); it returns
+> `db.ErrInvalidDocPath`, which the handler maps to HTTP `400`.
+
+### `subCollectionId` - must be a single Firestore collection ID
+
+`subCollectionId` names **one** sub-collection nested under an existing
+document. It is passed straight to Firestore's `.Collection(...)`, so it must
+obey Firestore's collection-ID rules: **no `/`**, not `.` or `..`, non-empty.
+Only the `.../subcollection/docs` and `.../subcollections` endpoints accept it.
+
+**Valid examples:**
+
+| `subCollectionId` | Why valid |
+|-------------------|-----------|
+| `"sessions"` | plain single-segment collection name |
+| `"agent_configs"` | underscores allowed |
+| `"audit-logs"` | hyphens allowed |
+
+**Error examples:**
+
+| `subCollectionId` | Why invalid |
+|-------------------|-------------|
+| `""` | empty -> `400 "missing subCollectionId"` |
+| `"sessions/active"` | contains `/` - Firestore treats this as `collection=sessions` + `doc=active`, producing the wrong nested path |
+| `"."` or `".."` | Firestore path-reserved segments |
+
+> The handler checks for empty and returns `400`; non-empty single-segment
+> values are forwarded to Firestore directly, so callers must avoid `/`.
 
 **Size limit:** 1 MB per document (Firestore limit).
 
@@ -267,7 +320,9 @@ async function updateWorkspaceRepository(
 
 | Status | Condition |
 |--------|-----------|
-| `400` | Invalid `docId` format (no slash), malformed JSON |
+| `400` | `docId` empty (`"missing docId"`) or not a valid Firestore document path (`db.ErrInvalidDocPath`) - see Input Validation above |
+| `400` | `subCollectionId` empty (`"missing subCollectionId"`) or contains `/` - see Input Validation above |
+| `400` | Malformed JSON body |
 | `401` | Not authenticated |
 | `403` | Non-admin user attempting workspace write; non-system-admin updating repository |
 | `404` | Document not found |

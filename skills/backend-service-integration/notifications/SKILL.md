@@ -1,6 +1,6 @@
 # Notifications Service
 
-> OAuth2 channel connection and test notification sending.
+> OAuth2 channel connection and notification sending.
 
 **Route prefix:** `/orcaagents/notification`
 **Handler:** `handler/web/notification_handler.go`
@@ -18,7 +18,7 @@
 | `GET` | `/orcaagents/notification/oauth2/authorize` | `startOAuth2Authorize` | Redirect to auth-go's OAuth2 authorize flow |
 | `GET` | `/orcaagents/notification/oauth2/status` | `getOAuth2Status` | Check if a notification channel is connected |
 | `DELETE` | `/orcaagents/notification/oauth2/disconnect` | `disconnectOAuth2` | Remove a connected notification channel |
-| `POST` | `/orcaagents/notification/test` | `sendTestNotification` | Send a test notification via a connected channel |
+| `POST` | `/orcaagents/notification/send` | `sendNotification` | Send a notification via a connected channel |
 
 ---
 
@@ -33,7 +33,7 @@ The OAuth2 credential lifecycle is delegated to **auth-go**'s vault:
 - **Status** queries auth-go for an existing credential.
 - **Disconnect** deletes the credential from auth-go's vault.
 
-The **test** endpoint sends a Slack message via `service/notifications/`.
+The **send** endpoint sends a Slack message via `service/notifications/`.
 The Slack channel is resolved automatically from the user's Slack user ID
 (stored in auth-go's vault); the caller does not specify a channel destination.
 
@@ -48,7 +48,7 @@ interface NotificationStatus {
   provider: string;  // "SLACK"
 }
 
-interface TestNotificationRequest {
+interface SendNotificationRequest {
   channel: string;   // "slack"
   // Slack chat.postMessage fields (channel resolved server-side):
   text?: string;
@@ -142,10 +142,10 @@ async function disconnectOAuth2(provider: string): Promise<void> {
 
 ---
 
-## Send Test Notification
+## Send Notification
 
 ```http
-POST /orcaagents/notification/test
+POST /orcaagents/notification/send
 ```
 
 Body is limited to 64 KB. Currently only `channel: "slack"` is supported.
@@ -153,10 +153,10 @@ Body is limited to 64 KB. Currently only `channel: "slack"` is supported.
 ### TypeScript
 
 ```ts
-async function sendTestNotification(
-  msg: TestNotificationRequest
+async function sendNotification(
+  msg: SendNotificationRequest
 ): Promise<void> {
-  const res = await orcaFetch("/orcaagents/notification/test", {
+  const res = await orcaFetch("/orcaagents/notification/send", {
     method: "POST",
     headers: headers(),
     credentials: "include",
@@ -172,6 +172,6 @@ async function sendTestNotification(
 
 | Status | Condition |
 |--------|-----------|
-| `400` | Missing `provider` query param, unsupported provider, unsupported channel (test), invalid JSON body (test) |
+| `400` | Missing `provider` query param, unsupported provider, unsupported channel (send), invalid JSON body (send) |
 | `401` | Not authenticated (no JWT email) |
-| `502` | auth-go vault error (status/disconnect), failed to send test notification (Slack API error) |
+| `502` | auth-go vault error (status/disconnect), failed to send notification (Slack API error) |
