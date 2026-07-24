@@ -22,7 +22,7 @@ bunx serve dist --cors -l 4174  # Serve built bundle for host integration testin
 src/
 ├── OrcaApp.tsx        ← root component exported to host (default export required)
 ├── main.tsx           ← standalone dev entry only — NOT loaded by host
-├── index.css          ← TailwindCSS v4 — must be imported in OrcaApp.tsx
+├── index.css          ← TailwindCSS v4 (reserved for non-admin pages) — must be imported in OrcaApp.tsx
 ├── api/
 │   ├── httpClient.ts  ← pre-built HTTP client (credentials: include)
 │   └── types.ts       ← shared Response<T>, ListResponse<T>, etc.
@@ -40,8 +40,8 @@ src/
 
 ### Module Federation constraints
 
-- `react` and `react-dom` are shared singletons — the host provides these instances
-- Do NOT add other packages to the `shared` section in `vite.config.ts` — bundle everything else
+- `react`, `react-dom`, and `react-router` are shared singletons — the host provides these instances
+- Do NOT add stateless utility libraries to the `shared` section — bundle them instead. Only context-providing or singleton libraries (react, react-dom, react-router) should be shared
 - The federation `name` in `vite.config.ts` must be globally unique across all sub-apps
 - `OrcaApp.tsx` MUST have a `default export` — the host checks `remote.default`
 - Import `./index.css` in `OrcaApp.tsx` (not `main.tsx`) so CSS is injected at load time
@@ -67,10 +67,14 @@ Never skip layers: pages must not import from `api.ts` directly.
 
 ### Styling
 
-- Use TailwindCSS v4 utility classes (matches the host's visual language)
-- Primary color: `indigo-600` (#4f46e5)
-- Secondary: `violet-600` (#7c3aed)
-- Backgrounds: `slate-50`, `white`; borders: `slate-200`; text: `slate-800`, `slate-500`
+- **MUI-first with `sx` + theme tokens** (Mercury Console design system)
+- See `skills/orca-fe/styles.md` for the full design specification
+- Import UI kit components from `~/shared/ui` (AdminTable, PageHeader, DetailLayout, StatusPill, etc.)
+- Use theme tokens (`divider`, `text.secondary`, `background.paper`, `primary.main`) - no raw hex values
+- Single accent: indigo (`primary.main` = #4f46e5). No violet/purple.
+- Backgrounds: `background.default` (slate-50), `background.paper` (white); borders: `divider` (slate-200)
+- No gradient backgrounds, no gradient text, no hover lifts, no card shadows
+- Tailwind is available but reserved for non-admin pages; admin/data pages use MUI `sx`
 
 ## Registering with the host
 
@@ -93,25 +97,18 @@ To add a new feature:
 
 ## Adding MUI
 
-If you need MUI components for full visual parity with the host:
+MUI is required for the Mercury Console design system. Install:
 
 ```bash
-bun add @mui/material @emotion/react @emotion/styled @mui/icons-material
+bun add @mui/material@^6 @emotion/react @emotion/styled @mui/icons-material@^6 react-router
 ```
 
-Wrap `OrcaApp` with `ThemeProvider`:
+The Mercury Console theme and UI kit are already in this repo. Wire them up:
 
 ```tsx
-import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-
-const theme = createTheme({
-  palette: {
-    primary: { main: "#4f46e5" },
-    secondary: { main: "#7c3aed" },
-    error: { main: "#ef4444" },
-  },
-});
+import { theme } from "./theme/theme";
 
 export function OrcaApp() {
   return (
@@ -124,6 +121,8 @@ export function OrcaApp() {
   );
 }
 ```
+
+See `skills/orca-fe/styles.md` for the full design spec and `skills/orca-fe/SKILL.md` for the migration guide.
 
 ## Adding internal routing
 
