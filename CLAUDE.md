@@ -68,7 +68,7 @@ Never skip layers: pages must not import from `api.ts` directly.
 ### Styling
 
 - **MUI-first with `sx` + theme tokens** (Mercury Console design system)
-- See `styles.md` for the full design specification
+- See `skills/orca-fe/styles.md` for the full design specification
 - Import UI kit components from `~/shared/ui` (AdminTable, PageHeader, DetailLayout, StatusPill, etc.)
 - Use theme tokens (`divider`, `text.secondary`, `background.paper`, `primary.main`) - no raw hex values
 - Single accent: indigo (`primary.main` = #4f46e5). No violet/purple.
@@ -122,7 +122,7 @@ export function OrcaApp() {
 }
 ```
 
-See `styles.md` for the full design spec and `skills/orca-fe/SKILL.md` for the migration guide.
+See `skills/orca-fe/styles.md` for the full design spec and `skills/orca-fe/SKILL.md` for the migration guide.
 
 ## Adding internal routing
 

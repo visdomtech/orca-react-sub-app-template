@@ -40,7 +40,7 @@ export function OrcaApp() {
 Before any changes, read the design spec in this repo:
 
 ```
-Read: styles.md
+Read: skills/orca-fe/styles.md
 ```
 
 This file is the single source of truth for all visual rules, token values, kit contracts, and migration checklists (section 9). Internalize it fully before touching any page.
@@ -142,7 +142,7 @@ All reference implementations are in this repo:
 
 | File | Purpose |
 |------|---------|
-| `styles.md` | Full design system specification |
+| `skills/orca-fe/styles.md` | Full design system specification |
 | `src/theme/theme.ts` | MUI theme with Mercury Console tokens and overrides |
 | `src/shared/ui/AdminTable.tsx` | Data table with columns config, loading, empty, footer |
 | `src/shared/ui/PageHeader.tsx` | Page header with title, subtitle, actions, back link |
