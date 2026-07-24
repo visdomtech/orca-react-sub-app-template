@@ -100,7 +100,7 @@ To add a new feature:
 MUI is required for the Mercury Console design system. Install:
 
 ```bash
-bun add @mui/material@^6 @emotion/react @emotion/styled @mui/icons-material@^6 react-router @doublefin/orca-ui
+bun add @mui/material@^9 @emotion/react @emotion/styled @mui/icons-material@^9 react-router @doublefin/orca-ui
 ```
 
 The Mercury Console theme and UI kit are already in this repo. Wire them up:

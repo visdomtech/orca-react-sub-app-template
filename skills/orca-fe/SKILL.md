@@ -12,7 +12,7 @@ Goal: Any page in the app must look like it was designed by one person. The them
 The app must have MUI and react-router installed and configured with the Mercury Console theme. If not yet set up:
 
 ```bash
-bun add @mui/material@^6 @emotion/react @emotion/styled @mui/icons-material@^6 react-router @doublefin/orca-ui
+bun add @mui/material@^9 @emotion/react @emotion/styled @mui/icons-material@^9 react-router @doublefin/orca-ui
 ```
 
 Then copy the theme from this repo's reference files:
