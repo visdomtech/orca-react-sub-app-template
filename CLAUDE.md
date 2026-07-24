@@ -22,7 +22,7 @@ bunx serve dist --cors -l 4174  # Serve built bundle for host integration testin
 src/
 ├── OrcaApp.tsx        ← root component exported to host (default export required)
 ├── main.tsx           ← standalone dev entry only — NOT loaded by host
-├── index.css          ← TailwindCSS v4 — must be imported in OrcaApp.tsx
+├── index.css          ← TailwindCSS v4 (reserved for non-admin pages) — must be imported in OrcaApp.tsx
 ├── api/
 │   ├── httpClient.ts  ← pre-built HTTP client (credentials: include)
 │   └── types.ts       ← shared Response<T>, ListResponse<T>, etc.
@@ -40,8 +40,8 @@ src/
 
 ### Module Federation constraints
 
-- `react` and `react-dom` are shared singletons — the host provides these instances
-- Do NOT add other packages to the `shared` section in `vite.config.ts` — bundle everything else
+- `react`, `react-dom`, and `react-router` are shared singletons — the host provides these instances
+- Do NOT add stateless utility libraries to the `shared` section — bundle them instead. Only context-providing or singleton libraries (react, react-dom, react-router) should be shared
 - The federation `name` in `vite.config.ts` must be globally unique across all sub-apps
 - `OrcaApp.tsx` MUST have a `default export` — the host checks `remote.default`
 - Import `./index.css` in `OrcaApp.tsx` (not `main.tsx`) so CSS is injected at load time

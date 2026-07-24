@@ -22,6 +22,7 @@ export default defineConfig({
       shared: {
         react: { singleton: true, requiredVersion: "^19" },
         "react-dom": { singleton: true, requiredVersion: "^19" },
+        "react-router": { singleton: true, requiredVersion: "^8" },
       },
     }),
   ],
