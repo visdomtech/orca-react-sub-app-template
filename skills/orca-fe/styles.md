@@ -10,7 +10,7 @@ Mechanism: The theme does the visual work, the kit provides structure, and pages
 ## 1. Design Principles & Dial Profile
 
 ### 1.1 Aesthetic Read & Dial Profile
-* **Design Read**: B2B Fintech & Admin Console for technical users and enterprise compliance operators, with a quiet Mercury/Stripe visual language, leaning toward MUI 6 theme tokens + structured Mercury UI kit (`@doublefin/orca-ui`).
+* **Design Read**: B2B Fintech & Admin Console for technical users and enterprise compliance operators, with a quiet Mercury/Stripe visual language, leaning toward MUI 9 theme tokens + structured Mercury UI kit (`@doublefin/orca-ui`).
 * **Dial Profile**:
   * `DESIGN_VARIANCE: 3` (Predictable: Symmetrical 12-column grid, structured table layouts, hairline borders, consistent paddings).
   * `MOTION_INTENSITY: 2` (Static/Fluid CSS: Subtle hover/active states, 16px inline action spinners, reduced motion honored by default).
@@ -76,7 +76,7 @@ Future visual work must conform to these component overrides in `src/theme/theme
 * **`MuiPaper`**: `elevation` defaults to 0. Elevation-0 Papers receive the hairline border; raised overlays (high-elevation menus, popovers) keep their shadow and stay borderless. (Surface = Paper, border = automatic.)
 * **`MuiAppBar`**: White, ink text, hairline bottom border. AppBar is used only by the navbar.
 * **`MuiTableCell`**: 13px body; uppercase 11px/600 micro-headers on slate-50 fill; hairline row borders; `sizeSmall` padding 8px/16px. Never add `sx={{ fontWeight: 600 }}` or header colors on header cells in pages; the theme owns table chrome.
-* **`MuiButton`**: `disableElevation` always. `outlinedPrimary` is the neutral "secondary action" (slate text, INPUT_BORDER, HOVER_BG hover). Contained primary keeps the accent.
+* **`MuiButton`**: `disableElevation` always. The `outlined`+`primary` variant override is the neutral "secondary action" (slate text, INPUT_BORDER, HOVER_BG hover). Contained primary keeps the accent.
 * **`MuiOutlinedInput`**: White background, INPUT_BORDER border, SLATE_FAINT hover, 1px ACCENT border + FOCUS_RING on focus; 13px input text. `MuiInputLabel` matches at 13px.
 * **`MuiDialog` / `MuiPopover`**: OVERLAY_SHADOW + hairline + 12px/10px radius. These are the only places a shadow recipe appears outside `theme.shadows`.
 * **`MuiMenu` / `MuiMenuItem`**: 4px list padding, 13px items with 6px radius.
