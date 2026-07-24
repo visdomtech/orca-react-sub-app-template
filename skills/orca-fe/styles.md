@@ -10,7 +10,7 @@ Mechanism: The theme does the visual work, the kit provides structure, and pages
 ## 1. Design Principles & Dial Profile
 
 ### 1.1 Aesthetic Read & Dial Profile
-* **Design Read**: B2B Fintech & Admin Console for technical users and enterprise compliance operators, with a quiet Mercury/Stripe visual language, leaning toward MUI 6 theme tokens + structured Mercury UI kit (`src/shared/ui/`).
+* **Design Read**: B2B Fintech & Admin Console for technical users and enterprise compliance operators, with a quiet Mercury/Stripe visual language, leaning toward MUI 6 theme tokens + structured Mercury UI kit (`@doublefin/orca-ui`).
 * **Dial Profile**:
   * `DESIGN_VARIANCE: 3` (Predictable: Symmetrical 12-column grid, structured table layouts, hairline borders, consistent paddings).
   * `MOTION_INTENSITY: 2` (Static/Fluid CSS: Subtle hover/active states, 16px inline action spinners, reduced motion honored by default).
@@ -87,9 +87,9 @@ Future visual work must conform to these component overrides in `src/theme/theme
 
 ---
 
-## 4. The Mercury UI Kit (`src/shared/ui/`)
+## 4. The Mercury UI Kit (`@doublefin/orca-ui`)
 
-Shared by the admin and sysadmin consoles. Import via the barrel: `import { AdminTable, PageHeader, ... } from "~/shared/ui"`.
+Shared by the admin and sysadmin consoles. Install via `bun add @doublefin/orca-ui`. Import via the barrel: `import { AdminTable, PageHeader, ... } from "@doublefin/orca-ui"`.
 
 | Component | Purpose / Contract |
 |---|---|

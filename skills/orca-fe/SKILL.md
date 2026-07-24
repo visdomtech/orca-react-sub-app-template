@@ -12,12 +12,12 @@ Goal: Any page in the app must look like it was designed by one person. The them
 The app must have MUI and react-router installed and configured with the Mercury Console theme. If not yet set up:
 
 ```bash
-bun add @mui/material@^6 @emotion/react @emotion/styled @mui/icons-material@^6 react-router
+bun add @mui/material@^6 @emotion/react @emotion/styled @mui/icons-material@^6 react-router @doublefin/orca-ui
 ```
 
-Then copy the theme and UI kit from this repo's reference files:
+Then copy the theme from this repo's reference files:
 - Theme: `src/theme/theme.ts` - copy to your app's `src/theme/theme.ts`
-- UI Kit: `src/shared/ui/` - copy to your app's `src/shared/ui/`
+- UI Kit: provided by `@doublefin/orca-ui` (installed above)
 - Wrap `OrcaApp` with the ThemeProvider:
 
 ```tsx
@@ -120,12 +120,12 @@ Existing tests must pass unmodified. Key patterns:
 ### Kit Import
 Always import from the barrel:
 ```tsx
-import { AdminTable, PageHeader, DetailLayout, DetailRow, FormSection, StatusPill, EmptyState, TableSkeleton, DetailSkeleton, type AdminTableColumn, type StatusPillTone } from "~/shared/ui";
+import { AdminTable, PageHeader, DetailLayout, DetailRow, FormSection, StatusPill, EmptyState, TableSkeleton, DetailSkeleton, type AdminTableColumn, type StatusPillTone } from "@doublefin/orca-ui";
 ```
 
 ### Badge Wrapper Pattern
 ```tsx
-import { StatusPill, type StatusPillTone } from "~/shared/ui";
+import { StatusPill, type StatusPillTone } from "@doublefin/orca-ui";
 import type { SomeEnum } from "...";
 
 const TONE_MAP: Record<SomeEnum, StatusPillTone> = { A: "success", B: "warning" };
@@ -144,16 +144,8 @@ All reference implementations are in this repo:
 |------|---------|
 | `skills/orca-fe/styles.md` | Full design system specification |
 | `src/theme/theme.ts` | MUI theme with Mercury Console tokens and overrides |
-| `src/shared/ui/AdminTable.tsx` | Data table with columns config, loading, empty, footer |
-| `src/shared/ui/PageHeader.tsx` | Page header with title, subtitle, actions, back link |
-| `src/shared/ui/DetailLayout.tsx` | Detail page scaffold with back link, title, status, actions |
-| `src/shared/ui/DetailRow.tsx` | Label/value row (160px label width) |
-| `src/shared/ui/DetailSkeleton.tsx` | Loading placeholder for detail pages |
-| `src/shared/ui/TableSkeleton.tsx` | Loading placeholder for standalone tables |
-| `src/shared/ui/EmptyState.tsx` | Designed empty state with icon, title, description |
-| `src/shared/ui/FormSection.tsx` | Form field grouping with overline title and divider |
-| `src/shared/ui/StatusPill.tsx` | Status badge with tone-based coloring |
-| `src/shared/ui/index.ts` | Barrel export for all kit components |
+| `@doublefin/orca-ui` | npm package providing all kit components (AdminTable, PageHeader, DetailLayout, DetailRow, DetailSkeleton, TableSkeleton, EmptyState, FormSection, StatusPill) |
+| `src/shared/ui/index.ts` | Re-export shim: `export * from "@doublefin/orca-ui"` |
 
 ## Verification
 
