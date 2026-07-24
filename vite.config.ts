@@ -23,6 +23,7 @@ export default defineConfig({
         react: { singleton: true, requiredVersion: "^19" },
         "react-dom": { singleton: true, requiredVersion: "^19" },
         "react-router": { singleton: true, requiredVersion: "^8" },
+        "@doublefin/orca-ui": { singleton: true, requiredVersion: "^0.1" },
       },
     }),
   ],

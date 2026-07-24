@@ -69,7 +69,7 @@ Never skip layers: pages must not import from `api.ts` directly.
 
 - **MUI-first with `sx` + theme tokens** (Mercury Console design system)
 - See `skills/orca-fe/styles.md` for the full design specification
-- Import UI kit components from `~/shared/ui` (AdminTable, PageHeader, DetailLayout, StatusPill, etc.)
+- Import UI kit components from `@doublefin/orca-ui` (or `~/shared/ui` re-export shim) (AdminTable, PageHeader, DetailLayout, StatusPill, etc.)
 - Use theme tokens (`divider`, `text.secondary`, `background.paper`, `primary.main`) - no raw hex values
 - Single accent: indigo (`primary.main` = #4f46e5). No violet/purple.
 - Backgrounds: `background.default` (slate-50), `background.paper` (white); borders: `divider` (slate-200)
@@ -100,7 +100,7 @@ To add a new feature:
 MUI is required for the Mercury Console design system. Install:
 
 ```bash
-bun add @mui/material@^6 @emotion/react @emotion/styled @mui/icons-material@^6 react-router
+bun add @mui/material@^6 @emotion/react @emotion/styled @mui/icons-material@^6 react-router @doublefin/orca-ui
 ```
 
 The Mercury Console theme and UI kit are already in this repo. Wire them up:

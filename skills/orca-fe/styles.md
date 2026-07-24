@@ -178,7 +178,7 @@ Local badge components (e.g. `ReviewStatusBadge`, `FindingSeverityBadge`) are th
 
 ## 7. Testing Patterns for Visual and Behavior Work
 
-* **Kit Components**: Unit/render tests in `shared/ui/__tests__/` (slots, tones, skeleton `role="progressbar"`, row-click callbacks).
+* **Kit Components**: Unit/render tests live in the `@doublefin/orca-ui` package repo (slots, tones, skeleton `role="progressbar"`, row-click callbacks).
 * **Page Behavior Tests**: MSW-backed page tests lock the frozen contract (debounce timing + payload shape, pagination tokens, row navigation, mutation + invalidation refetch, lazy-mounted panels, save-payload mapping).
 * **Passthrough Client Setup**: Real fetch through MSW with real `SEARCH_DEBOUNCE`:
 
