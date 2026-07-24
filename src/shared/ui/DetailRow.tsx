@@ -7,8 +7,7 @@ export interface DetailRowProps {
   children: ReactNode;
 }
 
-/** Label/value row for detail pages — replaces four page-local copies
- * (UserDetailPage, ChangeLogEntryPage, AuditLogDetailPage, CompanyProfilePage). */
+/** Label/value row for detail pages. */
 export function DetailRow({ label, children }: DetailRowProps) {
   return (
     <Box sx={{ display: "flex", py: 1.5 }}>

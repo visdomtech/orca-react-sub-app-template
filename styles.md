@@ -252,7 +252,7 @@ When migrating any page to the Mercury Console design system, apply these transf
 3. **Tables**: Replace raw MUI `<Table>` with `<AdminTable>` (columns config, `rowKey`, `loading`, `empty`, optional `footer`).
 4. **Forms**: Group related fields with `<FormSection title="...">`.
 5. **Status indicators**: Replace `<Chip>` status badges with `<StatusPill tone="..." label="..." />` using the tone mappings from §4.2.
-6. **Label/value pairs**: Replace custom row layouts with `<DetailRow label="..." value={...} />`.
+6. **Label/value pairs**: Replace custom row layouts with `<DetailRow label="...">{value}</DetailRow>`.
 
 ### 9.2 Token Cleanup
 1. Replace all raw hex colors with theme palette tokens (`primary.main`, `text.secondary`, `divider`, `background.paper`, `success.dark`, etc.).

@@ -12,7 +12,7 @@ Goal: Any page in the app must look like it was designed by one person. The them
 The app must have MUI and react-router installed and configured with the Mercury Console theme. If not yet set up:
 
 ```bash
-bun add @mui/material @emotion/react @emotion/styled @mui/icons-material react-router
+bun add @mui/material@^6 @emotion/react @emotion/styled @mui/icons-material@^6 react-router
 ```
 
 Then copy the theme and UI kit from this repo's reference files:
@@ -83,7 +83,7 @@ Apply transforms in this order (from styles.md section 9):
 3. **Tables** -> `<AdminTable columns={...} rows={...} rowKey={...} loading={...} empty={<EmptyState .../>} />`
 4. **Forms** -> `<FormSection title="...">` groups
 5. **Status** -> `<StatusPill tone="..." label="..." />` (use badge wrapper pattern)
-6. **Label/value** -> `<DetailRow label="..." value={...} />`
+6. **Label/value** -> `<DetailRow label="...">{value}</DetailRow>`
 
 ### Step 2: Token Cleanup
 
