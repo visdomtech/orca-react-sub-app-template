@@ -76,7 +76,7 @@ Future visual work must conform to these component overrides in `src/theme/theme
 * **`MuiPaper`**: `elevation` defaults to 0. Elevation-0 Papers receive the hairline border; raised overlays (high-elevation menus, popovers) keep their shadow and stay borderless. (Surface = Paper, border = automatic.)
 * **`MuiAppBar`**: White, ink text, hairline bottom border. AppBar is used only by the navbar.
 * **`MuiTableCell`**: 13px body; uppercase 11px/600 micro-headers on slate-50 fill; hairline row borders; `sizeSmall` padding 8px/16px. Never add `sx={{ fontWeight: 600 }}` or header colors on header cells in pages; the theme owns table chrome.
-* **`MuiButton`**: `disableElevation` always. `outlinedPrimary` is the neutral "secondary action" (slate text, INPUT_BORDER, HOVER_BG hover). Contained primary keeps the accent.
+* **`MuiButton`**: `disableElevation` always. The `outlined`+`primary` variant override is the neutral "secondary action" (slate text, INPUT_BORDER, HOVER_BG hover). Contained primary keeps the accent.
 * **`MuiOutlinedInput`**: White background, INPUT_BORDER border, SLATE_FAINT hover, 1px ACCENT border + FOCUS_RING on focus; 13px input text. `MuiInputLabel` matches at 13px.
 * **`MuiDialog` / `MuiPopover`**: OVERLAY_SHADOW + hairline + 12px/10px radius. These are the only places a shadow recipe appears outside `theme.shadows`.
 * **`MuiMenu` / `MuiMenuItem`**: 4px list padding, 13px items with 6px radius.

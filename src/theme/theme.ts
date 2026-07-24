@@ -129,19 +129,19 @@ const theme = createTheme({
           textTransform: "none",
           fontWeight: 600,
           fontSize: "0.8125rem",
-          // Outlined buttons read as neutral "secondary" actions (Mercury pattern).
-          variants: [
-            {
-              props: { variant: "outlined", color: "primary" },
-              style: {
-                color: "#334155", // slate-700
-                borderColor: INPUT_BORDER,
-                "&:hover": { borderColor: SLATE_FAINT, backgroundColor: HOVER_BG },
-              },
-            },
-          ],
         },
       },
+      // Outlined buttons read as neutral "secondary" actions (Mercury pattern).
+      variants: [
+        {
+          props: { variant: "outlined", color: "primary" },
+          style: {
+            color: "#334155", // slate-700
+            borderColor: INPUT_BORDER,
+            "&:hover": { borderColor: SLATE_FAINT, backgroundColor: HOVER_BG },
+          },
+        },
+      ],
     },
     MuiTableCell: {
       styleOverrides: {
