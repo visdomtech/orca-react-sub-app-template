@@ -7,7 +7,11 @@ export function HelloPage() {
   const { data, isLoading, error } = useHelloStats();
 
   if (isLoading) {
-    return <DetailSkeleton />;
+    return (
+      <Box sx={{ p: 3 }}>
+        <DetailSkeleton />
+      </Box>
+    );
   }
 
   if (error) {
