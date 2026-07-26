@@ -9,27 +9,35 @@ Goal: Any page in the app must look like it was designed by one person. The them
 
 ## Prerequisites
 
-The app must have MUI and react-router installed and configured with the Mercury Console theme. If not yet set up:
+The app must have MUI, react-router, and React Query installed and configured with the Mercury Console theme. If not yet set up:
 
 ```bash
-bun add @mui/material@^9 @emotion/react @emotion/styled @mui/icons-material@^9 react-router @doublefin/orca-ui
+bun add @mui/material@^9 @emotion/react @emotion/styled @mui/icons-material@^9 react-router@^8 @tanstack/react-query @doublefin/orca-ui@^0.2
 ```
+
+All packages are available on the public npm registry (npmjs.com). No private registry or `.npmrc` configuration is needed for `@doublefin/orca-ui`.
 
 Then copy the theme from this repo's reference files:
 - Theme: `src/theme/theme.ts` - copy to your app's `src/theme/theme.ts`
 - UI Kit: provided by `@doublefin/orca-ui` (installed above)
-- Wrap `OrcaApp` with the ThemeProvider:
+- Wrap `OrcaApp` with the ThemeProvider and QueryClientProvider:
 
 ```tsx
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { theme } from "./theme/theme";
+import "./index.css";
+
+const queryClient = new QueryClient();
 
 export function OrcaApp() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      {/* ... app content ... */}
+      <QueryClientProvider client={queryClient}>
+        {/* ... app content ... */}
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }
@@ -69,7 +77,7 @@ For each target page, scan for violations in three categories:
 - Gradient text (`-webkit-background-clip: text`)
 - Hover lifts (`translateY(-2px)`, `transform: scale`)
 - Card shadows (`boxShadow` on non-overlay surfaces)
-- Em-dashes (`---`) instead of hyphens (`-`)
+- Em-dashes (`—`) instead of hyphens (`-`)
 - Violet/purple colors (`#7c3aed`, `#6d28d9`, `#a78bfa`, `#8b5cf6`)
 
 ## Migration Execution
@@ -84,6 +92,8 @@ Apply transforms in this order (from styles.md section 9):
 4. **Forms** -> `<FormSection title="...">` groups
 5. **Status** -> `<StatusPill tone="..." label="..." />` (use badge wrapper pattern)
 6. **Label/value** -> `<DetailRow label="...">{value}</DetailRow>`
+
+See styles.md section 9 for the full checklist.
 
 ### Step 2: Token Cleanup
 
@@ -107,6 +117,8 @@ During visual work, these are untouchable:
 - Query keys (`queryKeys.ts`)
 - HTTP client (`src/api/`)
 
+Full contract in styles.md section 6.
+
 Migration rule: hooks/state/effects block above `return` stays verbatim; only JSX below `return` changes.
 
 ### Test Preservation
@@ -122,6 +134,8 @@ Always import from the barrel:
 ```tsx
 import { AdminTable, PageHeader, DetailLayout, DetailRow, FormSection, StatusPill, EmptyState, TableSkeleton, DetailSkeleton, type AdminTableColumn, type StatusPillTone } from "@doublefin/orca-ui";
 ```
+
+The `src/shared/ui/index.ts` re-export shim (`export * from "@doublefin/orca-ui"`) exists for Module Federation compatibility and may be used interchangeably.
 
 ### Badge Wrapper Pattern
 ```tsx
@@ -144,22 +158,24 @@ All reference implementations are in this repo:
 |------|---------|
 | `skills/orca-fe/styles.md` | Full design system specification |
 | `src/theme/theme.ts` | MUI theme with Mercury Console tokens and overrides |
-| `@doublefin/orca-ui` | npm package providing all kit components (AdminTable, PageHeader, DetailLayout, DetailRow, DetailSkeleton, TableSkeleton, EmptyState, FormSection, StatusPill) |
+| `@doublefin/orca-ui` | Public npm package (npmjs.com) providing all kit components (AdminTable, PageHeader, DetailLayout, DetailRow, DetailSkeleton, TableSkeleton, EmptyState, FormSection, StatusPill) |
 | `src/shared/ui/index.ts` | Re-export shim: `export * from "@doublefin/orca-ui"` |
 
 ## Verification
 
 After each page migration:
 ```bash
-bun run lint:fix       # auto-fix import ordering, dot-notation, etc.
+bun run lint:fix       # auto-fix import ordering, dot-notation, etc. (if configured; not included in template by default)
 bun run typecheck      # TypeScript type check
 bun run test           # run test suite (if configured)
 bun run build          # production build
 ```
 
-All four steps must pass. Do not skip lint:fix - it catches auto-fixable issues.
+All configured steps must pass. Do not skip lint:fix when a linter is configured - it catches auto-fixable issues.
 
 ## Tone Mapping Reference
+
+Full conventions documented in styles.md section 4.2.
 
 | Domain | Values -> Tones |
 |--------|----------------|

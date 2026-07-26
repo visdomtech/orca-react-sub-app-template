@@ -45,7 +45,7 @@ Mechanism: The theme does the visual work, the kit provides structure, and pages
 | `ACCENT` / `ACCENT_HOVER` | `#4f46e5` / `#4338ca` | The single indigo accent and its hover state |
 | `ACCENT_SOFT` / `ACCENT_SOFT_HOVER` | `#eef2ff` / `#e0e7ff` | Selected item backgrounds (nav items, avatar tint) |
 | `FOCUS_RING` | `0 0 0 3px rgba(79, 70, 229, 0.12)` | Input focus ring, layered with 1px accent border |
-| `OVERLAY_SHADOW` | `0 12px 32px -8px rgba(15,23,42,0.12)` | Soft slate shadow reserved for dialogs, popovers, and menus |
+| `OVERLAY_SHADOW` | `0 12px 32px -8px rgba(15, 23, 42, 0.12), 0 4px 12px -4px rgba(15, 23, 42, 0.06)` | Soft slate shadow reserved for dialogs, popovers, and menus |
 | `HOVER_BG` | `rgba(15, 23, 42, 0.04)` | Neutral slate hover wash for rows, buttons, list items |
 
 Palette rules: `primary` is the only accent; `secondary` is demoted to neutral slate (do not reintroduce violet); `divider` = HAIRLINE; `background.default` = CANVAS; `background.paper` = `#ffffff`; `text` = INK/SLATE/SLATE_FAINT; `action.*` = neutral slate washes.
@@ -54,7 +54,7 @@ Palette rules: `primary` is the only accent; `secondary` is demoted to neutral s
 
 * System font stack (`system-ui`-first).
 * **Inter Slot**: If the Inter dependency is approved, `bun add @fontsource-variable/inter`, import once in your app's entry file (e.g. `src/main.tsx`) next to `./index.css`, and prepend `'"Inter Variable"'` to `FONT_STACK`. Two lines.
-* Tight tracking only on h1–h3 (`-0.02em`/`-0.015em`/`-0.01em`). Heading sizes and weights remain unchanged from the theme.
+* Tight tracking only on h1-h3 (`-0.02em`/`-0.015em`/`-0.01em`). Heading sizes and weights remain unchanged from the theme.
 * Data density comes from the `MuiTableCell` override (13px table body), **not** from shrinking global `body2` (which would reflow chat and other non-admin pages).
 * `overline` (11px, weight 600, letter-spacing `0.05em`) is the section-label style (sidebar groups, form sections). MUI renders it uppercase automatically.
 
@@ -89,7 +89,7 @@ Future visual work must conform to these component overrides in `src/theme/theme
 
 ## 4. The Mercury UI Kit (`@doublefin/orca-ui`)
 
-Shared by the admin and sysadmin consoles. Install via `bun add @doublefin/orca-ui`. Import via the barrel: `import { AdminTable, PageHeader, ... } from "@doublefin/orca-ui"`.
+Shared by the admin and sysadmin consoles. Install from the public npm registry (npmjs.com) via `bun add @doublefin/orca-ui`. Import via the barrel: `import { AdminTable, PageHeader, ... } from "@doublefin/orca-ui"`.
 
 | Component | Purpose / Contract |
 |---|---|
@@ -171,7 +171,7 @@ Local badge components (e.g. `ReviewStatusBadge`, `FindingSeverityBadge`) are th
   * HTTP client (`src/api/**`)
   * Verification gate: `git diff --name-only -- <paths>` must be empty at the end of any purely visual change.
 * **Migration Rule**: The hooks/state/effects block above `return` stays verbatim; changes are JSX-only below it. Debounce timings, polling intervals, pagination mechanics, dialog flows, invalidation keys, and navigation targets are untouchable.
-* **MUI-First Styling**: `sx` + theme tokens. No Tailwind classes in admin pages (the codebase uses MUI `sx` across admin surfaces; mixing systems is discouraged). No `styled()` (zero existing usage). No `React.memo` or `useMemo` on rendered rows (measured non-issue at admin scale, <= 25 rows).
+* **MUI-First Styling**: `sx` + theme tokens. No Tailwind classes in admin pages (the codebase uses MUI `sx` across admin surfaces; Tailwind is available in the build pipeline for non-admin contexts like chat pages, but mixing systems on admin pages is forbidden). No `styled()` (zero existing usage). No `React.memo` or `useMemo` on rendered rows (measured non-issue at admin scale, <= 25 rows).
 * **Verification Cycle**: Run `bun run lint:fix` -> `bun run typecheck` -> `bun run test`. Run `bun run build` before finalizing a cycle.
 
 ---
@@ -229,7 +229,7 @@ Local badge components (e.g. `ReviewStatusBadge`, `FindingSeverityBadge`) are th
 
 Do not relitigate these settled design and implementation decisions:
 
-* **Tailwind for Admin Pages**: Codebase uses MUI `sx` on admin surfaces; one system wins.
+* **Tailwind for Admin Pages**: Tailwind is installed in the build pipeline but must not be used for admin-page styling. MUI `sx` is the single styling system for admin surfaces. Chat pages (exempt from the kit per §5) may use Tailwind.
 * **`styled()` Utility**: Zero existing usage; hoisted `sx` constants resolve identical needs.
 * **Config-Mega-Table**: Built-in search/filter/pagination inside `AdminTable` was rejected because the real tables differ too much (infinite scroll vs pagination vs drag-and-drop); composition won.
 * **Border Radius 10 / Shadows Rebuild / Grey-to-Slate Remap**: High app-wide blast radius for minimal visual gain (see §2.3).

@@ -1,19 +1,19 @@
 import { createTheme } from "@mui/material/styles";
 
-// ── Design tokens ("Mercury Console") ──────────────────────────────────────────
+// -- Design tokens ("Mercury Console") ----------------------------------------
 // Quiet fintech aesthetic: soft neutrals, hairline borders instead of elevation,
 // a slate ink hierarchy, and a single indigo accent.
 
-const INK = "#0f172a"; // slate-900 — primary text, dark overlays (tooltip)
-const SLATE = "#475569"; // slate-600 — secondary text
-const SLATE_SOFT = "#64748b"; // slate-500 — icons, secondary-button text
-const SLATE_FAINT = "#94a3b8"; // slate-400 — disabled / placeholder
-const HAIRLINE = "#e2e8f0"; // slate-200 — dividers, surface borders
-const INPUT_BORDER = "#cbd5e1"; // slate-300 — interactive borders (inputs, outlined buttons, chips)
-const CANVAS = "#f8fafc"; // slate-50 — app background, table header fill
-const ACCENT = "#4f46e5"; // indigo-600 — the single accent
+const INK = "#0f172a"; // slate-900 - primary text, dark overlays (tooltip)
+const SLATE = "#475569"; // slate-600 - secondary text
+const SLATE_SOFT = "#64748b"; // slate-500 - icons, secondary-button text
+const SLATE_FAINT = "#94a3b8"; // slate-400 - disabled / placeholder
+const HAIRLINE = "#e2e8f0"; // slate-200 - dividers, surface borders
+const INPUT_BORDER = "#cbd5e1"; // slate-300 - interactive borders (inputs, outlined buttons, chips)
+const CANVAS = "#f8fafc"; // slate-50 - app background, table header fill
+const ACCENT = "#4f46e5"; // indigo-600 - the single accent
 const ACCENT_HOVER = "#4338ca"; // indigo-700
-const ACCENT_SOFT = "#eef2ff"; // indigo-50 — selected backgrounds
+const ACCENT_SOFT = "#eef2ff"; // indigo-50 - selected backgrounds
 const ACCENT_SOFT_HOVER = "#e0e7ff"; // indigo-100
 
 const FOCUS_RING = "0 0 0 3px rgba(79, 70, 229, 0.12)";
@@ -43,7 +43,7 @@ const theme = createTheme({
       dark: ACCENT_HOVER,
       contrastText: "#ffffff",
     },
-    // Violet secondary demoted to neutral slate — indigo is the only accent.
+    // Violet secondary demoted to neutral slate - indigo is the only accent.
     secondary: {
       main: SLATE_SOFT,
       light: SLATE_FAINT,
@@ -99,7 +99,7 @@ const theme = createTheme({
   shape: {
     borderRadius: 8,
   },
-  // NOTE: theme.shadows intentionally left at MUI defaults — overlay components
+  // NOTE: theme.shadows intentionally left at MUI defaults - overlay components
   // may index it by reference. The flat-overlay look comes from the MuiDialog /
   // MuiPopover overrides below instead.
   components: {
