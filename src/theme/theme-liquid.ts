@@ -25,6 +25,10 @@ const HOVER_BG = "rgba(30, 41, 59, 0.04)"; // neutral cool hover wash
 // -- Liquid Metal signature effect constants ---------------------------------
 export const CHROME_TEXT_GRADIENT =
   "linear-gradient(135deg, #1e293b 0%, #475569 20%, #94a3b8 40%, #e2e8f0 50%, #94a3b8 60%, #475569 80%, #1e293b 100%)";
+/** High-contrast chrome gradient for smaller text (section titles, stat numbers).
+ *  Lightest stop stays well below canvas luminance for guaranteed readability. */
+export const CHROME_TEXT_GRADIENT_READABLE =
+  "linear-gradient(135deg, #1e293b 0%, #334155 20%, #64748b 40%, #94a3b8 50%, #64748b 60%, #334155 80%, #1e293b 100%)";
 export const ACCENT_GRADIENT =
   "linear-gradient(135deg, #5b6cff 0%, #7b8aff 100%)";
 export const SHEEN_GRADIENT =

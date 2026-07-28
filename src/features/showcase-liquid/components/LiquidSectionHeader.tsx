@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
 import { GradientText } from "@doublefin/orca-ui";
-import { CHROME_TEXT_GRADIENT } from "../../../theme/theme-liquid";
+import { CHROME_TEXT_GRADIENT_READABLE } from "../../../theme/theme-liquid";
 
 // Semantic hues allowed for section icon chips on docs/showcase surfaces.
 export type SectionColor = "primary" | "success" | "warning" | "error" | "info";
@@ -45,7 +45,7 @@ export function LiquidSectionHeader({
       <Box>
         <Typography variant="h5" sx={{ fontSize: "1.125rem" }}>
           <GradientText
-            gradient={CHROME_TEXT_GRADIENT}
+            gradient={CHROME_TEXT_GRADIENT_READABLE}
             component="span"
             sx={{ fontSize: "inherit", fontWeight: "inherit", letterSpacing: "inherit" }}
           >

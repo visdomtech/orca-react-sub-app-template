@@ -7,7 +7,7 @@ import StyleIcon from "@mui/icons-material/Style";
 import TuneIcon from "@mui/icons-material/Tune";
 import WidgetsIcon from "@mui/icons-material/Widgets";
 import { GlassCard, GradientText } from "@doublefin/orca-ui";
-import { CHROME_TEXT_GRADIENT } from "../../../theme/theme-liquid";
+import { CHROME_TEXT_GRADIENT_READABLE } from "../../../theme/theme-liquid";
 import type { SectionColor } from "./LiquidSectionHeader";
 
 interface Stat {
@@ -71,7 +71,7 @@ export function LiquidStatsStrip() {
           <Box>
             <Typography sx={{ fontSize: "1.5rem", fontWeight: 700, lineHeight: 1.15, letterSpacing: "-0.02em" }}>
               <GradientText
-                gradient={CHROME_TEXT_GRADIENT}
+                gradient={CHROME_TEXT_GRADIENT_READABLE}
                 component="span"
                 sx={{ fontSize: "inherit", fontWeight: "inherit", letterSpacing: "inherit" }}
               >

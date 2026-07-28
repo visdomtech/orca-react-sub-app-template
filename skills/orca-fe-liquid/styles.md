@@ -51,7 +51,8 @@ Mechanism: The liquid metal theme does the visual work, the kit provides structu
 | `FOCUS_RING` | `0 0 0 3px rgba(91, 108, 255, 0.14)` | Input focus ring, layered with 1px accent border |
 | `OVERLAY_SHADOW` | `0 12px 32px -8px rgba(30, 41, 59, 0.14), 0 4px 12px -4px rgba(91, 108, 255, 0.06)` | Accent-tinted soft shadow reserved for dialogs, popovers, and menus |
 | `HOVER_BG` | `rgba(30, 41, 59, 0.04)` | Neutral cool hover wash for rows, buttons, list items |
-| `CHROME_TEXT_GRADIENT` | `linear-gradient(135deg, #1e293b 0%, #475569 20%, #94a3b8 40%, #e2e8f0 50%, #94a3b8 60%, #475569 80%, #1e293b 100%)` | Multi-stop specular chrome sweep with bright highlight for display headlines |
+| `CHROME_TEXT_GRADIENT` | `linear-gradient(135deg, #1e293b 0%, #475569 20%, #94a3b8 40%, #e2e8f0 50%, #94a3b8 60%, #475569 80%, #1e293b 100%)` | Dramatic specular chrome sweep with bright highlight. **Display headlines only (>= 2rem)** |
+| `CHROME_TEXT_GRADIENT_READABLE` | `linear-gradient(135deg, #1e293b 0%, #334155 20%, #64748b 40%, #94a3b8 50%, #64748b 60%, #334155 80%, #1e293b 100%)` | High-contrast chrome sweep for section titles, stat numbers, and all text < 2rem. Lightest stop (`#94a3b8`) stays well below canvas luminance |
 | `ACCENT_GRADIENT` | `linear-gradient(135deg, #5b6cff 0%, #7b8aff 100%)` | Liquid accent gradient for contained primary buttons |
 | `SHEEN_GRADIENT` | `linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.35) 50%, transparent 75%)` | Sheen sweep pseudo-element on button hover |
 | `GLASS_HIGHLIGHT` | `inset 0 1px 0 rgba(255,255,255,0.8)` | Inner top highlight on glass surfaces (edge refraction) |
@@ -120,7 +121,7 @@ Shared by the admin and sysadmin consoles. Install from the public npm registry 
 
 | Component | Purpose / Contract |
 |---|---|
-| `GradientText` | Specular chrome gradient text for display headlines. Props: `children`, `gradient?` (CSS gradient string, defaults to multi-stop specular chrome sweep), `component?` (element type, defaults to "span"), `sx?`. Uses `background-clip: text`. Use sparingly on h1-h2 only. |
+| `GradientText` | Specular chrome gradient text. Props: `children`, `gradient?` (CSS gradient string), `component?` (element type, defaults to "span"), `sx?`. Uses `background-clip: text`. **Two-tier rule**: use `CHROME_TEXT_GRADIENT` (dramatic specular) on display headlines >= 2rem only; use `CHROME_TEXT_GRADIENT_READABLE` (high-contrast) on all smaller chrome text (section titles, stat numbers). Never use dramatic gradient on text < 2rem. |
 | `GlassCard` | Dramatic glassmorphism surface wrapper. Props: `children`, `padding?` (default 2.5), `borderRadius?` (default 2 = 16px), `sx?`. Visibly translucent (`GLASS_BG` = 45% white) + `backdrop-filter: blur(GLASS_BLUR = 20px)` + prismatic double-border (outer `GLASS_BORDER_OUTER` + inner `GLASS_HIGHLIGHT`) + `GLASS_DEPTH_SHADOW`. Must look visibly glassy, not white. |
 | `AmbientBackground` | Vivid ambient gradient layer. Renders behind content (`z-index: -1`, `pointer-events: none`, `aria-hidden`). Four gradient blobs (silver, accent, highlight, rose) at 12-18% opacity with `blur(100px)`, drifting via CSS keyframes. Requires the liquid CSS file to be imported for animations. Uses CSS classes `lm-ambient`, `lm-ambient__blob`, `lm-ambient__noise`. |
 
@@ -218,7 +219,7 @@ Do not relitigate these settled design and implementation decisions:
 * **Violet/Purple Theme**: The single accent is chrome blue-violet (`#5b6cff`). No other violet/purple is allowed.
 * **Forcing Chat Pages into Admin Kit**: Chat pages are exempt; only token cleanup and skeleton loading.
 * **Flat Cards on Showcase Pages**: Glass surfaces (`GlassCard`) are the standard for cards on showcase/docs pages. Data pages may use flat hairline-bordered cards.
-* **Gradient Text on Body Copy**: `GradientText` is for display headlines (h1-h2) only. Body text stays solid, high-contrast.
+* **Gradient Text on Body Copy**: `GradientText` is for headlines and stat numbers only. Body text stays solid, high-contrast. Use `CHROME_TEXT_GRADIENT` on display headlines >= 2rem only. Use `CHROME_TEXT_GRADIENT_READABLE` on all smaller chrome text to preserve readability.
 
 ---
 
@@ -243,7 +244,7 @@ When migrating any page to the Liquid Metal design system, apply these transform
 
 ### 9.3 Liquid Metal Upgrade
 1. Replace flat card surfaces with `<GlassCard>` for hero bands, feature cards, metric tiles (glass must be visibly translucent - if it looks white, it has failed).
-2. Add `<GradientText>` to display headlines on showcase/docs pages (multi-stop specular chrome, not muted slate).
+2. Add `<GradientText>` to display headlines on showcase/docs pages (use `CHROME_TEXT_GRADIENT` for >= 2rem hero titles, `CHROME_TEXT_GRADIENT_READABLE` for all smaller chrome text).
 3. Add `<AmbientBackground>` to pages that need the vivid liquid ambient layer (blobs at 12-18% opacity, visible atmosphere).
 4. Verify contained primary buttons show the gradient + sheen sweep + accent glow (theme-level, no per-page edits).
 5. Verify glass overlays on dialogs and popovers (theme-level, visibly translucent + blur).
@@ -277,10 +278,10 @@ Data pages keep the quiet dial profile (section 1.1). Design-system showcases, d
 
 * **Docs-page container**: Centered `maxWidth: 1200` (`mx: "auto"`) with responsive padding.
 * **Dramatic glass hero band**: `<GlassCard>` with large border-radius (up to 24px), visibly translucent (`GLASS_BG` = 45% white), `backdrop-filter: blur(20px)`, `GLASS_DEPTH_SHADOW`, prismatic double-border, chrome gradient headline via `<GradientText>` (multi-stop specular), gradient-filled translucent decorative shapes (`rgba(91,108,255,0.08)` to `rgba(244,114,182,0.06)` filled circles/rings, `aria-hidden`). The hero must look dramatically different from a plain white card.
-* **Specular chrome gradient headlines**: `<GradientText>` on display text (h1-h2). Default gradient is the multi-stop specular chrome sweep with bright highlight at 50%. Never use on body text. Font size should be impactful: `2.5-2.75rem` on desktop for hero headlines.
+* **Specular chrome gradient headlines**: `<GradientText>` on display text. **Two-tier rule**: `CHROME_TEXT_GRADIENT` (dramatic specular with bright highlight) for hero headlines >= 2rem only. `CHROME_TEXT_GRADIENT_READABLE` (high-contrast, lightest stop `#94a3b8`) for section titles, stat numbers, and all text < 2rem. Never use the dramatic gradient on small text - the bright highlight washes out characters against light backgrounds.
 * **Glass metric tiles**: `<GlassCard>` + icon chip + display number (use `GradientText` for stat values) + caption. Hover = `translateY(-2px)` + `ACCENT_GLOW` border color + stronger depth shadow.
 * **Colored icon chips**: 36px tile, `borderRadius: 2`, background with subtle gradient (`alpha(theme.palette.<hue>.main, 0.1)` to `alpha(theme.palette.<hue>.main, 0.05)`), icon color `<hue>.dark`.
-* **Section header color cycle**: Section openers may cycle the five semantic hues across sections. Section titles may use `GradientText` for chrome effect.
+* **Section header color cycle**: Section openers may cycle the five semantic hues across sections. Section titles use `GradientText` with `CHROME_TEXT_GRADIENT_READABLE` for readable chrome effect.
 * **Token swatch walls**: Render palette values live from `useTheme()`. Swatches backed by glass cards with hover lift.
 * **Sticky section nav**: Glass-pill anchor chips with liquid accent hover + glow on active state.
 * **Vivid ambient background**: `<AmbientBackground>` from orca-ui for the atmospheric drifting gradient layer. Four blobs at 12-18% opacity must create visible color atmosphere.
