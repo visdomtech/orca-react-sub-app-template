@@ -11,6 +11,7 @@ import {
   PageHeader,
   StatusPill,
 } from "@doublefin/orca-ui";
+import { useSubAppRouterBasePath } from "../../../shared/SubAppLink";
 import { buildAuthorizeUrl } from "../api";
 import {
   useDisconnectOAuth2,
@@ -24,6 +25,7 @@ export function SlackNotificationPage() {
   const { data: status, isLoading, refetch } = useOAuth2Status(PROVIDER);
   const disconnect = useDisconnectOAuth2(PROVIDER);
   const sendNotif = useSendNotification();
+  const basePath = useSubAppRouterBasePath();
 
   const [messageText, setMessageText] = useState("");
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
@@ -103,7 +105,7 @@ export function SlackNotificationPage() {
 
   return (
     <Box sx={{ p: 3, maxWidth: 640 }}>
-      <PageHeader title="Slack Notifications" backHref="/" />
+      <PageHeader title="Slack Notifications" backHref={`${basePath}/`} />
 
       {infoMessage && (
         <Alert severity="info" sx={{ mb: 2 }} onClose={() => setInfoMessage(null)}>

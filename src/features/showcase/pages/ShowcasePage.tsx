@@ -46,6 +46,7 @@ import {
   type AdminTableColumn,
   type StatusPillTone,
 } from "@doublefin/orca-ui";
+import { useSubAppRouterBasePath } from "../../../shared/SubAppLink";
 import { SectionHeader } from "../components/SectionHeader";
 import { SectionNav } from "../components/SectionNav";
 import { ShowcaseHero } from "../components/ShowcaseHero";
@@ -160,6 +161,7 @@ export function ShowcasePage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loadingDemo, setLoadingDemo] = useState(false);
   const [demoTab, setDemoTab] = useState(0);
+  const basePath = useSubAppRouterBasePath();
 
   const filtered = useMemo(
     () => POLICIES.filter((p) => p.name.toLowerCase().includes(search.toLowerCase())),
@@ -362,7 +364,7 @@ export function ShowcasePage() {
           <DetailLayout
             title={selectedPolicy.name}
             subtitle={`Updated by ${selectedPolicy.updatedBy} on ${selectedPolicy.updatedAt}`}
-            backHref="/showcase"
+            backHref={`${basePath}/showcase`}
             status={<ReviewStatusBadge value={selectedPolicy.reviewStatus} />}
             actions={
               <Box sx={{ display: "flex", gap: 1 }}>

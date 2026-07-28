@@ -1,8 +1,8 @@
 import Box from "@mui/material/Box";
 import MuiLink from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
-import { Link } from "react-router";
 import { DetailSkeleton, PageHeader } from "@doublefin/orca-ui";
+import { SubAppLink } from "../../../shared/SubAppLink";
 import { useHelloStats } from "../hooks";
 
 export function HelloPage() {
@@ -60,7 +60,7 @@ export function HelloPage() {
 
       <Box sx={{ mt: 3, display: "flex", flexDirection: "column", gap: 1 }}>
         <MuiLink
-          component={Link}
+          component={SubAppLink}
           to="/showcase"
           variant="body2"
           underline="hover"
@@ -68,7 +68,7 @@ export function HelloPage() {
           Design System Showcase
         </MuiLink>
         <MuiLink
-          component={Link}
+          component={SubAppLink}
           to="/notifications"
           variant="body2"
           underline="hover"

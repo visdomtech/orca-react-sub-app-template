@@ -132,37 +132,64 @@ If the app needs multiple pages, add `react-router`:
 bun add react-router
 ```
 
-The host passes a `basename` prop (e.g. `/ng/orca/apps/my-app`) so the sub-app's router knows its mount point. Accept it and create your own data router:
+The host passes a `basename` prop (e.g. `/ng/orca/apps/my-app`) so the sub-app's router knows its mount point. Accept it and pass it to `useRoutes`:
 
 ```tsx
-import { useState } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router";
-import { HomePage } from "./features/home/pages/HomePage";
-import { SettingsPage } from "./features/settings/pages/SettingsPage";
+interface OrcaAppProps {
+  basename?: string;
+}
 
 const routes = [
   { path: "/", element: <HomePage /> },
   { path: "/settings", element: <SettingsPage /> },
 ];
 
-interface OrcaAppProps {
-  basename?: string;
-}
-
 export function OrcaApp({ basename }: OrcaAppProps) {
-  // Router is created once on mount; basename is set by the host and never changes.
-  const [router] = useState(() => createBrowserRouter(routes, { basename }));
+  // useRoutes hooks into the host's router context (no nested Router).
+  // Strip the host's mount prefix so sub-app routes like "/" match.
+  const location = useLocation();
+  const matchLocation = useMemo(() => {
+    if (!basename || !location.pathname.startsWith(basename)) return location;
+    const stripped = location.pathname.slice(basename.length) || "/";
+    return { ...location, pathname: stripped };
+  }, [location, basename]);
+  const element = useRoutes(routes, matchLocation);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
+    <SubAppBasenameContext value={basename ?? ""}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <QueryClientProvider client={queryClient}>
+          {element}
+        </QueryClientProvider>
+      </ThemeProvider>
+    </SubAppBasenameContext>
   );
 }
 
 export default OrcaApp;
 ```
 
-For standalone dev (`bun run dev`), `basename` is `undefined` so the router mounts at `/` — no changes to `main.tsx` needed.
+For standalone dev (`bun run dev`), `basename` is `undefined` and `main.tsx` provides its own router context, so routes mount at `/`.
 
-Navigate between pages with `<Link>` or `useNavigate()` using paths relative to the app root (e.g. `to="/settings"`), never the full `/ng/orca/apps/...` prefix.
+**Internal links**: Never use plain `<Link>` from `react-router` — it resolves against the host's basename (`/ng`), producing wrong URLs. Instead, use `<SubAppLink>` from `src/shared/SubAppLink.tsx`, which auto-prefixes the sub-app's mount point:
+
+```tsx
+import { SubAppLink, useSubAppRouterBasePath } from "./shared/SubAppLink";
+
+// ✅ SubAppLink auto-prefixes — generates /ng/orca/apps/my-app/settings
+<SubAppLink to="/settings">Settings</SubAppLink>
+
+// ✅ For orca-ui backHref props, use the router-relative hook:
+const routerBase = useSubAppRouterBasePath();
+<PageHeader backHref={`${routerBase}/`} />
+<DetailLayout backHref={`${routerBase}/showcase`} />
+
+// ❌ Wrong — plain Link generates /ng/settings (breaks out of sub-app)
+import { Link } from "react-router";
+<Link to="/settings">Settings</Link>
+
+// ❌ Wrong — useSubAppBasePath() includes /ng, causing double-prefix in backHref
+const basePath = useSubAppBasePath();
+<PageHeader backHref={`${basePath}/`} />  // → /ng/ng/orca/apps/my-app/
+```
