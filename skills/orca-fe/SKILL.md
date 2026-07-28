@@ -150,6 +150,9 @@ export function SomeBadge({ value }: { value: SomeEnum }) {
 }
 ```
 
+### Docs & Showcase Surfaces
+Design-system showcases and docs pages (e.g. `src/features/showcase/`) may use the expressive patterns in styles.md section 10: accent hero bands, colored icon-chip cycles, metric tiles, token swatch walls, and sticky section nav. These patterns are showcase-only; never port them to data pages, which keep the quiet `PageHeader` + `FormSection` + `AdminTable` structure. The anti-slop bans (gradients, violet, hover lifts, card shadows, em-dashes) apply on expressive surfaces too.
+
 ## Reference Files
 
 All reference implementations are in this repo:
@@ -160,6 +163,7 @@ All reference implementations are in this repo:
 | `src/theme/theme.ts` | MUI theme with Mercury Console tokens and overrides |
 | `@doublefin/orca-ui` | Public npm package (npmjs.com) providing all kit components (AdminTable, PageHeader, DetailLayout, DetailRow, DetailSkeleton, TableSkeleton, EmptyState, FormSection, StatusPill) |
 | `src/shared/ui/index.ts` | Re-export shim: `export * from "@doublefin/orca-ui"` |
+| `src/features/showcase/` | Canonical showcase: kit usage on a docs surface with the expressive patterns from styles.md section 10 (hero band, metric tiles, token swatches, section nav) |
 
 ## Verification
 
@@ -191,3 +195,4 @@ Full conventions documented in styles.md section 4.2.
 
 - **Chat pages**: Chat/conversational pages have different UX. Exempt from kit; only apply token cleanup and skeleton loading.
 - **Domain color maps**: Entity-type or category color maps (e.g. regulation categories) stay as MUI `Chip` with palette-based `sx` colors. These are tags, not statuses.
+- **Docs & showcase surfaces**: Design-system showcase and docs pages may use the expressive patterns in styles.md section 10 (accent hero band, icon-chip color cycle, metric tiles, token swatches, sticky section nav). Data pages never do.

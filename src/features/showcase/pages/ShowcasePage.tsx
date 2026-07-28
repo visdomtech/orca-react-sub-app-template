@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -21,11 +21,19 @@ import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import AddIcon from "@mui/icons-material/Add";
+import ArticleIcon from "@mui/icons-material/Article";
+import AutorenewIcon from "@mui/icons-material/Autorenew";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import EditNoteIcon from "@mui/icons-material/EditNote";
 import InboxIcon from "@mui/icons-material/Inbox";
+import PaletteIcon from "@mui/icons-material/Palette";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import SearchIcon from "@mui/icons-material/Search";
+import StyleIcon from "@mui/icons-material/Style";
+import TableRowsIcon from "@mui/icons-material/TableRows";
+import TouchAppIcon from "@mui/icons-material/TouchApp";
+import WidgetsIcon from "@mui/icons-material/Widgets";
 import {
   AdminTable,
   DetailLayout,
@@ -33,12 +41,16 @@ import {
   DetailSkeleton,
   EmptyState,
   FormSection,
-  PageHeader,
   StatusPill,
   TableSkeleton,
   type AdminTableColumn,
   type StatusPillTone,
 } from "@doublefin/orca-ui";
+import { SectionHeader } from "../components/SectionHeader";
+import { SectionNav } from "../components/SectionNav";
+import { ShowcaseHero } from "../components/ShowcaseHero";
+import { StatsStrip } from "../components/StatsStrip";
+import { TokenSwatches } from "../components/TokenSwatches";
 
 // -- Types --
 
@@ -130,56 +142,116 @@ const COLUMNS: AdminTableColumn<Policy>[] = [
   )},
 ];
 
+// -- Anchored section wrapper --
+
+function Section({ id, children }: { id: string; children: ReactNode }) {
+  return (
+    <Box component="section" id={id} sx={{ scrollMarginTop: "72px", mb: 6 }}>
+      {children}
+    </Box>
+  );
+}
+
 // -- Showcase Page --
 
 export function ShowcasePage() {
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
   const [search, setSearch] = useState("");
-  const [tab, setTab] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loadingDemo, setLoadingDemo] = useState(false);
+  const [demoTab, setDemoTab] = useState(0);
 
   const filtered = useMemo(
     () => POLICIES.filter((p) => p.name.toLowerCase().includes(search.toLowerCase())),
     [search]
   );
 
-  return (
-    <Box sx={{ p: 3, maxWidth: 1100 }}>
-      <PageHeader
-        title="Mercury Console Showcase"
-        subtitle="Design system component reference - all kit elements and common MUI components"
-        backHref="/"
-        actions={
-          <Box sx={{ display: "flex", gap: 1 }}>
-            <Button variant="outlined" size="small" startIcon={<RefreshIcon />}>
-              Refresh
-            </Button>
-            <Button variant="contained" size="small" startIcon={<AddIcon />}>
-              New Policy
-            </Button>
-          </Box>
-        }
-      />
+  const tableStats = useMemo(() => {
+    const total = POLICIES.length;
+    const critical = POLICIES.filter((p) => p.severity === "CRITICAL").length;
+    const running = POLICIES.filter((p) => p.reviewStatus === "RUNNING").length;
+    const avgScore = Math.round(POLICIES.reduce((sum, p) => sum + p.score, 0) / total);
+    return { total, critical, running, avgScore };
+  }, []);
 
-      {/* -- Section 1: AdminTable -- */}
-      <FormSection title="Admin Table" description="Data table with columns config, row click, search, and status badges">
-        <TextField
-          size="small"
-          placeholder="Search policies..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: "text.secondary", fontSize: 18 }} />
-                </InputAdornment>
-              ),
-            },
-          }}
-          sx={{ mb: 2, maxWidth: 320 }}
+  return (
+    <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1200, mx: "auto" }}>
+      <ShowcaseHero />
+      <StatsStrip />
+      <SectionNav />
+
+      {/* -- Colors -- */}
+      <Section id="colors">
+        <SectionHeader
+          icon={<PaletteIcon fontSize="small" />}
+          color="primary"
+          title="Color Tokens"
+          description="Every surface reads from theme tokens - the palette below is rendered live from useTheme(), so swatches can never drift from the real values."
         />
+        <TokenSwatches />
+      </Section>
+
+      {/* -- Data Table -- */}
+      <Section id="table">
+        <SectionHeader
+          icon={<TableRowsIcon fontSize="small" />}
+          color="info"
+          title="Data Table"
+          description="AdminTable owns columns config, loading skeletons, and empty states - the page owns search, summary stats, and row actions."
+        />
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-end",
+            flexWrap: "wrap",
+            gap: 2,
+            mb: 2,
+          }}
+        >
+          <Box sx={{ display: "flex", gap: 3.5, flexWrap: "wrap" }}>
+            <Box>
+              <Typography sx={{ fontSize: "1.125rem", fontWeight: 700, lineHeight: 1.25 }}>
+                {tableStats.total}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">Policies</Typography>
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: "1.125rem", fontWeight: 700, lineHeight: 1.25, color: "error.dark" }}>
+                {tableStats.critical}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">Critical</Typography>
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: "1.125rem", fontWeight: 700, lineHeight: 1.25, color: "info.dark" }}>
+                {tableStats.running}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">In review</Typography>
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: "1.125rem", fontWeight: 700, lineHeight: 1.25, color: tableStats.avgScore >= 80 ? "success.dark" : tableStats.avgScore >= 60 ? "warning.dark" : "error.dark" }}>
+                {tableStats.avgScore}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">Avg score</Typography>
+            </Box>
+          </Box>
+          <TextField
+            size="small"
+            placeholder="Search policies..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: "text.secondary", fontSize: 18 }} />
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{ width: { xs: "100%", sm: 280 } }}
+          />
+        </Box>
         <AdminTable
           columns={COLUMNS}
           rows={filtered}
@@ -198,242 +270,308 @@ export function ShowcasePage() {
             />
           }
         />
-      </FormSection>
+      </Section>
 
-      {/* -- Section 2: Tabs for remaining demos -- */}
-      <Box sx={{ mb: 3, borderBottom: 1, borderColor: "divider" }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)}>
-          <Tab label="Status & Badges" />
-          <Tab label="Detail View" />
-          <Tab label="Forms & Inputs" />
-          <Tab label="MUI Components" />
-          <Tab label="Skeletons" />
-        </Tabs>
-      </Box>
-
-      {/* -- Tab 0: Status & Badges -- */}
-      {tab === 0 && (
-        <Box sx={{ mb: 4 }}>
-          <FormSection title="StatusPill Tones" description="Five tone variants for status indicators">
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 2 }}>
-              <StatusPill tone="success" label="Success" />
-              <StatusPill tone="warning" label="Warning" />
-              <StatusPill tone="error" label="Error" />
-              <StatusPill tone="info" label="Info" />
-              <StatusPill tone="neutral" label="Neutral" />
-            </Box>
-          </FormSection>
-
-          <FormSection title="Badge Wrapper Pattern" description="Domain-specific badge components wrapping StatusPill with tone maps">
-            <Typography variant="overline" sx={{ display: "block", mb: 1, color: "text.secondary" }}>
-              Severity
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-              <SeverityBadge value="CRITICAL" />
-              <SeverityBadge value="WARNING" />
-              <SeverityBadge value="INFO" />
-            </Box>
-
-            <Typography variant="overline" sx={{ display: "block", mb: 1, color: "text.secondary" }}>
-              Review Status
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-              <ReviewStatusBadge value="PENDING" />
-              <ReviewStatusBadge value="RUNNING" />
-              <ReviewStatusBadge value="COMPLETED" />
-              <ReviewStatusBadge value="FAILED" />
-            </Box>
-
-            <Typography variant="overline" sx={{ display: "block", mb: 1, color: "text.secondary" }}>
-              Document Status
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-              <DocStatusBadge value="INDEXED" />
-              <DocStatusBadge value="UPLOADING" />
-              <DocStatusBadge value="PROCESSING" />
-              <DocStatusBadge value="FAILED" />
-            </Box>
-
-            <Typography variant="overline" sx={{ display: "block", mb: 1, color: "text.secondary" }}>
-              Active Flags
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <ActiveBadge value={true} />
-              <ActiveBadge value={false} />
-            </Box>
-          </FormSection>
-
-          <FormSection title="Domain Tag Chips" description="Entity-type tags use outlined Chip (not StatusPill) with palette-based colors">
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-              <Chip label="Compliance" size="small" variant="outlined" sx={{ borderColor: "primary.main", color: "primary.main" }} />
-              <Chip label="Security" size="small" variant="outlined" sx={{ borderColor: "error.main", color: "error.main" }} />
-              <Chip label="Infrastructure" size="small" variant="outlined" sx={{ borderColor: "info.main", color: "info.main" }} />
-              <Chip label="Operations" size="small" variant="outlined" sx={{ borderColor: "warning.main", color: "warning.main" }} />
-            </Box>
-          </FormSection>
-        </Box>
-      )}
-
-      {/* -- Tab 1: Detail View -- */}
-      {tab === 1 && (
-        <Box sx={{ mb: 4 }}>
-          {selectedPolicy ? (
-            <DetailLayout
-              title={selectedPolicy.name}
-              subtitle={`Updated by ${selectedPolicy.updatedBy} on ${selectedPolicy.updatedAt}`}
-              backHref="/showcase"
-              status={<ReviewStatusBadge value={selectedPolicy.reviewStatus} />}
-              actions={
-                <Box sx={{ display: "flex", gap: 1 }}>
-                  <Tooltip title="Edit">
-                    <IconButton size="small"><EditIcon fontSize="small" /></IconButton>
-                  </Tooltip>
-                  <Tooltip title="Delete">
-                    <IconButton size="small" color="error"><DeleteIcon fontSize="small" /></IconButton>
-                  </Tooltip>
-                </Box>
-              }
-            >
-              <FormSection title="Policy Details">
-                <DetailRow label="ID">{selectedPolicy.id}</DetailRow>
-                <DetailRow label="Category">
-                  <Chip label={selectedPolicy.category} size="small" variant="outlined" />
-                </DetailRow>
-                <DetailRow label="Severity">
-                  <SeverityBadge value={selectedPolicy.severity} />
-                </DetailRow>
-                <DetailRow label="Document Status">
-                  <DocStatusBadge value={selectedPolicy.docStatus} />
-                </DetailRow>
-                <DetailRow label="Score">
-                  <StatusPill
-                    tone={selectedPolicy.score >= 80 ? "success" : selectedPolicy.score >= 60 ? "warning" : "error"}
-                    label={`${selectedPolicy.score}/100`}
-                  />
-                </DetailRow>
-                <DetailRow label="Active">
-                  <ActiveBadge value={selectedPolicy.active} />
-                </DetailRow>
-              </FormSection>
-            </DetailLayout>
-          ) : (
-            <Paper sx={{ p: 3, border: "1px solid", borderColor: "divider" }}>
-              <Typography variant="body2" color="text.secondary">
-                Click a row in the table above to view its detail layout here.
+      {/* -- Status & Badges -- */}
+      <Section id="status">
+        <SectionHeader
+          icon={<StyleIcon fontSize="small" />}
+          color="success"
+          title="Status & Badges"
+          description="StatusPill for statuses, outlined Chip for domain tags - tones map by convention (styles.md 4.2), never ad hoc."
+        />
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+            gap: 2,
+            alignItems: "start",
+          }}
+        >
+          <Paper sx={{ p: 2.5 }}>
+            <FormSection title="StatusPill Tones" description="Five tone variants for status indicators">
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <StatusPill tone="success" label="Success" />
+                <StatusPill tone="warning" label="Warning" />
+                <StatusPill tone="error" label="Error" />
+                <StatusPill tone="info" label="Info" />
+                <StatusPill tone="neutral" label="Neutral" />
+              </Box>
+            </FormSection>
+            <FormSection title="Domain Tag Chips" description="Entity-type tags use outlined Chip (not StatusPill) with palette-based colors">
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <Chip label="Compliance" size="small" variant="outlined" sx={{ borderColor: "primary.main", color: "primary.main" }} />
+                <Chip label="Security" size="small" variant="outlined" sx={{ borderColor: "error.main", color: "error.main" }} />
+                <Chip label="Infrastructure" size="small" variant="outlined" sx={{ borderColor: "info.main", color: "info.main" }} />
+                <Chip label="Operations" size="small" variant="outlined" sx={{ borderColor: "warning.main", color: "warning.main" }} />
+              </Box>
+            </FormSection>
+          </Paper>
+          <Paper sx={{ p: 2.5 }}>
+            <FormSection title="Badge Wrapper Pattern" description="Domain-specific badge components wrapping StatusPill with tone maps">
+              <Typography variant="overline" sx={{ display: "block", mb: 1, color: "text.secondary" }}>
+                Severity
               </Typography>
+              <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
+                <SeverityBadge value="CRITICAL" />
+                <SeverityBadge value="WARNING" />
+                <SeverityBadge value="INFO" />
+              </Box>
+
+              <Typography variant="overline" sx={{ display: "block", mb: 1, color: "text.secondary" }}>
+                Review Status
+              </Typography>
+              <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
+                <ReviewStatusBadge value="PENDING" />
+                <ReviewStatusBadge value="RUNNING" />
+                <ReviewStatusBadge value="COMPLETED" />
+                <ReviewStatusBadge value="FAILED" />
+              </Box>
+
+              <Typography variant="overline" sx={{ display: "block", mb: 1, color: "text.secondary" }}>
+                Document Status
+              </Typography>
+              <Box sx={{ display: "flex", gap: 1, mb: 2, flexWrap: "wrap" }}>
+                <DocStatusBadge value="INDEXED" />
+                <DocStatusBadge value="UPLOADING" />
+                <DocStatusBadge value="PROCESSING" />
+                <DocStatusBadge value="FAILED" />
+              </Box>
+
+              <Typography variant="overline" sx={{ display: "block", mb: 1, color: "text.secondary" }}>
+                Active Flags
+              </Typography>
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <ActiveBadge value={true} />
+                <ActiveBadge value={false} />
+              </Box>
+            </FormSection>
+          </Paper>
+        </Box>
+      </Section>
+
+      {/* -- Detail Layout -- */}
+      <Section id="detail">
+        <SectionHeader
+          icon={<ArticleIcon fontSize="small" />}
+          color="warning"
+          title="Detail Layout"
+          description="DetailLayout scaffolds back link, title, status pill, and actions - sections compose below it as children."
+        />
+        {selectedPolicy ? (
+          <DetailLayout
+            title={selectedPolicy.name}
+            subtitle={`Updated by ${selectedPolicy.updatedBy} on ${selectedPolicy.updatedAt}`}
+            backHref="/showcase"
+            status={<ReviewStatusBadge value={selectedPolicy.reviewStatus} />}
+            actions={
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <Tooltip title="Edit">
+                  <IconButton size="small"><EditIcon fontSize="small" /></IconButton>
+                </Tooltip>
+                <Tooltip title="Delete">
+                  <IconButton size="small" color="error"><DeleteIcon fontSize="small" /></IconButton>
+                </Tooltip>
+              </Box>
+            }
+          >
+            <FormSection title="Policy Details">
+              <DetailRow label="ID">{selectedPolicy.id}</DetailRow>
+              <DetailRow label="Category">
+                <Chip label={selectedPolicy.category} size="small" variant="outlined" />
+              </DetailRow>
+              <DetailRow label="Severity">
+                <SeverityBadge value={selectedPolicy.severity} />
+              </DetailRow>
+              <DetailRow label="Document Status">
+                <DocStatusBadge value={selectedPolicy.docStatus} />
+              </DetailRow>
+              <DetailRow label="Score">
+                <StatusPill
+                  tone={selectedPolicy.score >= 80 ? "success" : selectedPolicy.score >= 60 ? "warning" : "error"}
+                  label={`${selectedPolicy.score}/100`}
+                />
+              </DetailRow>
+              <DetailRow label="Active">
+                <ActiveBadge value={selectedPolicy.active} />
+              </DetailRow>
+            </FormSection>
+          </DetailLayout>
+        ) : (
+          <Paper>
+            <EmptyState
+              icon={<TouchAppIcon />}
+              title="No policy selected"
+              description="Click any row in the data table above to preview the detail layout with real data."
+              action={
+                <Button variant="outlined" size="small" onClick={() => setSelectedPolicy(POLICIES[0])}>
+                  Preview first policy
+                </Button>
+              }
+            />
+          </Paper>
+        )}
+      </Section>
+
+      {/* -- Forms -- */}
+      <Section id="forms">
+        <SectionHeader
+          icon={<EditNoteIcon fontSize="small" />}
+          color="error"
+          title="Forms & Inputs"
+          description="Outlined inputs with the Mercury focus ring - labels always visible above the field, never placeholder-only."
+        />
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+            gap: 2,
+            alignItems: "start",
+          }}
+        >
+          <Paper sx={{ p: 2.5 }}>
+            <FormSection title="Text Fields" description="Standard MUI OutlinedInput with theme overrides (13px, white bg, focus ring)">
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <TextField label="Policy Name" size="small" defaultValue="Data Retention Policy" />
+                <TextField label="Description" size="small" multiline minRows={2} defaultValue="Governs how long data is retained across all systems." />
+                <TextField label="Disabled" size="small" disabled defaultValue="Cannot edit this field" />
+              </Box>
+            </FormSection>
+          </Paper>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Paper sx={{ p: 2.5 }}>
+              <FormSection title="Select" description="MUI Select with outlined variant">
+                <FormControl size="small" sx={{ minWidth: 200 }}>
+                  <InputLabel>Severity</InputLabel>
+                  <Select label="Severity" defaultValue="WARNING">
+                    <MenuItem value="CRITICAL">Critical</MenuItem>
+                    <MenuItem value="WARNING">Warning</MenuItem>
+                    <MenuItem value="INFO">Info</MenuItem>
+                  </Select>
+                </FormControl>
+              </FormSection>
             </Paper>
-          )}
-        </Box>
-      )}
-
-      {/* -- Tab 2: Forms & Inputs -- */}
-      {tab === 2 && (
-        <Box sx={{ mb: 4, maxWidth: 560 }}>
-          <FormSection title="Text Fields" description="Standard MUI OutlinedInput with theme overrides (13px, white bg, focus ring)">
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <TextField label="Policy Name" size="small" defaultValue="Data Retention Policy" />
-              <TextField label="Description" size="small" multiline minRows={2} defaultValue="Governs how long data is retained across all systems." />
-              <TextField label="Disabled" size="small" disabled defaultValue="Cannot edit this field" />
-            </Box>
-          </FormSection>
-
-          <FormSection title="Select" description="MUI Select with outlined variant">
-            <FormControl size="small" sx={{ minWidth: 200 }}>
-              <InputLabel>Severity</InputLabel>
-              <Select label="Severity" defaultValue="WARNING">
-                <MenuItem value="CRITICAL">Critical</MenuItem>
-                <MenuItem value="WARNING">Warning</MenuItem>
-                <MenuItem value="INFO">Info</MenuItem>
-              </Select>
-            </FormControl>
-          </FormSection>
-
-          <FormSection title="Buttons" description="Contained (accent), outlined (neutral secondary), and text variants">
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-              <Button variant="contained" size="small">Contained</Button>
-              <Button variant="outlined" size="small">Outlined</Button>
-              <Button variant="text" size="small">Text</Button>
-              <Button variant="contained" size="small" disabled>Disabled</Button>
-              <Button variant="outlined" size="small" disabled>Disabled</Button>
-              <Button variant="contained" size="small" color="error">Delete</Button>
-            </Box>
-          </FormSection>
-        </Box>
-      )}
-
-      {/* -- Tab 3: MUI Components -- */}
-      {tab === 3 && (
-        <Box sx={{ mb: 4 }}>
-          <FormSection title="Typography" description="Heading hierarchy and body text with theme tokens">
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <Typography variant="h4">Heading 4</Typography>
-              <Typography variant="h5">Heading 5</Typography>
-              <Typography variant="h6">Heading 6</Typography>
-              <Typography variant="subtitle1">Subtitle 1 - supporting text</Typography>
-              <Typography variant="body1">Body 1 - primary body text for content areas.</Typography>
-              <Typography variant="body2" color="text.secondary">Body 2 - secondary text, smaller and muted.</Typography>
-              <Typography variant="caption" color="text.secondary">Caption - metadata and timestamps</Typography>
-              <Typography variant="overline">Overline - section labels</Typography>
-            </Box>
-          </FormSection>
-
-          <FormSection title="Alert" description="MUI Alert with standard severity levels">
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-              <Alert severity="info">Informational alert - policy review in progress.</Alert>
-              <Alert severity="warning">Warning - score below threshold.</Alert>
-              <Alert severity="error">Error - document upload failed.</Alert>
-              <Alert severity="success">Success - policy published.</Alert>
-            </Box>
-          </FormSection>
-
-          <FormSection title="Dialog" description="OVERLAY_SHADOW + hairline border + 12px radius (theme-owned)">
-            <Button variant="outlined" size="small" onClick={() => setDialogOpen(true)}>
-              Open Dialog
-            </Button>
-            <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="xs" fullWidth>
-              <DialogTitle>Confirm Deletion</DialogTitle>
-              <DialogContent>
-                <Typography variant="body2" color="text.secondary">
-                  Are you sure you want to delete this policy? This action cannot be undone.
-                </Typography>
-              </DialogContent>
-              <DialogActions sx={{ px: 3, pb: 2 }}>
-                <Button variant="outlined" size="small" onClick={() => setDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button variant="contained" size="small" color="error" onClick={() => setDialogOpen(false)}>
-                  Delete
-                </Button>
-              </DialogActions>
-            </Dialog>
-          </FormSection>
-
-          <FormSection title="Tooltip" description="Dark slate micro-tooltip (11px, weight 500, 6px radius)">
-            <Box sx={{ display: "flex", gap: 2 }}>
-              <Tooltip title="Refresh data from server">
-                <Button variant="outlined" size="small" startIcon={<RefreshIcon />}>
-                  Hover me
-                </Button>
-              </Tooltip>
-              <Tooltip title="Edit this policy">
-                <IconButton size="small"><EditIcon fontSize="small" /></IconButton>
-              </Tooltip>
-            </Box>
-          </FormSection>
-
-          <FormSection title="Divider & Paper" description="Hairline borders, elevation-0 Paper with auto-border">
-            <Paper sx={{ p: 2, mb: 1 }}>
-              <Typography variant="body2">Elevation-0 Paper with automatic hairline border.</Typography>
+            <Paper sx={{ p: 2.5 }}>
+              <FormSection title="Buttons" description="Contained keeps the accent; outlined primary reads as the neutral secondary action (theme override)">
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                  <Button variant="contained" size="small">Contained</Button>
+                  <Button variant="outlined" size="small">Outlined</Button>
+                  <Button variant="text" size="small">Text</Button>
+                  <Button variant="contained" size="small" disabled>Disabled</Button>
+                  <Button variant="outlined" size="small" disabled>Disabled</Button>
+                  <Button variant="contained" size="small" color="error">Delete</Button>
+                </Box>
+              </FormSection>
             </Paper>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="caption" color="text.secondary">Divider above uses the hairline token.</Typography>
-          </FormSection>
+          </Box>
         </Box>
-      )}
+      </Section>
 
-      {/* -- Tab 4: Skeletons -- */}
-      {tab === 4 && (
-        <Box sx={{ mb: 4 }}>
+      {/* -- MUI Components -- */}
+      <Section id="components">
+        <SectionHeader
+          icon={<WidgetsIcon fontSize="small" />}
+          color="primary"
+          title="MUI Components"
+          description="MUI primitives under the Mercury overrides - typography, alerts, dialogs, tooltips, and tabs all inherit the theme."
+        />
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+            gap: 2,
+            alignItems: "start",
+          }}
+        >
+          <Paper sx={{ p: 2.5 }}>
+            <FormSection title="Typography" description="Heading hierarchy and body text with theme tokens">
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                <Typography variant="h4">Heading 4</Typography>
+                <Typography variant="h5">Heading 5</Typography>
+                <Typography variant="h6">Heading 6</Typography>
+                <Typography variant="subtitle1">Subtitle 1 - supporting text</Typography>
+                <Typography variant="body1">Body 1 - primary body text for content areas.</Typography>
+                <Typography variant="body2" color="text.secondary">Body 2 - secondary text, smaller and muted.</Typography>
+                <Typography variant="caption" color="text.secondary">Caption - metadata and timestamps</Typography>
+                <Typography variant="overline">Overline - section labels</Typography>
+              </Box>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="caption" color="text.secondary">
+                The divider above uses the hairline token - elevation-0 Papers carry the same border automatically.
+              </Typography>
+            </FormSection>
+          </Paper>
+          <Paper sx={{ p: 2.5 }}>
+            <FormSection title="Alert" description="MUI Alert with standard severity levels">
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                <Alert severity="info">Informational alert - policy review in progress.</Alert>
+                <Alert severity="warning">Warning - score below threshold.</Alert>
+                <Alert severity="error">Error - document upload failed.</Alert>
+                <Alert severity="success">Success - policy published.</Alert>
+              </Box>
+            </FormSection>
+          </Paper>
+          <Paper sx={{ p: 2.5 }}>
+            <FormSection title="Dialog & Tooltip" description="OVERLAY_SHADOW + hairline border on overlays; dark slate micro-tooltips">
+              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                <Button variant="outlined" size="small" onClick={() => setDialogOpen(true)}>
+                  Open Dialog
+                </Button>
+                <Tooltip title="Refresh data from server">
+                  <Button variant="outlined" size="small" startIcon={<RefreshIcon />}>
+                    Hover me
+                  </Button>
+                </Tooltip>
+                <Tooltip title="Edit this policy">
+                  <IconButton size="small"><EditIcon fontSize="small" /></IconButton>
+                </Tooltip>
+              </Box>
+              <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="xs" fullWidth>
+                <DialogTitle>Confirm Deletion</DialogTitle>
+                <DialogContent>
+                  <Typography variant="body2" color="text.secondary">
+                    Are you sure you want to delete this policy? This action cannot be undone.
+                  </Typography>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2 }}>
+                  <Button variant="outlined" size="small" onClick={() => setDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button variant="contained" size="small" color="error" onClick={() => setDialogOpen(false)}>
+                    Delete
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </FormSection>
+          </Paper>
+          <Paper sx={{ p: 2.5 }}>
+            <FormSection title="Tabs" description="Underline style, sentence-case 13px tabs, ink when selected">
+              <Tabs value={demoTab} onChange={(_, v) => setDemoTab(v)} sx={{ mb: 2 }}>
+                <Tab label="Overview" />
+                <Tab label="Activity" />
+                <Tab label="Settings" />
+              </Tabs>
+              <Typography variant="body2" color="text.secondary">
+                {[
+                  "Overview panel - summary content for the selected policy.",
+                  "Activity panel - recent changes and audit events.",
+                  "Settings panel - configuration and preferences.",
+                ][demoTab]}
+              </Typography>
+            </FormSection>
+          </Paper>
+        </Box>
+      </Section>
+
+      {/* -- Loading & Empty States -- */}
+      <Section id="states">
+        <SectionHeader
+          icon={<AutorenewIcon fontSize="small" />}
+          color="info"
+          title="Loading & Empty States"
+          description="Skeletons keep layouts stable during load - spinners survive only as 16px inline action states."
+        />
+        <Paper sx={{ p: 2.5, mb: 2 }}>
           <FormSection title="Table Skeleton" description="Standalone table loading placeholder (prefer AdminTable loading prop in real pages)">
             <Button
               variant="outlined"
@@ -453,15 +591,28 @@ export function ShowcasePage() {
               </Paper>
             )}
           </FormSection>
-
-          <FormSection title="Detail Skeleton" description="Loading placeholder for detail pages">
-            <DetailSkeleton lines={6} />
-          </FormSection>
-
-          <FormSection title="Detail Skeleton (with tabs)" description="Tabbed detail page loading state">
-            <DetailSkeleton tabs lines={4} />
-          </FormSection>
-
+        </Paper>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+            gap: 2,
+            alignItems: "start",
+            mb: 2,
+          }}
+        >
+          <Paper sx={{ p: 2.5 }}>
+            <FormSection title="Detail Skeleton" description="Loading placeholder for detail pages">
+              <DetailSkeleton lines={6} />
+            </FormSection>
+          </Paper>
+          <Paper sx={{ p: 2.5 }}>
+            <FormSection title="Detail Skeleton (with tabs)" description="Tabbed detail page loading state">
+              <DetailSkeleton tabs lines={4} />
+            </FormSection>
+          </Paper>
+        </Box>
+        <Paper sx={{ p: 2.5, mb: 3 }}>
           <FormSection title="EmptyState" description="Designed empty state with icon, title, description, and action">
             <Paper sx={{ border: "1px solid", borderColor: "divider" }}>
               <EmptyState
@@ -476,8 +627,13 @@ export function ShowcasePage() {
               />
             </Paper>
           </FormSection>
-        </Box>
-      )}
+        </Paper>
+
+        <Alert severity="info">
+          This page is the living reference of the Mercury Console design system - token rules,
+          tone mappings, and migration checklists live in skills/orca-fe/styles.md.
+        </Alert>
+      </Section>
     </Box>
   );
 }

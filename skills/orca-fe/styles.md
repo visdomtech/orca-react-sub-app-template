@@ -15,6 +15,7 @@ Mechanism: The theme does the visual work, the kit provides structure, and pages
   * `DESIGN_VARIANCE: 3` (Predictable: Symmetrical 12-column grid, structured table layouts, hairline borders, consistent paddings).
   * `MOTION_INTENSITY: 2` (Static/Fluid CSS: Subtle hover/active states, 16px inline action spinners, reduced motion honored by default).
   * `VISUAL_DENSITY: 7` (Cockpit/Data-Dense: 13px table body cells, 8px/16px cell padding, high data-to-chrome ratio, hairline dividers instead of elevated cards).
+* **Dual Profile**: The profile above governs data pages. Design-system showcases and docs pages may run the more expressive profile defined in §10 - everything else in this file still applies unless §10 explicitly relaxes it.
 
 ### 1.2 Core Disciplines
 * **Quiet Fintech**: White surfaces, hairline borders (`#e2e8f0`) instead of drop shadows, slate ink hierarchy (`#0f172a` primary, `#475569` secondary), and exactly one accent color (indigo `#4f46e5`). Spacing and typography do the visual work; chrome stays silent.
@@ -269,3 +270,34 @@ When migrating any page to the Mercury Console design system, apply these transf
 5. Replace em-dashes (`—`) with hyphens (`-`).
 6. Remove violet/purple colors; replace with `primary.main` (indigo).
 7. Remove raw hex color maps (e.g. `TAILWIND_BG_COLORS`); replace with theme palette paths.
+
+---
+
+## 10. Expressive Surfaces (Showcase & Docs Pages)
+
+Data pages keep the quiet dial profile (§1.1). Design-system showcases, docs pages, and marketing-style surfaces inside the console may run a more expressive profile. The canonical implementation is `src/features/showcase/` (page + `components/`): study it before building a new expressive surface. Everything in §1-§9 still applies unless this section explicitly relaxes it.
+
+### 10.1 Dial Profile for Expressive Surfaces
+
+* `DESIGN_VARIANCE: 4-5` (hero band, stat tiles, swatch walls, varied section compositions; still grid-based via `display: grid`, still collapses to single column below 768px).
+* `MOTION_INTENSITY: 2-3` (CSS transitions + smooth-scroll anchors only; honor `prefers-reduced-motion`; no scroll listeners, no parallax, no scroll hijack).
+* `VISUAL_DENSITY: 5` (roomier section rhythm than data pages; all values stay token-driven).
+
+### 10.2 Allowed Moves (expressive surfaces only)
+
+* **Accent hero band**: Solid `primary.main` panel (radius up to 24px, `overflow: hidden`), white text (`primary.contrastText`), translucent white outlined chips, and solid translucent geometric shapes (`rgba(255,255,255,0.08-0.18)` circles/rings, `aria-hidden`). Gradients remain banned - depth comes from layered solid shapes, never `linear-gradient` / `radial-gradient`. White-on-accent treatments (`#ffffff`, `rgba(255,255,255,x)`) are allowed inside the band because no token expresses alpha-white.
+* **Colored icon chips**: 36px tile, `borderRadius: 2`, background `alpha(theme.palette.<hue>.main, 0.1)`, icon color `<hue>.dark`. `alpha()` over a palette token is the ONLY approved way to derive tints - never raw hex tints, never invented `palette.lighter` values.
+* **Section header color cycle**: Section openers on docs surfaces may cycle the five semantic hues (`primary`, `info`, `success`, `warning`, `error`) across sections, one per section. Data pages stay single-accent.
+* **Metric tiles**: Elevation-0 Paper (automatic hairline) + icon chip + display number (20-22px, weight 700, tight tracking) + caption label. Colored numbers use `.dark` palette variants (`error.dark`, `info.dark`, `warning.dark`, `success.dark`) - the `.main` hues (amber, sky) fall below WCAG AA on white.
+* **Summary stat rows**: Number + caption pairs above tables (e.g. "7 policies / 3 critical / 2 in review / avg 70"), values derived from the row data, colored with `.dark` variants following the tone conventions in §4.2.
+* **Token swatch walls**: Render palette values live from `useTheme()` so swatches can never drift from the theme; hairline border on light swatches (`divider`, `background.*`); hex values in a monospace stack (`ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`).
+* **Sticky section nav**: Anchor chips with `scrollIntoView({ behavior: "smooth" })` gated by `prefers-reduced-motion`, `scrollMarginTop` on section wrappers, `overflowX: auto` for narrow viewports. No scroll listeners, no active-state tracking - jump links only.
+
+### 10.3 Still Banned Everywhere (including expressive surfaces)
+
+* Gradients of any kind (backgrounds, text, glows).
+* Violet/purple hues outside the theme palette.
+* Hover lifts (`translateY`), card shadows, neon/outer glows.
+* Em-dashes (`—`) and en-dashes (`–`) in UI copy and documentation.
+* Raw hex colors in component code (only exceptions: alpha-white inside accent bands per §10.2, and documented domain color maps per §1.2).
+* Div-based fake product screenshots - demo sections render the real kit components with realistic fixture data.
