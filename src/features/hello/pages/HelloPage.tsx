@@ -1,5 +1,7 @@
 import Box from "@mui/material/Box";
+import MuiLink from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
+import { Link } from "react-router";
 import { DetailSkeleton, PageHeader } from "@doublefin/orca-ui";
 import { useHelloStats } from "../hooks";
 
@@ -54,6 +56,25 @@ export function HelloPage() {
         >
           route: /orca/hello &middot; loaded: {data?.loadedAt}
         </Typography>
+      </Box>
+
+      <Box sx={{ mt: 3, display: "flex", flexDirection: "column", gap: 1 }}>
+        <MuiLink
+          component={Link}
+          to="/showcase"
+          variant="body2"
+          underline="hover"
+        >
+          Design System Showcase
+        </MuiLink>
+        <MuiLink
+          component={Link}
+          to="/notifications"
+          variant="body2"
+          underline="hover"
+        >
+          Slack Notifications
+        </MuiLink>
       </Box>
     </Box>
   );
