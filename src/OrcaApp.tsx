@@ -1,8 +1,7 @@
-import { useState } from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider } from "@mui/material/styles";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createBrowserRouter, RouterProvider } from "react-router";
+import { useRoutes } from "react-router";
 import { HelloPage } from "./features/hello/pages/HelloPage";
 import { SlackNotificationPage } from "./features/notifications/pages/SlackNotificationPage";
 import { theme } from "./theme/theme";
@@ -15,18 +14,16 @@ const routes = [
   { path: "/notifications", element: <SlackNotificationPage /> },
 ];
 
-interface OrcaAppProps {
-  basename?: string;
-}
-
-export function OrcaApp({ basename }: OrcaAppProps) {
-  const [router] = useState(() => createBrowserRouter(routes, { basename }));
+export function OrcaApp() {
+  // useRoutes hooks into the host's router context instead of creating
+  // a new one, avoiding the nested Router error.
+  const element = useRoutes(routes);
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        {element}
       </QueryClientProvider>
     </ThemeProvider>
   );
