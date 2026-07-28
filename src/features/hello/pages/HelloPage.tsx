@@ -58,7 +58,15 @@ export function HelloPage() {
         </Typography>
       </Box>
 
-      <Box sx={{ mt: 3 }}>
+      <Box sx={{ mt: 3, display: "flex", flexDirection: "column", gap: 1 }}>
+        <MuiLink
+          component={Link}
+          to="/showcase"
+          variant="body2"
+          underline="hover"
+        >
+          Design System Showcase
+        </MuiLink>
         <MuiLink
           component={Link}
           to="/notifications"

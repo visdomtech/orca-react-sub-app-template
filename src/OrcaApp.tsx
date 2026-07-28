@@ -3,6 +3,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useRoutes } from "react-router";
 import { HelloPage } from "./features/hello/pages/HelloPage";
+import { ShowcasePage } from "./features/showcase/pages/ShowcasePage";
 import { SlackNotificationPage } from "./features/notifications/pages/SlackNotificationPage";
 import { theme } from "./theme/theme";
 import "./index.css";
@@ -11,6 +12,7 @@ const queryClient = new QueryClient();
 
 const routes = [
   { path: "/", element: <HelloPage /> },
+  { path: "/showcase", element: <ShowcasePage /> },
   { path: "/notifications", element: <SlackNotificationPage /> },
 ];
 
