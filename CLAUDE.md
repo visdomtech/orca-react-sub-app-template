@@ -132,37 +132,42 @@ If the app needs multiple pages, add `react-router`:
 bun add react-router
 ```
 
-The host passes a `basename` prop (e.g. `/ng/orca/apps/my-app`) so the sub-app's router knows its mount point. Accept it and create your own data router:
+The host passes a `basename` prop (e.g. `/ng/orca/apps/my-app`) so the sub-app's router knows its mount point. Accept it and pass it to `useRoutes`:
 
 ```tsx
-import { useState } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router";
-import { HomePage } from "./features/home/pages/HomePage";
-import { SettingsPage } from "./features/settings/pages/SettingsPage";
+interface OrcaAppProps {
+  basename?: string;
+}
 
 const routes = [
   { path: "/", element: <HomePage /> },
   { path: "/settings", element: <SettingsPage /> },
 ];
 
-interface OrcaAppProps {
-  basename?: string;
-}
-
 export function OrcaApp({ basename }: OrcaAppProps) {
-  // Router is created once on mount; basename is set by the host and never changes.
-  const [router] = useState(() => createBrowserRouter(routes, { basename }));
+  // useRoutes hooks into the host's router context (no nested Router).
+  // Strip the host's mount prefix so sub-app routes like "/" match.
+  const location = useLocation();
+  const matchLocation = useMemo(() => {
+    if (!basename || !location.pathname.startsWith(basename)) return location;
+    const stripped = location.pathname.slice(basename.length) || "/";
+    return { ...location, pathname: stripped };
+  }, [location, basename]);
+  const element = useRoutes(routes, matchLocation);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <QueryClientProvider client={queryClient}>
+        {element}
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 
 export default OrcaApp;
 ```
 
-For standalone dev (`bun run dev`), `basename` is `undefined` so the router mounts at `/` — no changes to `main.tsx` needed.
+For standalone dev (`bun run dev`), `basename` is `undefined` and `main.tsx` provides its own router context, so routes mount at `/`.
 
 Navigate between pages with `<Link>` or `useNavigate()` using paths relative to the app root (e.g. `to="/settings"`), never the full `/ng/orca/apps/...` prefix.
