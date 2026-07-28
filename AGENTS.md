@@ -59,17 +59,30 @@ const element = useRoutes(routes, matchLocation);
 const element = useRoutes(routes);
 ```
 
-### Navigation links
+### Rule 3: Use `SubAppLink` for all internal navigation
 
-Use **relative** paths with `<Link>` and `useNavigate()`:
+The host's router has `basename="/ng"`, so a plain `<Link to="/showcase">` generates `/ng/showcase` — **not** `/ng/orca/apps/my-app/showcase`. Always use `<SubAppLink>` (from `src/shared/SubAppLink.tsx`) which automatically prefixes the `to` prop with the sub-app's mount point.
+
+For `backHref` props on `PageHeader` / `DetailLayout` (from `@doublefin/orca-ui`), use `useSubAppRouterBasePath()` — NOT `useSubAppBasePath()`. These components use react-router's `<Link>` internally, which re-applies the router's basename, so the path must be router-relative (without `/ng`):
 
 ```tsx
-// ✅ Relative to app root — works with basename
-<Link to="/settings">Settings</Link>
-navigate("/details");
+import { SubAppLink, useSubAppRouterBasePath } from "../shared/SubAppLink";
 
-// ❌ Absolute — breaks out of the sub-app
-<Link to="/ng/orca/apps/my-app/settings">Settings</Link>
+// ✅ SubAppLink prefixes the to prop automatically
+<SubAppLink to="/settings">Settings</SubAppLink>
+
+// ✅ Router-relative prefix for orca-ui backHref props
+const routerBase = useSubAppRouterBasePath();
+<PageHeader backHref={`${routerBase}/`} />
+<DetailLayout backHref={`${routerBase}/showcase`}>
+
+// ❌ Wrong — plain Link generates host-relative URLs
+import { Link } from "react-router";
+<Link to="/showcase">Showcase</Link>  // → /ng/showcase (wrong!)
+
+// ❌ Wrong — full path in backHref causes double-prefix
+const basePath = useSubAppBasePath();  // = "/ng/orca/apps/hello"
+<PageHeader backHref={`${basePath}/`} />  // → /ng/ng/orca/apps/hello/ (wrong!)
 ```
 
 ### Standalone dev mode

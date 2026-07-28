@@ -156,12 +156,14 @@ export function OrcaApp({ basename }: OrcaAppProps) {
   const element = useRoutes(routes, matchLocation);
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <QueryClientProvider client={queryClient}>
-        {element}
-      </QueryClientProvider>
-    </ThemeProvider>
+    <SubAppBasenameContext value={basename ?? ""}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <QueryClientProvider client={queryClient}>
+          {element}
+        </QueryClientProvider>
+      </ThemeProvider>
+    </SubAppBasenameContext>
   );
 }
 
@@ -170,4 +172,24 @@ export default OrcaApp;
 
 For standalone dev (`bun run dev`), `basename` is `undefined` and `main.tsx` provides its own router context, so routes mount at `/`.
 
-Navigate between pages with `<Link>` or `useNavigate()` using paths relative to the app root (e.g. `to="/settings"`), never the full `/ng/orca/apps/...` prefix.
+**Internal links**: Never use plain `<Link>` from `react-router` — it resolves against the host's basename (`/ng`), producing wrong URLs. Instead, use `<SubAppLink>` from `src/shared/SubAppLink.tsx`, which auto-prefixes the sub-app's mount point:
+
+```tsx
+import { SubAppLink, useSubAppRouterBasePath } from "./shared/SubAppLink";
+
+// ✅ SubAppLink auto-prefixes — generates /ng/orca/apps/my-app/settings
+<SubAppLink to="/settings">Settings</SubAppLink>
+
+// ✅ For orca-ui backHref props, use the router-relative hook:
+const routerBase = useSubAppRouterBasePath();
+<PageHeader backHref={`${routerBase}/`} />
+<DetailLayout backHref={`${routerBase}/showcase`} />
+
+// ❌ Wrong — plain Link generates /ng/settings (breaks out of sub-app)
+import { Link } from "react-router";
+<Link to="/settings">Settings</Link>
+
+// ❌ Wrong — useSubAppBasePath() includes /ng, causing double-prefix in backHref
+const basePath = useSubAppBasePath();
+<PageHeader backHref={`${basePath}/`} />  // → /ng/ng/orca/apps/my-app/
+```

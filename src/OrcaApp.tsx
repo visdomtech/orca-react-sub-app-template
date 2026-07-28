@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { HelloPage } from "./features/hello/pages/HelloPage";
 import { ShowcasePage } from "./features/showcase/pages/ShowcasePage";
 import { SlackNotificationPage } from "./features/notifications/pages/SlackNotificationPage";
+import { SubAppBasenameContext } from "./shared/SubAppLink";
 import { theme } from "./theme/theme";
 import "./index.css";
 
@@ -33,12 +34,14 @@ export function OrcaApp({ basename }: OrcaAppProps) {
   const element = useRoutes(routes, matchLocation);
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <QueryClientProvider client={queryClient}>
-        {element}
-      </QueryClientProvider>
-    </ThemeProvider>
+    <SubAppBasenameContext value={basename ?? ""}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <QueryClientProvider client={queryClient}>
+          {element}
+        </QueryClientProvider>
+      </ThemeProvider>
+    </SubAppBasenameContext>
   );
 }
 
