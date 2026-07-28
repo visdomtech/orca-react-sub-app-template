@@ -6,6 +6,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import ChatIcon from "@mui/icons-material/Chat";
+import { useAppHref } from "~/shared/AppLink";
 import {
   FormSection,
   PageHeader,
@@ -103,7 +104,7 @@ export function SlackNotificationPage() {
 
   return (
     <Box sx={{ p: 3, maxWidth: 640 }}>
-      <PageHeader title="Slack Notifications" backHref="/" />
+      <PageHeader title="Slack Notifications" backHref={useAppHref("/")} />
 
       {infoMessage && (
         <Alert severity="info" sx={{ mb: 2 }} onClose={() => setInfoMessage(null)}>

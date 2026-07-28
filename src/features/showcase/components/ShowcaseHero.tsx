@@ -3,7 +3,7 @@ import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { Link as RouterLink } from "react-router";
+import { AppLink } from "~/shared/AppLink";
 
 const META_CHIPS = ["@doublefin/orca-ui v0.2", "MUI 9", "React 19"];
 
@@ -67,7 +67,7 @@ export function ShowcaseHero() {
 
       <Box sx={{ position: "relative" }}>
         <Button
-          component={RouterLink}
+          component={AppLink}
           to="/"
           size="small"
           startIcon={<ArrowBackIcon />}

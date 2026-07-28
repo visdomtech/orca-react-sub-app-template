@@ -4,7 +4,8 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import OrcaApp from "./OrcaApp";
 
 // Standalone dev entry: provides a router so useRoutes() inside OrcaApp works.
-// The host provides its own router when loaded via Module Federation.
+// When loaded via Module Federation, the host provides the router context and
+// passes a basename prop so OrcaApp prefixes its routes accordingly.
 const router = createBrowserRouter([{ path: "/*", element: <OrcaApp /> }]);
 
 createRoot(document.getElementById("root")!).render(

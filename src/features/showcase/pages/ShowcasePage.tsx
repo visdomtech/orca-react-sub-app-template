@@ -46,6 +46,7 @@ import {
   type AdminTableColumn,
   type StatusPillTone,
 } from "@doublefin/orca-ui";
+import { useAppHref } from "~/shared/AppLink";
 import { SectionHeader } from "../components/SectionHeader";
 import { SectionNav } from "../components/SectionNav";
 import { ShowcaseHero } from "../components/ShowcaseHero";
@@ -362,7 +363,7 @@ export function ShowcasePage() {
           <DetailLayout
             title={selectedPolicy.name}
             subtitle={`Updated by ${selectedPolicy.updatedBy} on ${selectedPolicy.updatedAt}`}
-            backHref="/showcase"
+            backHref={useAppHref("/showcase")}
             status={<ReviewStatusBadge value={selectedPolicy.reviewStatus} />}
             actions={
               <Box sx={{ display: "flex", gap: 1 }}>

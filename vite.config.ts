@@ -5,6 +5,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  base: process.env.CDN_BASE_URL || "/",
   resolve: {
     alias: {
       "~": resolve(__dirname, "src"),
