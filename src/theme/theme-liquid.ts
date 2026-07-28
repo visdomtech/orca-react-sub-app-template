@@ -24,12 +24,15 @@ const HOVER_BG = "rgba(30, 41, 59, 0.04)"; // neutral cool hover wash
 
 // -- Liquid Metal signature effect constants ---------------------------------
 export const CHROME_TEXT_GRADIENT =
-  "linear-gradient(135deg, #1e293b 0%, #64748b 50%, #94a3b8 100%)";
+  "linear-gradient(135deg, #1e293b 0%, #475569 20%, #94a3b8 40%, #e2e8f0 50%, #94a3b8 60%, #475569 80%, #1e293b 100%)";
 export const ACCENT_GRADIENT =
   "linear-gradient(135deg, #5b6cff 0%, #7b8aff 100%)";
 export const SHEEN_GRADIENT =
   "linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.35) 50%, transparent 75%)";
-export const GLASS_HIGHLIGHT = "inset 0 1px 0 rgba(255,255,255,0.7)";
+export const GLASS_HIGHLIGHT = "inset 0 1px 0 rgba(255,255,255,0.8)";
+export const GLASS_DEPTH_SHADOW =
+  "0 8px 32px -4px rgba(15,23,42,0.08), 0 2px 8px -2px rgba(91,108,255,0.06)";
+export const ACCENT_GLOW = "0 0 20px rgba(91,108,255,0.25)";
 
 // -- Typography stacks -------------------------------------------------------
 const FONT_STACK = [
@@ -136,14 +139,14 @@ const theme = createTheme({
     borderRadius: 8,
   },
   components: {
-    // -- AppBar: translucent glass with metallic gradient hairline ------------
+    // -- AppBar: visibly translucent glass with metallic gradient hairline ------
     MuiAppBar: {
       defaultProps: { elevation: 0 },
       styleOverrides: {
         root: {
-          backgroundColor: "rgba(255,255,255,0.72)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
+          backgroundColor: "rgba(255,255,255,0.55)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
           color: INK,
           borderBottom: "none",
           position: "relative",
@@ -155,7 +158,7 @@ const theme = createTheme({
             right: 0,
             height: 1,
             background:
-              "linear-gradient(90deg, transparent, #e3e8f0, #c7d2fe, #e3e8f0, transparent)",
+              "linear-gradient(90deg, transparent, #c7d2fe, #5b6cff, #c7d2fe, transparent)",
           },
         },
       },
@@ -178,7 +181,7 @@ const theme = createTheme({
       ],
     },
 
-    // -- Button: accent gradient + sheen sweep on hover -----------------------
+    // -- Button: accent gradient + glow + sheen sweep on hover ---------------
     MuiButton: {
       defaultProps: { disableElevation: true },
       styleOverrides: {
@@ -194,6 +197,7 @@ const theme = createTheme({
           props: { variant: "contained", color: "primary" },
           style: {
             background: ACCENT_GRADIENT,
+            boxShadow: ACCENT_GLOW,
             position: "relative",
             overflow: "hidden",
             "&::after": {
@@ -211,6 +215,7 @@ const theme = createTheme({
             },
             "&:hover": {
               background: `linear-gradient(135deg, ${ACCENT_HOVER} 0%, #6b7cff 100%)`,
+              boxShadow: `0 0 28px rgba(91,108,255,0.35)`,
             },
           },
         },
@@ -246,14 +251,14 @@ const theme = createTheme({
       },
     },
 
-    // -- OutlinedInput: metallic focus ring -----------------------------------
+    // -- OutlinedInput: metallic focus ring + accent glow --------------------
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
           backgroundColor: "#ffffff",
           "& .MuiOutlinedInput-notchedOutline": { borderColor: INPUT_BORDER },
           "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: SLATE_FAINT },
-          "&.Mui-focused": { boxShadow: FOCUS_RING },
+          "&.Mui-focused": { boxShadow: `${FOCUS_RING}, ${ACCENT_GLOW}` },
           "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
             borderColor: ACCENT,
             borderWidth: 1,
@@ -269,7 +274,7 @@ const theme = createTheme({
       styleOverrides: { root: { fontSize: "0.8125rem" } },
     },
 
-    // -- Dialog / Popover: glass overlays + accent-tinted shadow --------------
+    // -- Dialog / Popover: visibly translucent glass + accent-tinted shadow ---
     MuiDialog: {
       styleOverrides: {
         paper: {
@@ -277,8 +282,8 @@ const theme = createTheme({
           border: `1px solid ${HAIRLINE}`,
           backgroundImage: "none",
           boxShadow: OVERLAY_SHADOW,
-          backgroundColor: "rgba(255,255,255,0.92)",
-          backdropFilter: "blur(8px)",
+          backgroundColor: "rgba(255,255,255,0.65)",
+          backdropFilter: "blur(16px)",
         },
       },
     },
@@ -289,8 +294,8 @@ const theme = createTheme({
           border: `1px solid ${HAIRLINE}`,
           backgroundImage: "none",
           boxShadow: OVERLAY_SHADOW,
-          backgroundColor: "rgba(255,255,255,0.92)",
-          backdropFilter: "blur(8px)",
+          backgroundColor: "rgba(255,255,255,0.65)",
+          backdropFilter: "blur(16px)",
         },
       },
     },

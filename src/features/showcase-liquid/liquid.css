@@ -1,6 +1,7 @@
-/* Liquid Metal - Ambient Background Layer
+/* Liquid Metal - Vivid Ambient Background Layer
  * Fixed, pointer-events-none layer behind content.
- * 2-3 large blurred radial gradients drifting slowly + faint noise overlay.
+ * 4 large blurred radial gradients drifting slowly + faint noise overlay.
+ * Blobs at 12-18% opacity create visible color atmosphere.
  * GPU-friendly: only transform animations, no layout thrashing.
  */
 
@@ -10,6 +11,7 @@
   --lm-chrome-silver: #c7d2e0;
   --lm-liquid-accent: #5b6cff;
   --lm-liquid-accent-soft: rgba(91, 108, 255, 0.08);
+  --lm-rose-tint: #f472b6;
 }
 
 /* -- Ambient container ----------------------------------------------------- */
@@ -26,54 +28,67 @@
 .lm-ambient__blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
+  filter: blur(100px);
   will-change: transform;
 }
 
 .lm-ambient__blob--silver {
-  width: 600px;
-  height: 600px;
+  width: 700px;
+  height: 700px;
   top: -10%;
   left: -5%;
   background: radial-gradient(
     circle,
-    rgba(199, 210, 224, 0.10) 0%,
+    rgba(199, 210, 224, 0.18) 0%,
     transparent 70%
   );
-  animation: lm-drift-1 50s ease-in-out infinite alternate;
+  animation: lm-drift-1 40s ease-in-out infinite alternate;
 }
 
 .lm-ambient__blob--accent {
-  width: 500px;
-  height: 500px;
+  width: 600px;
+  height: 600px;
   bottom: -15%;
   right: -8%;
   background: radial-gradient(
     circle,
-    rgba(91, 108, 255, 0.07) 0%,
+    rgba(91, 108, 255, 0.14) 0%,
     transparent 70%
   );
-  animation: lm-drift-2 60s ease-in-out infinite alternate;
+  animation: lm-drift-2 50s ease-in-out infinite alternate;
 }
 
 .lm-ambient__blob--highlight {
-  width: 400px;
-  height: 400px;
+  width: 500px;
+  height: 500px;
   top: 40%;
   left: 50%;
   background: radial-gradient(
     circle,
-    rgba(199, 210, 224, 0.06) 0%,
+    rgba(199, 210, 224, 0.12) 0%,
     transparent 65%
   );
-  animation: lm-drift-3 45s ease-in-out infinite alternate;
+  animation: lm-drift-3 35s ease-in-out infinite alternate;
+}
+
+.lm-ambient__blob--rose {
+  width: 450px;
+  height: 450px;
+  top: 60%;
+  left: 10%;
+  background: radial-gradient(
+    circle,
+    rgba(244, 114, 182, 0.06) 0%,
+    transparent 70%
+  );
+  animation: lm-drift-4 45s ease-in-out infinite alternate;
 }
 
 /* -- Noise overlay (SVG feTurbulence) -------------------------------------- */
 .lm-ambient__noise {
   position: absolute;
   inset: 0;
-  opacity: 0.025;
+  opacity: 0.035;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 180px 180px;
@@ -82,20 +97,26 @@
 /* -- Drift keyframes (transform-only, GPU-friendly) ----------------------- */
 @keyframes lm-drift-1 {
   0%   { transform: translate3d(0, 0, 0); }
-  50%  { transform: translate3d(80px, 60px, 0); }
-  100% { transform: translate3d(-40px, 100px, 0); }
+  50%  { transform: translate3d(100px, 70px, 0); }
+  100% { transform: translate3d(-50px, 120px, 0); }
 }
 
 @keyframes lm-drift-2 {
   0%   { transform: translate3d(0, 0, 0); }
-  50%  { transform: translate3d(-70px, -50px, 0); }
-  100% { transform: translate3d(50px, -80px, 0); }
+  50%  { transform: translate3d(-80px, -60px, 0); }
+  100% { transform: translate3d(60px, -100px, 0); }
 }
 
 @keyframes lm-drift-3 {
   0%   { transform: translate3d(0, 0, 0); }
-  50%  { transform: translate3d(-60px, 40px, 0); }
-  100% { transform: translate3d(40px, -30px, 0); }
+  50%  { transform: translate3d(-70px, 50px, 0); }
+  100% { transform: translate3d(50px, -40px, 0); }
+}
+
+@keyframes lm-drift-4 {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(60px, -40px, 0); }
+  100% { transform: translate3d(-40px, 60px, 0); }
 }
 
 /* -- Reduced motion: static gradient -------------------------------------- */
@@ -112,7 +133,12 @@
   }
   .lm-ambient__blob--silver,
   .lm-ambient__blob--accent {
-    width: 300px;
-    height: 300px;
+    width: 350px;
+    height: 350px;
+  }
+  .lm-ambient__blob--highlight,
+  .lm-ambient__blob--rose {
+    width: 250px;
+    height: 250px;
   }
 }

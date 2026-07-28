@@ -6,7 +6,8 @@ import PaletteIcon from "@mui/icons-material/Palette";
 import StyleIcon from "@mui/icons-material/Style";
 import TuneIcon from "@mui/icons-material/Tune";
 import WidgetsIcon from "@mui/icons-material/Widgets";
-import { GlassCard } from "@doublefin/orca-ui";
+import { GlassCard, GradientText } from "@doublefin/orca-ui";
+import { CHROME_TEXT_GRADIENT } from "../../../theme/theme-liquid";
 import type { SectionColor } from "./LiquidSectionHeader";
 
 interface Stat {
@@ -25,7 +26,7 @@ const STATS: Stat[] = [
 
 /**
  * Glass metric tiles for the liquid metal showcase.
- * Uses GlassCard with metallic border + sheen-sweep hover effect.
+ * Uses GlassCard (visibly translucent) with hover lift + glow + gradient stat values.
  */
 export function LiquidStatsStrip() {
   return (
@@ -45,32 +46,39 @@ export function LiquidStatsStrip() {
             display: "flex",
             alignItems: "center",
             gap: 1.5,
-            transition: "border-color 0.2s ease, transform 0.2s ease",
             "&:hover": {
               borderColor: "primary.main",
-              transform: "translateY(-1px)",
+              transform: "translateY(-2px)",
+              boxShadow:
+                "inset 0 1px 0 rgba(255,255,255,0.8), 0 12px 40px -4px rgba(15,23,42,0.12), 0 0 20px rgba(91,108,255,0.15)",
             },
           }}
         >
           <Box
             sx={(theme) => ({
-              width: 36,
-              height: 36,
+              width: 40,
+              height: 40,
               borderRadius: 2,
               flexShrink: 0,
               display: "grid",
               placeItems: "center",
-              bgcolor: alpha(theme.palette[stat.color].main, 0.1),
+              background: `linear-gradient(135deg, ${alpha(theme.palette[stat.color].main, 0.12)} 0%, ${alpha(theme.palette[stat.color].main, 0.04)} 100%)`,
               color: theme.palette[stat.color].dark,
             })}
           >
             {stat.icon}
           </Box>
           <Box>
-            <Typography sx={{ fontSize: "1.375rem", fontWeight: 700, lineHeight: 1.15, letterSpacing: "-0.01em" }}>
-              {stat.value}
+            <Typography sx={{ fontSize: "1.5rem", fontWeight: 700, lineHeight: 1.15, letterSpacing: "-0.02em" }}>
+              <GradientText
+                gradient={CHROME_TEXT_GRADIENT}
+                component="span"
+                sx={{ fontSize: "inherit", fontWeight: "inherit", letterSpacing: "inherit" }}
+              >
+                {stat.value}
+              </GradientText>
             </Typography>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
               {stat.label}
             </Typography>
           </Box>

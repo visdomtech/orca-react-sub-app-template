@@ -10,15 +10,16 @@ Mechanism: The liquid metal theme does the visual work, the kit provides structu
 ## 1. Design Principles & Dial Profile
 
 ### 1.1 Aesthetic Read & Dial Profile
-* **Design Read**: B2B Fintech & Admin Console with a Liquid Metal visual language - cool platinum base, chrome/silver metallic accents, glassmorphism surfaces, and a single liquid blue-violet accent. Light theme only.
-* **Dial Profile**:
-  * `DESIGN_VARIANCE: 3` (Predictable: Symmetrical 12-column grid, structured table layouts, hairline borders, consistent paddings).
-  * `MOTION_INTENSITY: 3` (Subtle motion: CSS sheen-sweep on buttons, ambient drifting gradients in background, hover border-color transitions. Reduced motion honored.)
+* **Design Read**: B2B Fintech & Admin Console with a Liquid Metal visual language - cool platinum base, chrome/silver metallic accents, dramatic glassmorphism surfaces, and a single liquid blue-violet accent. Light theme only. Glass must be visibly translucent, chrome must read as metallic, ambient gradients must create atmosphere.
+* **Dial Profile (data pages)**:
+  * `DESIGN_VARIANCE: 4` (Predictable: Symmetrical 12-column grid, structured table layouts, hairline borders, consistent paddings).
+  * `MOTION_INTENSITY: 4` (Visible motion: CSS sheen-sweep on buttons, vivid ambient drifting gradients, hover glow + lift transitions, accent glow on focus. Reduced motion honored.)
   * `VISUAL_DENSITY: 7` (Cockpit/Data-Dense: 13px table body cells, 8px/16px cell padding, high data-to-chrome ratio, hairline dividers, tabular-nums for data).
-* **Dual Profile**: The profile above governs data pages. Design-system showcases and docs pages may run the more expressive profile defined in section 10 - everything else in this file still applies unless section 10 explicitly relaxes it.
+* **Dual Profile**: The profile above governs data pages. Design-system showcases and docs pages run the more expressive profile defined in section 10 - everything else in this file still applies unless section 10 explicitly relaxes it.
 
 ### 1.2 Core Disciplines
-* **Liquid Metal**: Cool platinum canvas (`#f4f6fa`), glass surfaces (translucent white + `backdrop-filter: blur` + 1px inner highlight), chrome blue-violet accent (`#5b6cff`), chrome silver gradient text for display headlines, metallic hairline borders. Spacing and typography do the visual work; chrome stays quiet.
+* **Liquid Metal**: Cool platinum canvas (`#f4f6fa`), visibly translucent glass surfaces (45% white + `backdrop-filter: blur(20px)` + prismatic double-border + depth shadow), chrome blue-violet accent (`#5b6cff`) with glow effects, multi-stop specular chrome gradient text for display headlines, vivid ambient gradient atmosphere. Spacing and typography do the structural work; glass and chrome provide the visual impact.
+* **Visual Impact Discipline**: Glass must be **visibly translucent** (opacity <= 0.55, blur >= 16px, prismatic border visible). Chrome text must **read as metallic** (multi-stop specular gradient with bright highlight). Ambient gradients must **create atmosphere** (blob opacity >= 12%, visible color, perceptible drift). If a glass surface looks identical to plain white at arm's length, it has failed.
 * **Tokens over Literals**: Components consume theme tokens (`divider`, `text.secondary`, `background.paper`, `action.hover`, palette paths). No raw hex values in component code. (Documented exception: domain color maps like label-color or category-color maps.)
 * **Composition over Config**: Shared components expose slots (`actions`, `empty`, `footer`, `children`), never behavior config. Toolbars, filter bars, drag-and-drop zones, upload/polling UI, and dialogs stay page-local.
 * **Frozen Backend Contract**: Endpoints called, debounce/polling timings, payload shapes, and query invalidation keys stay untouchable during visual work. See section 6.
@@ -27,7 +28,8 @@ Mechanism: The liquid metal theme does the visual work, the kit provides structu
   * Zero pure-black shadows on light backgrounds.
   * Zero placeholder-as-label in forms.
   * Zero em-dashes or en-dashes as punctuation in UI text or documentation.
-  * Glass surfaces and sheen-sweep effects ARE allowed (they are the signature of this design system).
+  * Glass surfaces, sheen-sweep effects, accent glows, and vivid ambient gradients ARE allowed (they are the signature of this design system).
+  * **Banned**: "Invisible glass" (white opacity > 0.80 with no visible blur), "mute chrome" (text gradient endpoints within 2 slate steps), "flat ambient" (blob opacity < 12%).
 
 ---
 
@@ -49,10 +51,15 @@ Mechanism: The liquid metal theme does the visual work, the kit provides structu
 | `FOCUS_RING` | `0 0 0 3px rgba(91, 108, 255, 0.14)` | Input focus ring, layered with 1px accent border |
 | `OVERLAY_SHADOW` | `0 12px 32px -8px rgba(30, 41, 59, 0.14), 0 4px 12px -4px rgba(91, 108, 255, 0.06)` | Accent-tinted soft shadow reserved for dialogs, popovers, and menus |
 | `HOVER_BG` | `rgba(30, 41, 59, 0.04)` | Neutral cool hover wash for rows, buttons, list items |
-| `CHROME_TEXT_GRADIENT` | `linear-gradient(135deg, #1e293b 0%, #64748b 50%, #94a3b8 100%)` | Chrome silver sweep for display headlines |
+| `CHROME_TEXT_GRADIENT` | `linear-gradient(135deg, #1e293b 0%, #475569 20%, #94a3b8 40%, #e2e8f0 50%, #94a3b8 60%, #475569 80%, #1e293b 100%)` | Multi-stop specular chrome sweep with bright highlight for display headlines |
 | `ACCENT_GRADIENT` | `linear-gradient(135deg, #5b6cff 0%, #7b8aff 100%)` | Liquid accent gradient for contained primary buttons |
 | `SHEEN_GRADIENT` | `linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.35) 50%, transparent 75%)` | Sheen sweep pseudo-element on button hover |
-| `GLASS_HIGHLIGHT` | `inset 0 1px 0 rgba(255,255,255,0.7)` | Inner top highlight on glass surfaces (edge refraction) |
+| `GLASS_HIGHLIGHT` | `inset 0 1px 0 rgba(255,255,255,0.8)` | Inner top highlight on glass surfaces (edge refraction) |
+| `GLASS_BG` | `rgba(255,255,255,0.45)` | Visibly translucent glass background (must look glassy, not white) |
+| `GLASS_BLUR` | `20px` | Backdrop-filter blur for glass surfaces |
+| `GLASS_BORDER_OUTER` | `rgba(255,255,255,0.6)` | Outer prismatic border on glass surfaces |
+| `GLASS_DEPTH_SHADOW` | `0 8px 32px -4px rgba(15,23,42,0.08), 0 2px 8px -2px rgba(91,108,255,0.06)` | Depth shadow giving glass surfaces a floating appearance |
+| `ACCENT_GLOW` | `0 0 20px rgba(91,108,255,0.25)` | Accent glow for buttons, active states, and focus emphasis |
 
 Palette rules: `primary` is the only accent; `secondary` is neutral slate (do not reintroduce violet); `divider` = HAIRLINE; `background.default` = CANVAS (platinum); `background.paper` = `#ffffff`; `text` = INK/SLATE/SLATE_FAINT; `action.*` = neutral cool washes.
 
@@ -79,11 +86,11 @@ Palette rules: `primary` is the only accent; `secondary` is neutral slate (do no
 Future visual work must conform to these component overrides in `src/theme/theme-liquid.ts`:
 
 * **`MuiPaper`**: `elevation` defaults to 0. Elevation-0 Papers receive the hairline border + `GLASS_HIGHLIGHT` inner top highlight. Raised overlays keep their shadow and stay borderless.
-* **`MuiAppBar`**: Translucent white (`rgba(255,255,255,0.72)`) + `backdrop-filter: blur(12px)` + metallic gradient hairline (pseudo-element bottom border).
+* **`MuiAppBar`**: Visibly translucent (`rgba(255,255,255,0.55)`) + `backdrop-filter: blur(20px)` + metallic gradient hairline (pseudo-element bottom border with stronger chrome sweep).
 * **`MuiTableCell`**: 13px body, `fontVariantNumeric: "tabular-nums"`; uppercase 11px/600 micro-headers on platinum fill; hairline row borders; `sizeSmall` padding 8px/16px.
-* **`MuiButton`**: `disableElevation` always. Contained primary = `ACCENT_GRADIENT` background + sheen-sweep `::after` on hover (transform-only) + `:active { transform: scale(0.98) }`. Outlined primary = neutral secondary action (slate text, INPUT_BORDER, HOVER_BG hover).
-* **`MuiOutlinedInput`**: White background, INPUT_BORDER border, SLATE_FAINT hover, 1px ACCENT border + FOCUS_RING on focus; 13px input text.
-* **`MuiDialog` / `MuiPopover`**: Glass overlays (`rgba(255,255,255,0.92)` + `backdrop-filter: blur(8px)`) + `OVERLAY_SHADOW` (accent-tinted) + hairline + 12px/10px radius.
+* **`MuiButton`**: `disableElevation` always. Contained primary = `ACCENT_GRADIENT` background + `ACCENT_GLOW` shadow + sheen-sweep `::after` on hover (transform-only) + `:active { transform: scale(0.98) }`. Outlined primary = neutral secondary action (slate text, INPUT_BORDER, HOVER_BG hover).
+* **`MuiOutlinedInput`**: White background, INPUT_BORDER border, SLATE_FAINT hover, 1px ACCENT border + FOCUS_RING + `ACCENT_GLOW` on focus; 13px input text.
+* **`MuiDialog` / `MuiPopover`**: Glass overlays (`rgba(255,255,255,0.65)` + `backdrop-filter: blur(16px)`) + `OVERLAY_SHADOW` (accent-tinted) + hairline + 12px/10px radius.
 * **`MuiMenu` / `MuiMenuItem`**: 4px list padding, 13px items with 6px radius.
 * **`MuiTabs` / `MuiTab`**: Underline style (2px indicator, liquid accent color), sentence-case 13px tabs, ink text when selected with font weight 600.
 * **`MuiListItemButton` / `MuiListItemIcon`**: 8px radius, slate text/icon, selected = ACCENT_SOFT wash + accent text/icon + 600 label.
@@ -109,13 +116,13 @@ Shared by the admin and sysadmin consoles. Install from the public npm registry 
 | `EmptyState` | `icon`, `title`, `description?`, `action?` |
 | `TableSkeleton` / `DetailSkeleton` | Loading placeholders, `role="progressbar"` |
 
-### 4.1 Liquid Kit Components (new in v0.3)
+### 4.1 Liquid Kit Components (new in v0.4)
 
 | Component | Purpose / Contract |
 |---|---|
-| `GradientText` | Chrome gradient text for display headlines. Props: `children`, `gradient?` (CSS gradient string, defaults to chrome silver sweep), `component?` (element type, defaults to "span"), `sx?`. Uses `background-clip: text`. Use sparingly on h1-h2 only. |
-| `GlassCard` | Glassmorphism surface wrapper. Props: `children`, `padding?` (default 2.5), `borderRadius?` (default 2 = 16px), `sx?`. Translucent white + `backdrop-filter: blur(12px)` + hairline border + inner top highlight. |
-| `AmbientBackground` | Fixed ambient gradient layer. Renders behind content (`z-index: -1`, `pointer-events: none`, `aria-hidden`). Requires the liquid CSS file to be imported for animations. Uses CSS classes `lm-ambient`, `lm-ambient__blob`, `lm-ambient__noise`. |
+| `GradientText` | Specular chrome gradient text for display headlines. Props: `children`, `gradient?` (CSS gradient string, defaults to multi-stop specular chrome sweep), `component?` (element type, defaults to "span"), `sx?`. Uses `background-clip: text`. Use sparingly on h1-h2 only. |
+| `GlassCard` | Dramatic glassmorphism surface wrapper. Props: `children`, `padding?` (default 2.5), `borderRadius?` (default 2 = 16px), `sx?`. Visibly translucent (`GLASS_BG` = 45% white) + `backdrop-filter: blur(GLASS_BLUR = 20px)` + prismatic double-border (outer `GLASS_BORDER_OUTER` + inner `GLASS_HIGHLIGHT`) + `GLASS_DEPTH_SHADOW`. Must look visibly glassy, not white. |
+| `AmbientBackground` | Vivid ambient gradient layer. Renders behind content (`z-index: -1`, `pointer-events: none`, `aria-hidden`). Four gradient blobs (silver, accent, highlight, rose) at 12-18% opacity with `blur(100px)`, drifting via CSS keyframes. Requires the liquid CSS file to be imported for animations. Uses CSS classes `lm-ambient`, `lm-ambient__blob`, `lm-ambient__noise`. |
 
 ### 4.2 AdminTable Rules
 
@@ -146,9 +153,9 @@ Same as Mercury Console:
 
 ### 4.5 Card and Surface Styling (Liquid Metal)
 
-* **Glass surfaces over flat cards**: Use `<GlassCard>` for hero bands, feature cards, and metric tiles. Glass = translucent white + backdrop-filter + inner highlight + hairline border.
-* **Hover state**: `borderColor` transition to `primary.main` + subtle `translateY(-1px)`.
-* **Sheen sweep**: Contained primary buttons get the sheen-sweep via theme override (no per-page edits needed).
+* **Dramatic glass surfaces**: Use `<GlassCard>` for hero bands, feature cards, metric tiles, and section nav. Glass = visibly translucent (`rgba(255,255,255,0.45)`) + `backdrop-filter: blur(20px)` + prismatic double-border + depth shadow. If it looks like plain white, the glass has failed.
+* **Hover state**: `translateY(-2px)` + stronger depth shadow + `borderColor` transition to `primary.main`. The lift and glow must be visible.
+* **Sheen sweep**: Contained primary buttons get the sheen-sweep + `ACCENT_GLOW` shadow via theme override (no per-page edits needed).
 * **Icon color tokens**: Replace raw hex icon colors with theme palette paths.
 
 ---
@@ -235,21 +242,24 @@ When migrating any page to the Liquid Metal design system, apply these transform
 5. Replace `bgcolor: "white"` with `background.paper`.
 
 ### 9.3 Liquid Metal Upgrade
-1. Replace flat card surfaces with `<GlassCard>` for hero bands, feature cards, metric tiles.
-2. Add `<GradientText>` to display headlines on showcase/docs pages.
-3. Add `<AmbientBackground>` to pages that need the liquid ambient layer.
-4. Verify contained primary buttons show the gradient + sheen sweep (theme-level, no per-page edits).
-5. Verify glass overlays on dialogs and popovers (theme-level).
+1. Replace flat card surfaces with `<GlassCard>` for hero bands, feature cards, metric tiles (glass must be visibly translucent - if it looks white, it has failed).
+2. Add `<GradientText>` to display headlines on showcase/docs pages (multi-stop specular chrome, not muted slate).
+3. Add `<AmbientBackground>` to pages that need the vivid liquid ambient layer (blobs at 12-18% opacity, visible atmosphere).
+4. Verify contained primary buttons show the gradient + sheen sweep + accent glow (theme-level, no per-page edits).
+5. Verify glass overlays on dialogs and popovers (theme-level, visibly translucent + blur).
 6. Verify `fontVariantNumeric: "tabular-nums"` on table data cells (theme-level).
 
 ### 9.4 Anti-Slop Audit
-1. Remove all unauthorized gradient backgrounds (background gradients are allowed only in `AmbientBackground` and theme-defined sheen effects).
+1. Remove all unauthorized gradient backgrounds (background gradients are allowed only in `AmbientBackground` and theme-defined sheen/glow effects).
 2. Remove all unauthorized gradient text (only `GradientText` component is allowed).
-3. Remove hover lifts beyond `translateY(-1px)`.
-4. Remove card shadows (`boxShadow` on non-overlay surfaces).
+3. Remove hover lifts beyond `translateY(-2px)`.
+4. Remove generic card shadows (`boxShadow` on non-overlay, non-glass surfaces). Glass depth shadows ARE allowed.
 5. Replace em-dashes with hyphens.
 6. Remove violet/purple colors; replace with `primary.main` (chrome blue-violet).
 7. Remove raw hex color maps; replace with theme palette paths.
+8. **Remove invisible glass**: Any glass surface with white opacity > 0.80 or blur < 16px is invisible and must be fixed.
+9. **Remove mute chrome**: Any text gradient with endpoints within 2 slate steps must use the full specular sweep.
+10. **Remove flat ambient**: Any ambient blob with opacity < 12% must be increased to create visible atmosphere.
 
 ---
 
@@ -259,28 +269,28 @@ Data pages keep the quiet dial profile (section 1.1). Design-system showcases, d
 
 ### 10.1 Dial Profile for Expressive Surfaces
 
-* `DESIGN_VARIANCE: 4-5` (glass hero band, stat tiles, swatch walls, varied section compositions; still grid-based).
-* `MOTION_INTENSITY: 3` (CSS transitions + smooth-scroll anchors + ambient background drift; honor `prefers-reduced-motion`).
+* `DESIGN_VARIANCE: 6` (glass hero band with depth shadow, stat tiles with hover glow, swatch walls with glass cards, varied section compositions; still grid-based).
+* `MOTION_INTENSITY: 5` (CSS transitions + smooth-scroll anchors + vivid ambient background drift + hover lift/glow on interactive elements; honor `prefers-reduced-motion`).
 * `VISUAL_DENSITY: 5` (roomier section rhythm than data pages; all values stay token-driven).
 
 ### 10.2 Allowed Moves (expressive surfaces only)
 
 * **Docs-page container**: Centered `maxWidth: 1200` (`mx: "auto"`) with responsive padding.
-* **Glass hero band**: `<GlassCard>` with large border-radius (up to 24px), translucent white, backdrop-filter blur, chrome gradient headline via `<GradientText>`, solid translucent geometric shapes (`rgba(255,255,255,0.08-0.18)` circles/rings, `aria-hidden`). Alpha-white treatments are allowed inside glass bands.
-* **Chrome gradient headlines**: `<GradientText>` on display text (h1-h2). Default gradient is chrome silver sweep. Never use on body text.
-* **Glass metric tiles**: `<GlassCard>` + icon chip + display number + caption. Hover = `borderColor` transition + subtle `translateY(-1px)`.
-* **Colored icon chips**: 36px tile, `borderRadius: 2`, background `alpha(theme.palette.<hue>.main, 0.1)`, icon color `<hue>.dark`.
-* **Section header color cycle**: Section openers may cycle the five semantic hues across sections.
-* **Token swatch walls**: Render palette values live from `useTheme()`.
-* **Sticky section nav**: Glass-pill anchor chips with liquid accent hover.
-* **Ambient background**: `<AmbientBackground>` from orca-ui for the drifting gradient layer.
+* **Dramatic glass hero band**: `<GlassCard>` with large border-radius (up to 24px), visibly translucent (`GLASS_BG` = 45% white), `backdrop-filter: blur(20px)`, `GLASS_DEPTH_SHADOW`, prismatic double-border, chrome gradient headline via `<GradientText>` (multi-stop specular), gradient-filled translucent decorative shapes (`rgba(91,108,255,0.08)` to `rgba(244,114,182,0.06)` filled circles/rings, `aria-hidden`). The hero must look dramatically different from a plain white card.
+* **Specular chrome gradient headlines**: `<GradientText>` on display text (h1-h2). Default gradient is the multi-stop specular chrome sweep with bright highlight at 50%. Never use on body text. Font size should be impactful: `2.5-2.75rem` on desktop for hero headlines.
+* **Glass metric tiles**: `<GlassCard>` + icon chip + display number (use `GradientText` for stat values) + caption. Hover = `translateY(-2px)` + `ACCENT_GLOW` border color + stronger depth shadow.
+* **Colored icon chips**: 36px tile, `borderRadius: 2`, background with subtle gradient (`alpha(theme.palette.<hue>.main, 0.1)` to `alpha(theme.palette.<hue>.main, 0.05)`), icon color `<hue>.dark`.
+* **Section header color cycle**: Section openers may cycle the five semantic hues across sections. Section titles may use `GradientText` for chrome effect.
+* **Token swatch walls**: Render palette values live from `useTheme()`. Swatches backed by glass cards with hover lift.
+* **Sticky section nav**: Glass-pill anchor chips with liquid accent hover + glow on active state.
+* **Vivid ambient background**: `<AmbientBackground>` from orca-ui for the atmospheric drifting gradient layer. Four blobs at 12-18% opacity must create visible color atmosphere.
 
 ### 10.3 Still Banned Everywhere (including expressive surfaces)
 
 * Unauthorized gradients (only `GradientText`, theme sheen effects, and `AmbientBackground` are allowed).
 * Violet/purple hues outside the theme palette.
-* Hover lifts beyond `translateY(-1px)`.
-* Card shadows on non-overlay surfaces.
+* Hover lifts beyond `translateY(-2px)`.
+* Card shadows on non-overlay surfaces (glass depth shadows ARE allowed).
 * Em-dashes and en-dashes in UI copy and documentation.
 * Raw hex colors in component code (exceptions: alpha-white inside glass bands, documented domain color maps).
 * Gradient text on body copy (only display headlines via `GradientText`).

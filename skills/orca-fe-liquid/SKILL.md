@@ -1,6 +1,6 @@
 ---
 name: orca-fe-liquid
-description: Enforce the Liquid Metal design system on Orca frontend pages. Audits and migrates pages to use the shared UI kit (AdminTable, PageHeader, DetailLayout, StatusPill, GlassCard, GradientText, AmbientBackground), liquid metal theme tokens, and glassmorphism discipline. Use when applying visual design to any page in an Orca frontend app using the Liquid Metal aesthetic, when restyling components, or when the user asks to make pages look consistent with the Liquid Metal design system.
+description: Enforce the Liquid Metal design system on Orca frontend pages. Audits and migrates pages to use the shared UI kit (AdminTable, PageHeader, DetailLayout, StatusPill, GlassCard, GradientText, AmbientBackground), liquid metal theme tokens, dramatic glassmorphism discipline, and vivid ambient atmosphere. Use when applying visual design to any page in an Orca frontend app using the Liquid Metal aesthetic, when restyling components, or when the user asks to make pages look consistent with the Liquid Metal design system.
 ---
 
 # Orca FE Liquid - Liquid Metal Design System Enforcer
@@ -12,7 +12,7 @@ Goal: Any page in the app must look like it was designed by one person. The liqu
 The app must have MUI, react-router, and React Query installed and configured with the Liquid Metal theme. If not yet set up:
 
 ```bash
-bun add @mui/material@^9 @emotion/react @emotion/styled @mui/icons-material@^9 react-router@^8 @tanstack/react-query @doublefin/orca-ui@^0.3 @fontsource-variable/inter @fontsource-variable/space-grotesk
+bun add @mui/material@^9 @emotion/react @emotion/styled @mui/icons-material@^9 react-router@^8 @tanstack/react-query @doublefin/orca-ui@^0.4 @fontsource-variable/inter @fontsource-variable/space-grotesk
 ```
 
 All packages are available on the public npm registry (npmjs.com). No private registry or `.npmrc` configuration is needed for `@doublefin/orca-ui`.
@@ -79,11 +79,12 @@ For each target page, scan for violations in three categories:
 - `boxShadow: <number>` instead of `OVERLAY_SHADOW` or removed
 
 ### Liquid Metal Violations
-- Solid opaque card backgrounds where glass (`GlassCard`) should be used
-- Missing chrome gradient text on display headlines (should use `GradientText`)
-- Missing ambient background on pages (should use `AmbientBackground`)
-- Flat buttons where gradient + sheen sweep should apply (contained primary)
+- **Invisible glass**: glass surfaces with white opacity > 0.80 or blur < 16px (should use `GlassCard` with visibly translucent glass)
+- **Mute chrome**: text gradients with endpoints within 2 slate steps (should use `GradientText` with multi-stop specular sweep)
+- **Flat ambient**: ambient blobs with opacity < 12% (should use `AmbientBackground` with vivid 12-18% opacity blobs)
+- Flat buttons where gradient + sheen sweep + accent glow should apply (contained primary)
 - Non-liquid accent colors (`#4f46e5` indigo instead of `#5b6cff` chrome blue-violet)
+- Missing accent glow on focused inputs or active interactive elements
 
 ## Migration Execution
 
@@ -109,11 +110,12 @@ Replace all raw values with liquid metal theme tokens:
 
 ### Step 3: Liquid Metal Upgrade
 
-1. Replace flat card surfaces with `<GlassCard>` where appropriate (hero bands, feature cards, metric tiles).
-2. Add `<GradientText>` to display headlines (h1-h2) on showcase/docs pages.
-3. Add `<AmbientBackground>` to pages that need the liquid ambient layer.
-4. Verify contained primary buttons show the gradient + sheen sweep.
-5. Verify glass overlays on dialogs and popovers.
+1. Replace flat card surfaces with `<GlassCard>` where appropriate (hero bands, feature cards, metric tiles). Glass must be visibly translucent - if it looks white, it has failed.
+2. Add `<GradientText>` to display headlines (h1-h2) on showcase/docs pages (multi-stop specular chrome, not muted slate).
+3. Add `<AmbientBackground>` to pages that need the vivid liquid ambient layer (12-18% opacity blobs, visible atmosphere).
+4. Verify contained primary buttons show the gradient + sheen sweep + accent glow.
+5. Verify glass overlays on dialogs and popovers (visibly translucent + blur).
+6. Verify input focus rings include accent glow.
 
 ## Critical Rules
 
@@ -172,7 +174,7 @@ All reference implementations are in this repo:
 |------|---------|
 | `skills/orca-fe-liquid/styles.md` | Full liquid metal design system specification |
 | `src/theme/theme-liquid.ts` | MUI theme with Liquid Metal tokens and overrides |
-| `@doublefin/orca-ui` | Public npm package (npmjs.com) providing all kit components including liquid kit (GlassCard, GradientText, AmbientBackground) |
+| `@doublefin/orca-ui` | Public npm package (npmjs.com) providing all kit components including liquid kit (GlassCard v0.4, GradientText v0.4, AmbientBackground v0.4) |
 | `src/shared/ui/index.ts` | Re-export shim: `export * from "@doublefin/orca-ui"` |
 | `src/features/showcase-liquid/` | Canonical liquid metal showcase: kit usage on a docs surface with glass hero, gradient text, ambient background, metric tiles, token swatches, section nav |
 

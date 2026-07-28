@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
+import { GlassCard } from "@doublefin/orca-ui";
 
 const MONO_STACK = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
 
@@ -14,8 +14,8 @@ interface Swatch {
 }
 
 /**
- * Palette wall rendered live from useTheme() - swatches can never drift from
- * the real liquid metal token values.
+ * Palette wall rendered live from useTheme() - swatches backed by glass cards
+ * with hover lift. Swatches can never drift from the real liquid metal token values.
  */
 export function LiquidTokenSwatches() {
   const theme = useTheme();
@@ -45,7 +45,18 @@ export function LiquidTokenSwatches() {
       }}
     >
       {SWATCHES.map((swatch) => (
-        <Paper key={swatch.name} sx={{ p: 1.5 }}>
+        <GlassCard
+          key={swatch.name}
+          padding={1.5}
+          sx={{
+            "&:hover": {
+              borderColor: "primary.main",
+              transform: "translateY(-2px)",
+              boxShadow:
+                "inset 0 1px 0 rgba(255,255,255,0.8), 0 12px 40px -4px rgba(15,23,42,0.12), 0 0 20px rgba(91,108,255,0.12)",
+            },
+          }}
+        >
           <Box
             sx={{
               height: 56,
@@ -54,6 +65,7 @@ export function LiquidTokenSwatches() {
               border: swatch.border ? "1px solid" : "none",
               borderColor: "divider",
               mb: 1,
+              boxShadow: "0 2px 4px rgba(0,0,0,0.04)",
             }}
           />
           <Typography variant="caption" sx={{ display: "block", fontWeight: 600 }}>
@@ -69,7 +81,7 @@ export function LiquidTokenSwatches() {
           <Typography variant="caption" color="text.secondary">
             {swatch.usage}
           </Typography>
-        </Paper>
+        </GlassCard>
       ))}
     </Box>
   );
