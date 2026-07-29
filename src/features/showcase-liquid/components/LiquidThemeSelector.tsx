@@ -48,13 +48,10 @@ export function LiquidThemeSelector() {
                   border: "1.5px solid",
                   borderColor: isActive ? "primary.main" : "divider",
                   bgcolor: isActive
-                    ? (t) =>
-                        t.palette.mode === "dark"
-                          ? "rgba(255,255,255,0.08)"
-                          : "rgba(91,108,255,0.06)"
+                    ? "rgba(91,108,255,0.06)"
                     : "transparent",
                   boxShadow: isActive
-                    ? `0 0 12px ${p.isDark ? "rgba(20,184,166,0.25)" : "rgba(91,108,255,0.18)"}`
+                    ? "0 0 12px rgba(91,108,255,0.18)"
                     : "none",
                   cursor: "pointer",
                   transition:
@@ -62,10 +59,7 @@ export function LiquidThemeSelector() {
                   outline: "none",
                   "&:hover": {
                     borderColor: "primary.light",
-                    bgcolor: (t) =>
-                      t.palette.mode === "dark"
-                        ? "rgba(255,255,255,0.06)"
-                        : "rgba(91,108,255,0.04)",
+                    bgcolor: "rgba(91,108,255,0.04)",
                   },
                   "&:focus-visible": {
                     borderColor: "primary.main",

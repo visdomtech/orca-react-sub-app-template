@@ -65,9 +65,9 @@ function syncCssVariables(el: HTMLElement, preset: LiquidPreset) {
   el.style.setProperty("--lm-wave-3", waves[2]);
   el.style.setProperty("--lm-wave-4", waves[3]);
   el.style.setProperty("--lm-text-primary", ink);
-  el.style.setProperty("--lm-text-secondary", preset.isDark ? "#94a3b8" : "#475569");
-  el.style.setProperty("--lm-nav-bg", preset.isDark ? "rgba(26,26,46,0.6)" : "rgba(244,246,250,0.6)");
-  el.style.setProperty("--lm-accent-soft", `rgba(${hexToRgbStr(accent)},${preset.isDark ? 0.16 : 0.08})`);
+  el.style.setProperty("--lm-text-secondary", "#475569");
+  el.style.setProperty("--lm-nav-bg", "rgba(244,246,250,0.6)");
+  el.style.setProperty("--lm-accent-soft", `rgba(${hexToRgbStr(accent)},0.08)`);
 }
 
 function hexToRgbStr(hex: string): string {

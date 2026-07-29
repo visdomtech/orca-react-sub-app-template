@@ -59,32 +59,32 @@ const DISPLAY_STACK = [
 // -- Theme factory -----------------------------------------------------------
 
 export function createLiquidTheme(preset: LiquidPreset) {
-  const { accent, canvas, ink, isDark } = preset;
+  const { accent, canvas, ink } = preset;
 
-  // -- Derived palette -------------------------------------------------------
-  const accentHover = isDark ? lightenHex(accent, 20) : darkenHex(accent, 18);
-  const accentLight = isDark ? lightenHex(accent, 60) : lightenHex(accent, 48);
-  const accentSoft = hexToRgba(accent, isDark ? 0.16 : 0.1);
-  const accentSoftHover = hexToRgba(accent, isDark ? 0.24 : 0.16);
+  // -- Derived palette (light themes only) -----------------------------------
+  const accentHover = darkenHex(accent, 18);
+  const accentLight = lightenHex(accent, 48);
+  const accentSoft = hexToRgba(accent, 0.1);
+  const accentSoftHover = hexToRgba(accent, 0.16);
 
-  const slate = isDark ? "#94a3b8" : "#475569";
-  const slateSoft = isDark ? "#64748b" : "#64748b";
-  const slateFaint = isDark ? "#475569" : "#94a3b8";
-  const hairline = isDark ? "rgba(255,255,255,0.08)" : "#e3e8f0";
-  const inputBorder = isDark ? "rgba(255,255,255,0.12)" : "#cbd5e1";
-  const hoverBg = isDark ? "rgba(255,255,255,0.06)" : "rgba(30, 41, 59, 0.04)";
-  const paperBg = isDark ? "rgba(30,30,50,0.65)" : "#ffffff";
-  const dialogBg = isDark ? "rgba(15,23,42,0.65)" : "rgba(255,255,255,0.65)";
-  const appBarBg = isDark ? "rgba(26,26,46,0.55)" : "rgba(255,255,255,0.55)";
-  const tooltipBg = isDark ? ink : "#0f172a";
-  const tooltipColor = isDark ? "#0f172a" : "#ffffff";
-  const skeletonBg = isDark ? "rgba(255,255,255,0.06)" : "#eef1f6";
+  const slate = "#475569";
+  const slateSoft = "#64748b";
+  const slateFaint = "#94a3b8";
+  const hairline = "#e3e8f0";
+  const inputBorder = "#cbd5e1";
+  const hoverBg = "rgba(30, 41, 59, 0.04)";
+  const paperBg = "#ffffff";
+  const dialogBg = "rgba(255,255,255,0.65)";
+  const appBarBg = "rgba(255,255,255,0.55)";
+  const tooltipBg = "#0f172a";
+  const tooltipColor = "#ffffff";
+  const skeletonBg = "#eef1f6";
 
   // -- Effect constants (derived from preset) --------------------------------
-  const chromeSilver = isDark ? "#334155" : "#c7d2e0";
-  const chromeMid = isDark ? "#64748b" : "#94a3b8";
-  const chromeLight = isDark ? "#94a3b8" : "#e2e8f0";
-  const chromeDarkEdge = isDark ? "#0f172a" : "#1e293b";
+  const chromeSilver = "#c7d2e0";
+  const chromeMid = "#94a3b8";
+  const chromeLight = "#e2e8f0";
+  const chromeDarkEdge = "#1e293b";
 
   const focusRing = `0 0 0 3px ${hexToRgba(accent, 0.14)}`;
   const overlayShadow = `0 12px 32px -8px rgba(30, 41, 59, 0.14), 0 4px 12px -4px ${hexToRgba(accent, 0.06)}`;
@@ -92,15 +92,15 @@ export function createLiquidTheme(preset: LiquidPreset) {
   const accentGradient = `linear-gradient(135deg, ${accent} 0%, ${accentLight} 100%)`;
   const sheenGradient =
     "linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.35) 50%, transparent 75%)";
-  const glassHighlight = `inset 0 1px 0 rgba(255,255,255,${isDark ? 0.06 : 0.8})`;
-  const glassDepthShadow = `0 8px 32px -4px rgba(15,23,42,${isDark ? 0.2 : 0.08}), 0 2px 8px -2px ${hexToRgba(accent, 0.06)}`;
+  const glassHighlight = "inset 0 1px 0 rgba(255,255,255,0.8)";
+  const glassDepthShadow = `0 8px 32px -4px rgba(15,23,42,0.08), 0 2px 8px -2px ${hexToRgba(accent, 0.06)}`;
 
   const chromeTextGradient = `linear-gradient(135deg, ${chromeDarkEdge} 0%, ${chromeMid} 20%, ${chromeSilver} 40%, ${chromeLight} 50%, ${chromeSilver} 60%, ${chromeMid} 80%, ${chromeDarkEdge} 100%)`;
-  const chromeTextGradientReadable = `linear-gradient(135deg, ${chromeDarkEdge} 0%, ${isDark ? "#475569" : "#334155"} 20%, ${chromeMid} 40%, ${chromeSilver} 50%, ${chromeMid} 60%, ${isDark ? "#475569" : "#334155"} 80%, ${chromeDarkEdge} 100%)`;
+  const chromeTextGradientReadable = `linear-gradient(135deg, ${chromeDarkEdge} 0%, #334155 20%, ${chromeMid} 40%, ${chromeSilver} 50%, ${chromeMid} 60%, #334155 80%, ${chromeDarkEdge} 100%)`;
 
   return createTheme({
     palette: {
-      mode: isDark ? "dark" : "light",
+      mode: "light",
       primary: {
         main: accent,
         light: accentLight,
@@ -123,7 +123,7 @@ export function createLiquidTheme(preset: LiquidPreset) {
       action: {
         hover: hoverBg,
         selected: accentSoft,
-        focus: isDark ? "rgba(255,255,255,0.08)" : "rgba(30, 41, 59, 0.08)",
+        focus: "rgba(30, 41, 59, 0.08)",
       },
     },
     typography: {
@@ -208,7 +208,7 @@ export function createLiquidTheme(preset: LiquidPreset) {
           {
             props: { variant: "outlined", color: "primary" },
             style: {
-              color: isDark ? slate : "#334155",
+              color: "#334155",
               borderColor: inputBorder,
               "&:hover": { borderColor: slateFaint, backgroundColor: hoverBg },
             },
@@ -237,7 +237,7 @@ export function createLiquidTheme(preset: LiquidPreset) {
       MuiOutlinedInput: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "#ffffff",
+            backgroundColor: "#ffffff",
             "& .MuiOutlinedInput-notchedOutline": { borderColor: inputBorder },
             "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: slateFaint },
             "&.Mui-focused": { boxShadow: `${focusRing}, ${accentGlow}` },
