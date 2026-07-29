@@ -3,8 +3,8 @@ import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { AmbientBackground, GlassCard, GradientText } from "@doublefin/orca-ui";
-import { CHROME_TEXT_GRADIENT } from "../../../theme/theme-liquid";
+import { AmbientBackground, GlassCard } from "@doublefin/orca-ui";
+
 import { SubAppLink } from "../../../shared/SubAppLink";
 import "../liquid.css";
 
@@ -122,15 +122,10 @@ export function LiquidHero() {
               fontSize: { xs: "2rem", md: "2.75rem" },
               mb: 2,
               lineHeight: 1.15,
+              color: "text.primary",
             }}
           >
-            <GradientText
-              gradient={CHROME_TEXT_GRADIENT}
-              component="span"
-              sx={{ fontSize: "inherit", fontWeight: "inherit", letterSpacing: "inherit" }}
-            >
-              Design System Showcase
-            </GradientText>
+            Design System Showcase
           </Typography>
           <Typography
             sx={{
