@@ -3,7 +3,7 @@
 The durable rules for visual and redesign work in Orca frontend apps using the Liquid Metal aesthetic. Follow this file for any new page, any restyle, and any redesign cycle.
 
 Goal: Any page in the app must look like it was designed by one person.
-Mechanism: The liquid metal theme does the visual work, the kit provides structure (including glass and gradient primitives), and pages own only layout and behavior.
+Mechanism: The liquid metal theme does the visual work, the kit provides structure (including glass and ambient primitives), and pages own only layout and behavior.
 
 ---
 
@@ -18,18 +18,19 @@ Mechanism: The liquid metal theme does the visual work, the kit provides structu
 * **Dual Profile**: The profile above governs data pages. Design-system showcases and docs pages run the more expressive profile defined in section 10 - everything else in this file still applies unless section 10 explicitly relaxes it.
 
 ### 1.2 Core Disciplines
-* **Liquid Metal**: Cool platinum canvas (`#f4f6fa`), visibly translucent glass surfaces (45% white + `backdrop-filter: blur(20px)` + prismatic double-border + depth shadow), chrome blue-violet accent (`#5b6cff`) with glow effects, multi-stop specular chrome gradient text for display headlines, vivid ambient gradient atmosphere. Spacing and typography do the structural work; glass and chrome provide the visual impact.
-* **Visual Impact Discipline**: Glass must be **visibly translucent** (opacity <= 0.55, blur >= 16px, prismatic border visible). Chrome text must **read as metallic** (multi-stop specular gradient with bright highlight). Ambient gradients must **create atmosphere** (blob opacity >= 12%, visible color, perceptible drift). If a glass surface looks identical to plain white at arm's length, it has failed.
+* **Liquid Metal**: Cool platinum canvas (`#f4f6fa`), visibly translucent glass surfaces (45% white + `backdrop-filter: blur(20px)` + prismatic double-border + depth shadow), chrome blue-violet accent (`#5b6cff`) with glow effects, vivid ambient gradient atmosphere. Spacing and typography do the structural work; glass and chrome provide the visual impact.
+* **Visual Impact Discipline**: Glass must be **visibly translucent** (opacity <= 0.55, blur >= 16px, prismatic border visible). Ambient gradients must **create atmosphere** (blob opacity >= 12%, visible color, perceptible drift). If a glass surface looks identical to plain white at arm's length, it has failed.
+* **Text Readability**: All headings and body text use solid `text.primary` (ink) color for maximum readability. Gradient text is banned across the entire design system.
 * **Tokens over Literals**: Components consume theme tokens (`divider`, `text.secondary`, `background.paper`, `action.hover`, palette paths). No raw hex values in component code. (Documented exception: domain color maps like label-color or category-color maps.)
 * **Composition over Config**: Shared components expose slots (`actions`, `empty`, `footer`, `children`), never behavior config. Toolbars, filter bars, drag-and-drop zones, upload/polling UI, and dialogs stay page-local.
 * **Frozen Backend Contract**: Endpoints called, debounce/polling timings, payload shapes, and query invalidation keys stay untouchable during visual work. See section 6.
 * **Anti-Slop Discipline** (updated for liquid metal):
-  * Zero AI-purple/lila glows or unauthorized gradient text (chrome gradient text via `GradientText` is allowed).
+  * Zero AI-purple/lila glows or gradient text.
   * Zero pure-black shadows on light backgrounds.
   * Zero placeholder-as-label in forms.
   * Zero em-dashes or en-dashes as punctuation in UI text or documentation.
   * Glass surfaces, sheen-sweep effects, accent glows, and vivid ambient gradients ARE allowed (they are the signature of this design system).
-  * **Banned**: "Invisible glass" (white opacity > 0.80 with no visible blur), "mute chrome" (text gradient endpoints within 2 slate steps), "flat ambient" (blob opacity < 12%).
+  * **Banned**: "Invisible glass" (white opacity > 0.80 with no visible blur), "flat ambient" (blob opacity < 12%), gradient text on any element.
 
 ---
 
@@ -51,8 +52,7 @@ Mechanism: The liquid metal theme does the visual work, the kit provides structu
 | `FOCUS_RING` | `0 0 0 3px rgba(91, 108, 255, 0.14)` | Input focus ring, layered with 1px accent border |
 | `OVERLAY_SHADOW` | `0 12px 32px -8px rgba(30, 41, 59, 0.14), 0 4px 12px -4px rgba(91, 108, 255, 0.06)` | Accent-tinted soft shadow reserved for dialogs, popovers, and menus |
 | `HOVER_BG` | `rgba(30, 41, 59, 0.04)` | Neutral cool hover wash for rows, buttons, list items |
-| `CHROME_TEXT_GRADIENT` | `linear-gradient(135deg, #1e293b 0%, #475569 20%, #94a3b8 40%, #e2e8f0 50%, #94a3b8 60%, #475569 80%, #1e293b 100%)` | Dramatic specular chrome sweep with bright highlight. **Display headlines only (>= 2rem)** |
-| `CHROME_TEXT_GRADIENT_READABLE` | `linear-gradient(135deg, #1e293b 0%, #334155 20%, #64748b 40%, #94a3b8 50%, #64748b 60%, #334155 80%, #1e293b 100%)` | High-contrast chrome sweep for section titles, stat numbers, and all text < 2rem. Lightest stop (`#94a3b8`) stays well below canvas luminance |
+| `CHROME_TEXT_GRADIENT` | `linear-gradient(...)` | Static chrome sweep for the default LIQUID_METAL preset (exported for backward compat, not used in UI) |
 | `ACCENT_GRADIENT` | `linear-gradient(135deg, #5b6cff 0%, #7b8aff 100%)` | Liquid accent gradient for contained primary buttons |
 | `SHEEN_GRADIENT` | `linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.35) 50%, transparent 75%)` | Sheen sweep pseudo-element on button hover |
 | `GLASS_HIGHLIGHT` | `inset 0 1px 0 rgba(255,255,255,0.8)` | Inner top highlight on glass surfaces (edge refraction) |
@@ -100,9 +100,9 @@ Future visual work must conform to these component overrides in `src/theme/theme
 
 ---
 
-## 4. The Mercury UI Kit (`@doublefin/orca-ui`) v0.3+
+## 4. The Mercury UI Kit (`@doublefin/orca-ui`) v0.5+
 
-Shared by the admin and sysadmin consoles. Install from the public npm registry via `bun add @doublefin/orca-ui@^0.3`. Import via the barrel.
+Shared by the admin and sysadmin consoles. Install from the public npm registry via `bun add @doublefin/orca-ui@^0.5`. Import via the barrel.
 
 ### 4.0 Existing Kit Components
 
@@ -117,13 +117,12 @@ Shared by the admin and sysadmin consoles. Install from the public npm registry 
 | `EmptyState` | `icon`, `title`, `description?`, `action?` |
 | `TableSkeleton` / `DetailSkeleton` | Loading placeholders, `role="progressbar"` |
 
-### 4.1 Liquid Kit Components (new in v0.4)
+### 4.1 Liquid Kit Components (new in v0.5)
 
 | Component | Purpose / Contract |
 |---|---|
-| `GradientText` | Specular chrome gradient text. Props: `children`, `gradient?` (CSS gradient string), `component?` (element type, defaults to "span"), `sx?`. Uses `background-clip: text`. **Two-tier rule**: use `CHROME_TEXT_GRADIENT` (dramatic specular) on display headlines >= 2rem only; use `CHROME_TEXT_GRADIENT_READABLE` (high-contrast) on all smaller chrome text (section titles, stat numbers). Never use dramatic gradient on text < 2rem. |
-| `GlassCard` | Dramatic glassmorphism surface wrapper. Props: `children`, `padding?` (default 2.5), `borderRadius?` (default 2 = 16px), `sx?`. Visibly translucent (`GLASS_BG` = 45% white) + `backdrop-filter: blur(GLASS_BLUR = 20px)` + prismatic double-border (outer `GLASS_BORDER_OUTER` + inner `GLASS_HIGHLIGHT`) + `GLASS_DEPTH_SHADOW`. Must look visibly glassy, not white. |
-| `AmbientBackground` | Vivid ambient gradient layer. Renders behind content (`z-index: -1`, `pointer-events: none`, `aria-hidden`). Four gradient blobs (silver, accent, highlight, rose) at 12-18% opacity with `blur(100px)`, drifting via CSS keyframes. Requires the liquid CSS file to be imported for animations. Uses CSS classes `lm-ambient`, `lm-ambient__blob`, `lm-ambient__noise`. |
+| `GlassCard` | Dramatic glassmorphism surface wrapper. Props: `children`, `padding?` (default 2.5), `borderRadius?` (default 2 = 16px), `sx?`. Uses CSS custom property fallbacks (`--lm-glass-bg`, `--lm-glass-border`, `--lm-glass-shadow`) so glass values update reactively when theme presets change via `LiquidThemeProvider`. Falls back to default Liquid Metal values when no CSS vars are set. Must look visibly glassy, not white. |
+| `AmbientBackground` | Vivid ambient gradient layer. Renders behind content (`z-index: -1`, `pointer-events: none`, `aria-hidden`). Four gradient blobs (silver, accent, highlight, rose) at 12-18% opacity with `blur(100px)`, drifting via CSS keyframes. Blob colors update via CSS custom properties (`--lm-wave-1` through `--lm-wave-4`) set by `LiquidThemeProvider`. Requires the liquid CSS file to be imported for animations. Uses CSS classes `lm-ambient`, `lm-ambient__blob`, `lm-ambient__noise`. |
 
 ### 4.2 AdminTable Rules
 
@@ -154,7 +153,7 @@ Same as Mercury Console:
 
 ### 4.5 Card and Surface Styling (Liquid Metal)
 
-* **Dramatic glass surfaces**: Use `<GlassCard>` for hero bands, feature cards, metric tiles, and section nav. Glass = visibly translucent (`rgba(255,255,255,0.45)`) + `backdrop-filter: blur(20px)` + prismatic double-border + depth shadow. If it looks like plain white, the glass has failed.
+* **Dramatic glass surfaces**: Use `<GlassCard>` for hero bands, feature cards, metric tiles, and section nav. Glass = visibly translucent (CSS var `--lm-glass-bg`, default `rgba(255,255,255,0.45)`) + `backdrop-filter: blur(20px)` + prismatic double-border + depth shadow. If it looks like plain white, the glass has failed.
 * **Hover state**: `translateY(-2px)` + stronger depth shadow + `borderColor` transition to `primary.main`. The lift and glow must be visible.
 * **Sheen sweep**: Contained primary buttons get the sheen-sweep + `ACCENT_GLOW` shadow via theme override (no per-page edits needed).
 * **Icon color tokens**: Replace raw hex icon colors with theme palette paths.
@@ -176,7 +175,7 @@ Same as Mercury Console:
 * Detail pages: `DetailLayout` with `backHref` (never a hand-rolled back button row).
 * Breadcrumbs collapse to back link + title.
 * Copy preservation: Redesigns keep existing user-facing strings verbatim.
-* Ambient background: Pages that need the liquid ambient layer render `<AmbientBackground />` at the top level.
+* Ambient background: Pages that need the liquid ambient layer render `<AmbientBackground />` at the top level. When wrapped in `LiquidThemeProvider`, blob colors update reactively via CSS custom properties.
 
 ---
 
@@ -213,13 +212,60 @@ Do not relitigate these settled design and implementation decisions:
 * **`styled()` Utility**: Zero existing usage; hoisted `sx` constants resolve identical needs.
 * **Config-Mega-Table**: Composition won over built-in search/filter/pagination.
 * **Border Radius 10 / Shadows Rebuild / Grey-to-Slate Remap**: High blast radius for minimal gain.
-* **Dark Mode Infrastructure**: Liquid Metal is light-only. Dark mode is deferred.
+* **Dark Mode Infrastructure**: Liquid Metal is light-only. Dark themes (Neutral Charcoal, Deep Teal) were evaluated and removed due to incompatibility with the light-themed UI kit and element styles. Dark mode remains deferred.
+* **Gradient Text**: Chrome gradient text (`GradientText`) was evaluated and removed because gradients reduce text readability, especially on section titles and smaller text. All headings now use solid `text.primary` (ink) color.
 * **Collapsible Sidebar Groups**: 4-10 nav items do not justify extra state machinery.
 * **Em-Dash Usage**: Em-dash and en-dash punctuation are excluded from UI copy.
 * **Violet/Purple Theme**: The single accent is chrome blue-violet (`#5b6cff`). No other violet/purple is allowed.
 * **Forcing Chat Pages into Admin Kit**: Chat pages are exempt; only token cleanup and skeleton loading.
 * **Flat Cards on Showcase Pages**: Glass surfaces (`GlassCard`) are the standard for cards on showcase/docs pages. Data pages may use flat hairline-bordered cards.
-* **Gradient Text on Body Copy**: `GradientText` is for headlines and stat numbers only. Body text stays solid, high-contrast. Use `CHROME_TEXT_GRADIENT` on display headlines >= 2rem only. Use `CHROME_TEXT_GRADIENT_READABLE` on all smaller chrome text to preserve readability.
+* **Gradient Text on Any Element**: Gradient text was removed entirely for readability. All headings and body text use solid `text.primary` color. The `GradientText` component still exists in orca-ui for backward compatibility but should not be used.
+
+---
+
+## 8.5 Multi-Preset Theme Architecture
+
+The liquid metal system supports runtime theme switching through a two-layer architecture:
+
+1. **MUI ThemeProvider re-render**: `createLiquidTheme(preset: LiquidPreset)` factory produces a full MUI theme per preset, updating all palette tokens, component overrides, and effect constants.
+2. **CSS variable sync**: `LiquidThemeProvider` sets CSS custom properties on a wrapper div (via `data-lm-theme` attribute), so non-MUI consumers (CSS animations in `AmbientBackground`, `GlassCard` fallbacks) update reactively.
+
+### CSS Custom Properties
+
+| Variable | Default (Liquid Metal) | Purpose |
+|---|---|---|
+| `--lm-glass-bg` | `rgba(255,255,255,0.45)` | Glass background color |
+| `--lm-glass-border` | `rgba(255,255,255,0.6)` | Glass border color |
+| `--lm-glass-shadow` | (multi-layer) | Glass depth + highlight shadow |
+| `--lm-canvas-bg` | `#f4f6fa` | Canvas background |
+| `--lm-wave-1` through `--lm-wave-4` | (preset waves) | Ambient blob colors |
+| `--lm-text-primary` | `#0f172a` | Primary text color |
+| `--lm-text-secondary` | `#475569` | Secondary text color |
+| `--lm-nav-bg` | `rgba(244,246,250,0.6)` | Navigation background |
+| `--lm-accent-soft` | `rgba(91,108,255,0.08)` | Soft accent background |
+
+### Presets (`src/theme/liquid-presets.ts`)
+
+`LiquidPreset` interface: `id`, `label`, `description`, `canvas`, `ink`, `accent`, `glass: { bg, border, shadow }`, `waves: [4]`, `previewGradient`.
+
+Currently 3 light presets (dark themes removed):
+- **Liquid Metal**: Chrome blue-violet (`#5b6cff`) on cool platinum (`#f4f6fa`)
+- **Sage Green**: Organic green (`#5b8c5a`) on warm cream (`#f0f4f0`)
+- **Corporate Blue**: Steel blue (`#3b82f6`) on cool white (`#f0f4fa`)
+
+### Usage
+
+```tsx
+// Full app with theme switching:
+<LiquidThemeProvider>
+  <CssBaseline />
+  {/* app content */}
+</LiquidThemeProvider>
+
+// Static single-theme page:
+import { theme } from "./theme/theme-liquid";
+<ThemeProvider theme={theme}>...</ThemeProvider>
+```
 
 ---
 
@@ -244,23 +290,22 @@ When migrating any page to the Liquid Metal design system, apply these transform
 
 ### 9.3 Liquid Metal Upgrade
 1. Replace flat card surfaces with `<GlassCard>` for hero bands, feature cards, metric tiles (glass must be visibly translucent - if it looks white, it has failed).
-2. Add `<GradientText>` to display headlines on showcase/docs pages (use `CHROME_TEXT_GRADIENT` for >= 2rem hero titles, `CHROME_TEXT_GRADIENT_READABLE` for all smaller chrome text).
-3. Add `<AmbientBackground>` to pages that need the vivid liquid ambient layer (blobs at 12-18% opacity, visible atmosphere).
-4. Verify contained primary buttons show the gradient + sheen sweep + accent glow (theme-level, no per-page edits).
-5. Verify glass overlays on dialogs and popovers (theme-level, visibly translucent + blur).
-6. Verify `fontVariantNumeric: "tabular-nums"` on table data cells (theme-level).
+2. Add `<AmbientBackground>` to pages that need the vivid liquid ambient layer (blobs at 12-18% opacity, visible atmosphere).
+3. Verify contained primary buttons show the gradient + sheen sweep + accent glow (theme-level, no per-page edits).
+4. Verify glass overlays on dialogs and popovers (theme-level, visibly translucent + blur).
+5. Verify `fontVariantNumeric: "tabular-nums"` on table data cells (theme-level).
+6. Verify all headings use solid `text.primary` color (no gradient text).
 
 ### 9.4 Anti-Slop Audit
 1. Remove all unauthorized gradient backgrounds (background gradients are allowed only in `AmbientBackground` and theme-defined sheen/glow effects).
-2. Remove all unauthorized gradient text (only `GradientText` component is allowed).
+2. Remove all gradient text (all text must use solid `text.primary` color).
 3. Remove hover lifts beyond `translateY(-2px)`.
 4. Remove generic card shadows (`boxShadow` on non-overlay, non-glass surfaces). Glass depth shadows ARE allowed.
 5. Replace em-dashes with hyphens.
 6. Remove violet/purple colors; replace with `primary.main` (chrome blue-violet).
 7. Remove raw hex color maps; replace with theme palette paths.
 8. **Remove invisible glass**: Any glass surface with white opacity > 0.80 or blur < 16px is invisible and must be fixed.
-9. **Remove mute chrome**: Any text gradient with endpoints within 2 slate steps must use the full specular sweep.
-10. **Remove flat ambient**: Any ambient blob with opacity < 12% must be increased to create visible atmosphere.
+9. **Remove flat ambient**: Any ambient blob with opacity < 12% must be increased to create visible atmosphere.
 
 ---
 
@@ -277,22 +322,23 @@ Data pages keep the quiet dial profile (section 1.1). Design-system showcases, d
 ### 10.2 Allowed Moves (expressive surfaces only)
 
 * **Docs-page container**: Centered `maxWidth: 1200` (`mx: "auto"`) with responsive padding.
-* **Dramatic glass hero band**: `<GlassCard>` with large border-radius (up to 24px), visibly translucent (`GLASS_BG` = 45% white), `backdrop-filter: blur(20px)`, `GLASS_DEPTH_SHADOW`, prismatic double-border, chrome gradient headline via `<GradientText>` (multi-stop specular), gradient-filled translucent decorative shapes (`rgba(91,108,255,0.08)` to `rgba(244,114,182,0.06)` filled circles/rings, `aria-hidden`). The hero must look dramatically different from a plain white card.
-* **Specular chrome gradient headlines**: `<GradientText>` on display text. **Two-tier rule**: `CHROME_TEXT_GRADIENT` (dramatic specular with bright highlight) for hero headlines >= 2rem only. `CHROME_TEXT_GRADIENT_READABLE` (high-contrast, lightest stop `#94a3b8`) for section titles, stat numbers, and all text < 2rem. Never use the dramatic gradient on small text - the bright highlight washes out characters against light backgrounds.
-* **Glass metric tiles**: `<GlassCard>` + icon chip + display number (use `GradientText` for stat values) + caption. Hover = `translateY(-2px)` + `ACCENT_GLOW` border color + stronger depth shadow.
+* **Dramatic glass hero band**: `<GlassCard>` with large border-radius (up to 24px), visibly translucent (CSS var `--lm-glass-bg`, default 45% white), `backdrop-filter: blur(20px)`, `GLASS_DEPTH_SHADOW`, prismatic double-border. Decorative gradient-filled translucent shapes (`rgba(91,108,255,0.08)` to `rgba(244,114,182,0.06)` filled circles/rings, `aria-hidden`). The hero must look dramatically different from a plain white card.
+* **Solid readable headlines**: All headings use solid `text.primary` color for maximum readability. No gradient text.
+* **Glass metric tiles**: `<GlassCard>` + icon chip + display number + caption. Hover = `translateY(-2px)` + `ACCENT_GLOW` border color + stronger depth shadow.
 * **Colored icon chips**: 36px tile, `borderRadius: 2`, background with subtle gradient (`alpha(theme.palette.<hue>.main, 0.1)` to `alpha(theme.palette.<hue>.main, 0.05)`), icon color `<hue>.dark`.
-* **Section header color cycle**: Section openers may cycle the five semantic hues across sections. Section titles use `GradientText` with `CHROME_TEXT_GRADIENT_READABLE` for readable chrome effect.
+* **Section header color cycle**: Section openers may cycle the five semantic hues across sections. Section titles use solid `text.primary` color.
 * **Token swatch walls**: Render palette values live from `useTheme()`. Swatches backed by glass cards with hover lift.
 * **Sticky section nav**: Glass-pill anchor chips with liquid accent hover + glow on active state.
-* **Vivid ambient background**: `<AmbientBackground>` from orca-ui for the atmospheric drifting gradient layer. Four blobs at 12-18% opacity must create visible color atmosphere.
+* **Theme selector**: `<LiquidThemeSelector>` for multi-preset theme switching (glass pills with color preview swatches).
+* **Vivid ambient background**: `<AmbientBackground>` from orca-ui for the atmospheric drifting gradient layer. Four blobs at 12-18% opacity must create visible color atmosphere. Blob colors update reactively via CSS custom properties when theme preset changes.
 
 ### 10.3 Still Banned Everywhere (including expressive surfaces)
 
-* Unauthorized gradients (only `GradientText`, theme sheen effects, and `AmbientBackground` are allowed).
+* Unauthorized gradients (only theme sheen effects and `AmbientBackground` are allowed).
+* Gradient text on any element (all text must be solid color for readability).
 * Violet/purple hues outside the theme palette.
 * Hover lifts beyond `translateY(-2px)`.
 * Card shadows on non-overlay surfaces (glass depth shadows ARE allowed).
 * Em-dashes and en-dashes in UI copy and documentation.
 * Raw hex colors in component code (exceptions: alpha-white inside glass bands, documented domain color maps).
-* Gradient text on body copy (only display headlines via `GradientText`).
 * Div-based fake product screenshots.

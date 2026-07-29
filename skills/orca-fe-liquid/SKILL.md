@@ -1,25 +1,26 @@
 ---
 name: orca-fe-liquid
-description: Enforce the Liquid Metal design system on Orca frontend pages. Audits and migrates pages to use the shared UI kit (AdminTable, PageHeader, DetailLayout, StatusPill, GlassCard, GradientText, AmbientBackground), liquid metal theme tokens, dramatic glassmorphism discipline, and vivid ambient atmosphere. Use when applying visual design to any page in an Orca frontend app using the Liquid Metal aesthetic, when restyling components, or when the user asks to make pages look consistent with the Liquid Metal design system.
+description: Enforce the Liquid Metal design system on Orca frontend pages. Audits and migrates pages to use the shared UI kit (AdminTable, PageHeader, DetailLayout, StatusPill, GlassCard, AmbientBackground), liquid metal theme tokens, multi-preset theme switching, dramatic glassmorphism discipline, and vivid ambient atmosphere. Use when applying visual design to any page in an Orca frontend app using the Liquid Metal aesthetic, when restyling components, or when the user asks to make pages look consistent with the Liquid Metal design system.
 ---
 
 # Orca FE Liquid - Liquid Metal Design System Enforcer
 
-Goal: Any page in the app must look like it was designed by one person. The liquid metal theme does the visual work, the kit provides structure (including glass and gradient primitives), and pages own only layout and behavior.
+Goal: Any page in the app must look like it was designed by one person. The liquid metal theme does the visual work, the kit provides structure (including glass and ambient primitives), and pages own only layout and behavior.
 
 ## Prerequisites
 
 The app must have MUI, react-router, and React Query installed and configured with the Liquid Metal theme. If not yet set up:
 
 ```bash
-bun add @mui/material@^9 @emotion/react @emotion/styled @mui/icons-material@^9 react-router@^8 @tanstack/react-query @doublefin/orca-ui@^0.4 @fontsource-variable/inter @fontsource-variable/space-grotesk
+bun add @mui/material@^9 @emotion/react @emotion/styled @mui/icons-material@^9 react-router@^8 @tanstack/react-query @doublefin/orca-ui@^0.5 @fontsource-variable/inter @fontsource-variable/space-grotesk
 ```
 
 All packages are available on the public npm registry (npmjs.com). No private registry or `.npmrc` configuration is needed for `@doublefin/orca-ui`.
 
 Then copy the theme from this repo's reference files:
 - Theme: `src/theme/theme-liquid.ts` - copy to your app's `src/theme/theme-liquid.ts`
-- UI Kit: provided by `@doublefin/orca-ui` (installed above, includes GlassCard, GradientText, AmbientBackground)
+- Presets: `src/theme/liquid-presets.ts` - copy to your app's `src/theme/liquid-presets.ts`
+- UI Kit: provided by `@doublefin/orca-ui` (installed above, includes GlassCard, AmbientBackground)
 - Import fonts once in your app's entry file (e.g. `src/main.tsx`):
 
 ```tsx
@@ -27,26 +28,34 @@ import "@fontsource-variable/inter";
 import "@fontsource-variable/space-grotesk";
 ```
 
-- Wrap `OrcaApp` with the liquid ThemeProvider and QueryClientProvider:
+- Wrap `OrcaApp` with the `LiquidThemeProvider` and QueryClientProvider. The provider wraps MUI `ThemeProvider` internally and supports multi-preset theme switching:
 
 ```tsx
-import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { theme } from "./theme/theme-liquid";
+import { LiquidThemeProvider } from "./features/showcase-liquid/LiquidThemeContext";
 
 const queryClient = new QueryClient();
 
 export function OrcaApp() {
   return (
-    <ThemeProvider theme={theme}>
+    <LiquidThemeProvider>
       <CssBaseline />
       <QueryClientProvider client={queryClient}>
         {/* ... app content ... */}
       </QueryClientProvider>
-    </ThemeProvider>
+    </LiquidThemeProvider>
   );
 }
+```
+
+For simple pages that don't need runtime theme switching, you can use the static theme directly:
+
+```tsx
+import { ThemeProvider } from "@mui/material/styles";
+import { theme } from "./theme/theme-liquid";
+
+<ThemeProvider theme={theme}>...</ThemeProvider>
 ```
 
 ## First Step: Read the Design Spec
@@ -80,11 +89,11 @@ For each target page, scan for violations in three categories:
 
 ### Liquid Metal Violations
 - **Invisible glass**: glass surfaces with white opacity > 0.80 or blur < 16px (should use `GlassCard` with visibly translucent glass)
-- **Mute chrome**: text gradients with endpoints within 2 slate steps (should use `GradientText` with multi-stop specular sweep)
 - **Flat ambient**: ambient blobs with opacity < 12% (should use `AmbientBackground` with vivid 12-18% opacity blobs)
 - Flat buttons where gradient + sheen sweep + accent glow should apply (contained primary)
 - Non-liquid accent colors (`#4f46e5` indigo instead of `#5b6cff` chrome blue-violet)
 - Missing accent glow on focused inputs or active interactive elements
+- **Gradient text on headings**: headings and body text must use solid `text.primary` color for readability. No gradient text.
 
 ## Migration Execution
 
@@ -111,11 +120,11 @@ Replace all raw values with liquid metal theme tokens:
 ### Step 3: Liquid Metal Upgrade
 
 1. Replace flat card surfaces with `<GlassCard>` where appropriate (hero bands, feature cards, metric tiles). Glass must be visibly translucent - if it looks white, it has failed.
-2. Add `<GradientText>` to display headlines (h1-h2) on showcase/docs pages (multi-stop specular chrome, not muted slate).
-3. Add `<AmbientBackground>` to pages that need the vivid liquid ambient layer (12-18% opacity blobs, visible atmosphere).
-4. Verify contained primary buttons show the gradient + sheen sweep + accent glow.
-5. Verify glass overlays on dialogs and popovers (visibly translucent + blur).
-6. Verify input focus rings include accent glow.
+2. Add `<AmbientBackground>` to pages that need the vivid liquid ambient layer (12-18% opacity blobs, visible atmosphere).
+3. Verify contained primary buttons show the gradient + sheen sweep + accent glow.
+4. Verify glass overlays on dialogs and popovers (visibly translucent + blur).
+5. Verify input focus rings include accent glow.
+6. Verify all headings use solid `text.primary` color (no gradient text).
 
 ## Critical Rules
 
@@ -144,9 +153,9 @@ Always import from the barrel:
 import {
   AdminTable, PageHeader, DetailLayout, DetailRow, FormSection,
   StatusPill, EmptyState, TableSkeleton, DetailSkeleton,
-  GlassCard, GradientText, AmbientBackground,
+  GlassCard, AmbientBackground,
   type AdminTableColumn, type StatusPillTone,
-  type GlassCardProps, type GradientTextProps, type AmbientBackgroundProps,
+  type GlassCardProps, type AmbientBackgroundProps,
 } from "@doublefin/orca-ui";
 ```
 
@@ -164,7 +173,14 @@ export function SomeBadge({ value }: { value: SomeEnum }) {
 ```
 
 ### Docs & Showcase Surfaces
-Design-system showcases and docs pages (e.g. `src/features/showcase-liquid/`) may use the expressive patterns in styles.md section 10: glass hero bands, chrome gradient headlines, glass metric tiles, token swatch walls, and sticky section nav. These patterns are showcase-only; never port them to data pages, which keep the quiet `PageHeader` + `FormSection` + `AdminTable` structure.
+Design-system showcases and docs pages (e.g. `src/features/showcase-liquid/`) may use the expressive patterns in styles.md section 10: glass hero bands, glass metric tiles, token swatch walls, sticky section nav, and the `LiquidThemeSelector` for multi-preset theme switching. These patterns are showcase-only; never port them to data pages, which keep the quiet `PageHeader` + `FormSection` + `AdminTable` structure.
+
+### Multi-Preset Theme Architecture
+The liquid metal system supports runtime theme switching via a two-layer architecture:
+1. **MUI ThemeProvider re-render**: `createLiquidTheme(preset)` factory produces a full MUI theme per preset.
+2. **CSS variable sync**: `LiquidThemeProvider` sets CSS custom properties (`--lm-glass-bg`, `--lm-wave-1`, etc.) on a wrapper div via `data-lm-theme` attribute, so non-MUI consumers (CSS animations, `AmbientBackground`) update reactively.
+
+Presets are defined in `src/theme/liquid-presets.ts` (`LiquidPreset` interface). Currently 3 light presets: Liquid Metal, Sage Green, Corporate Blue. Dark themes are not supported.
 
 ## Reference Files
 
@@ -173,10 +189,12 @@ All reference implementations are in this repo:
 | File | Purpose |
 |------|---------|
 | `skills/orca-fe-liquid/styles.md` | Full liquid metal design system specification |
-| `src/theme/theme-liquid.ts` | MUI theme with Liquid Metal tokens and overrides |
-| `@doublefin/orca-ui` | Public npm package (npmjs.com) providing all kit components including liquid kit (GlassCard v0.4, GradientText v0.4, AmbientBackground v0.4) |
+| `src/theme/theme-liquid.ts` | MUI theme factory with `createLiquidTheme(preset)` and static effect constants |
+| `src/theme/liquid-presets.ts` | `LiquidPreset` interface and 3 light presets (Liquid Metal, Sage Green, Corporate Blue) |
+| `src/features/showcase-liquid/LiquidThemeContext.tsx` | `LiquidThemeProvider` + `useLiquidTheme()` hook for runtime theme switching |
+| `@doublefin/orca-ui` | Public npm package (npmjs.com) providing all kit components including liquid kit (GlassCard v0.5 with CSS var fallbacks, AmbientBackground v0.5) |
 | `src/shared/ui/index.ts` | Re-export shim: `export * from "@doublefin/orca-ui"` |
-| `src/features/showcase-liquid/` | Canonical liquid metal showcase: kit usage on a docs surface with glass hero, gradient text, ambient background, metric tiles, token swatches, section nav |
+| `src/features/showcase-liquid/` | Canonical liquid metal showcase: kit usage on a docs surface with glass hero, ambient background, metric tiles, token swatches, section nav, and theme selector |
 
 ## Verification
 
@@ -208,4 +226,4 @@ Full conventions documented in styles.md section 4.2.
 
 - **Chat pages**: Chat/conversational pages have different UX. Exempt from kit; only apply token cleanup and skeleton loading.
 - **Domain color maps**: Entity-type or category color maps (e.g. regulation categories) stay as MUI `Chip` with palette-based `sx` colors. These are tags, not statuses.
-- **Docs & showcase surfaces**: Design-system showcase and docs pages may use the expressive patterns in styles.md section 10 (glass hero band, chrome gradient headlines, glass metric tiles, token swatches, sticky section nav). Data pages never do.
+- **Docs & showcase surfaces**: Design-system showcase and docs pages may use the expressive patterns in styles.md section 10 (glass hero band, glass metric tiles, token swatches, sticky section nav, theme selector). Data pages never do.
