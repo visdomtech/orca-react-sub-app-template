@@ -20,7 +20,6 @@ import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { ThemeProvider } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
 import ArticleIcon from "@mui/icons-material/Article";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
@@ -48,7 +47,9 @@ import {
   type StatusPillTone,
 } from "@doublefin/orca-ui";
 import { useSubAppRouterBasePath } from "../../../shared/SubAppLink";
-import { theme as liquidTheme } from "../../../theme/theme-liquid";
+
+import { LiquidThemeSelector } from "../components/LiquidThemeSelector";
+import { LiquidThemeProvider } from "../LiquidThemeContext";
 import { LiquidHero } from "../components/LiquidHero";
 import { LiquidSectionHeader } from "../components/LiquidSectionHeader";
 import { LiquidSectionNav } from "../components/LiquidSectionNav";
@@ -179,10 +180,11 @@ export function ShowcaseLiquidPage() {
   }, []);
 
   return (
-    <ThemeProvider theme={liquidTheme}>
+    <LiquidThemeProvider>
       <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1200, mx: "auto" }}>
         <LiquidHero />
         <LiquidStatsStrip />
+        <LiquidThemeSelector />
         <LiquidSectionNav />
 
         {/* -- Colors -- */}
@@ -640,6 +642,6 @@ export function ShowcaseLiquidPage() {
           </Alert>
         </Section>
       </Box>
-    </ThemeProvider>
+    </LiquidThemeProvider>
   );
 }

@@ -12,6 +12,22 @@
   --lm-liquid-accent: #5b6cff;
   --lm-liquid-accent-soft: rgba(91, 108, 255, 0.08);
   --lm-rose-tint: #f472b6;
+
+  /* Glass surface (overridden by LiquidThemeContext per theme) */
+  --lm-glass-bg: rgba(255,255,255,0.45);
+  --lm-glass-border: rgba(255,255,255,0.6);
+  --lm-glass-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 8px 32px -4px rgba(15,23,42,0.08), 0 2px 8px -2px rgba(91,108,255,0.06);
+
+  /* Ambient canvas + blob colors (overridden per theme) */
+  --lm-canvas-bg: #f4f6fa;
+  --lm-wave-1: rgba(199,210,224,0.18);
+  --lm-wave-2: rgba(91,108,255,0.14);
+  --lm-wave-3: rgba(199,210,224,0.12);
+  --lm-wave-4: rgba(244,114,182,0.06);
+  --lm-accent-soft: rgba(91,108,255,0.08);
+  --lm-nav-bg: rgba(244,246,250,0.6);
+  --lm-text-primary: #0f172a;
+  --lm-text-secondary: #475569;
 }
 
 /* -- Ambient container ----------------------------------------------------- */
@@ -21,7 +37,8 @@
   pointer-events: none;
   z-index: -1;
   overflow: hidden;
-  background-color: var(--lm-platinum);
+  background-color: var(--lm-canvas-bg, var(--lm-platinum));
+  transition: background-color 0.4s ease;
 }
 
 /* -- Drifting gradient blobs ----------------------------------------------- */
@@ -30,6 +47,7 @@
   border-radius: 50%;
   filter: blur(100px);
   will-change: transform;
+  transition: background 0.5s ease;
 }
 
 .lm-ambient__blob--silver {
@@ -39,7 +57,7 @@
   left: -5%;
   background: radial-gradient(
     circle,
-    rgba(199, 210, 224, 0.18) 0%,
+    var(--lm-wave-1, rgba(199, 210, 224, 0.18)) 0%,
     transparent 70%
   );
   animation: lm-drift-1 40s ease-in-out infinite alternate;
@@ -52,7 +70,7 @@
   right: -8%;
   background: radial-gradient(
     circle,
-    rgba(91, 108, 255, 0.14) 0%,
+    var(--lm-wave-2, rgba(91, 108, 255, 0.14)) 0%,
     transparent 70%
   );
   animation: lm-drift-2 50s ease-in-out infinite alternate;
@@ -65,7 +83,7 @@
   left: 50%;
   background: radial-gradient(
     circle,
-    rgba(199, 210, 224, 0.12) 0%,
+    var(--lm-wave-3, rgba(199, 210, 224, 0.12)) 0%,
     transparent 65%
   );
   animation: lm-drift-3 35s ease-in-out infinite alternate;
@@ -78,7 +96,7 @@
   left: 10%;
   background: radial-gradient(
     circle,
-    rgba(244, 114, 182, 0.06) 0%,
+    var(--lm-wave-4, rgba(244, 114, 182, 0.06)) 0%,
     transparent 70%
   );
   animation: lm-drift-4 45s ease-in-out infinite alternate;
