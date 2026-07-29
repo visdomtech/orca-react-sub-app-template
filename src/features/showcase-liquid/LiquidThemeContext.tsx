@@ -34,7 +34,7 @@ export const useLiquidTheme = () => useContext(LiquidThemeContext);
 
 // -- localStorage helpers ----------------------------------------------------
 
-const STORAGE_KEY = "liquid-theme-preset";
+const STORAGE_KEY = "hello-orca-app:liquid-theme-preset";
 
 function loadPresetId(): string {
   try {

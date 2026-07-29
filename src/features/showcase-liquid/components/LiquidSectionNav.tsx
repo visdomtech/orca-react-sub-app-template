@@ -1,5 +1,6 @@
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
+import { alpha, useTheme } from "@mui/material/styles";
 
 const SECTIONS = [
   { id: "colors", label: "Colors" },
@@ -27,6 +28,7 @@ function scrollToSection(id: string) {
  * Jump links only - no scroll listeners, no active-state tracking.
  */
 export function LiquidSectionNav() {
+  const theme = useTheme();
   return (
     <Box
       component="nav"
@@ -63,8 +65,8 @@ export function LiquidSectionNav() {
             transition: "all 0.2s ease",
             "&:hover": {
               borderColor: "primary.main",
-              bgcolor: "rgba(91,108,255,0.10)",
-              boxShadow: "0 0 12px rgba(91,108,255,0.2)",
+              bgcolor: alpha(theme.palette.primary.main, 0.10),
+              boxShadow: `0 0 12px ${alpha(theme.palette.primary.main, 0.2)}`,
               transform: "translateY(-1px)",
             },
           }}

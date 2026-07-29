@@ -51,6 +51,7 @@ import { useSubAppRouterBasePath } from "../../../shared/SubAppLink";
 import { LiquidThemeSelector } from "../components/LiquidThemeSelector";
 import { LiquidThemeProvider } from "../LiquidThemeContext";
 import { LiquidHero } from "../components/LiquidHero";
+import "../liquid.css";
 import { LiquidSectionHeader } from "../components/LiquidSectionHeader";
 import { LiquidSectionNav } from "../components/LiquidSectionNav";
 import { LiquidStatsStrip } from "../components/LiquidStatsStrip";
@@ -585,7 +586,11 @@ export function ShowcaseLiquidPage() {
               <Button
                 variant="outlined"
                 size="small"
-                onClick={() => { setLoadingDemo(true); loadingTimerRef.current = setTimeout(() => setLoadingDemo(false), 2000); }}
+                onClick={() => {
+                  if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+                  setLoadingDemo(true);
+                  loadingTimerRef.current = setTimeout(() => setLoadingDemo(false), 2000);
+                }}
                 sx={{ mb: 2 }}
               >
                 Toggle 2s loading

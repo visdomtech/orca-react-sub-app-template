@@ -1,6 +1,6 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { useTheme } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 import { GlassCard } from "@doublefin/orca-ui";
 
 const MONO_STACK = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
@@ -53,7 +53,7 @@ export function LiquidTokenSwatches() {
               borderColor: "primary.main",
               transform: "translateY(-2px)",
               boxShadow:
-                "inset 0 1px 0 rgba(255,255,255,0.8), 0 12px 40px -4px rgba(15,23,42,0.12), 0 0 20px rgba(91,108,255,0.12)",
+                `inset 0 1px 0 rgba(255,255,255,0.8), 0 12px 40px -4px rgba(15,23,42,0.12), 0 0 20px ${alpha(theme.palette.primary.main, 0.12)}`,
             },
           }}
         >

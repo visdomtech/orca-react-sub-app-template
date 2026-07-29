@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Tooltip from "@mui/material/Tooltip";
+import { alpha } from "@mui/material/styles";
 import CheckIcon from "@mui/icons-material/Check";
 import { GlassCard } from "@doublefin/orca-ui";
 import { useLiquidTheme } from "../LiquidThemeContext";
@@ -12,6 +13,7 @@ import { useLiquidTheme } from "../LiquidThemeContext";
  */
 export function LiquidThemeSelector() {
   const { preset, presets, setPresetId } = useLiquidTheme();
+  const accent = preset.accent;
 
   return (
     <GlassCard padding={1.5} borderRadius={2} sx={{ mb: 3 }}>
@@ -48,10 +50,10 @@ export function LiquidThemeSelector() {
                   border: "1.5px solid",
                   borderColor: isActive ? "primary.main" : "divider",
                   bgcolor: isActive
-                    ? "rgba(91,108,255,0.06)"
+                    ? alpha(accent, 0.06)
                     : "transparent",
                   boxShadow: isActive
-                    ? "0 0 12px rgba(91,108,255,0.18)"
+                    ? `0 0 12px ${alpha(accent, 0.18)}`
                     : "none",
                   cursor: "pointer",
                   transition:
@@ -59,7 +61,7 @@ export function LiquidThemeSelector() {
                   outline: "none",
                   "&:hover": {
                     borderColor: "primary.light",
-                    bgcolor: "rgba(91,108,255,0.04)",
+                    bgcolor: alpha(accent, 0.04),
                   },
                   "&:focus-visible": {
                     borderColor: "primary.main",

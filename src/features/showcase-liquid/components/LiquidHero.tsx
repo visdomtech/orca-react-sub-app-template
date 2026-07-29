@@ -2,11 +2,11 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
+import { alpha, useTheme } from "@mui/material/styles";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { AmbientBackground, GlassCard } from "@doublefin/orca-ui";
 
 import { SubAppLink } from "../../../shared/SubAppLink";
-import "../liquid.css";
 
 const META_CHIPS = ["@doublefin/orca-ui v0.4", "MUI 9", "React 19"];
 
@@ -16,6 +16,7 @@ const META_CHIPS = ["@doublefin/orca-ui v0.4", "MUI 9", "React 19"];
  * from orca-ui + AmbientBackground vivid layer.
  */
 export function LiquidHero() {
+  const theme = useTheme();
   return (
     <>
       <AmbientBackground />
@@ -147,9 +148,9 @@ export function LiquidHero() {
                 size="small"
                 variant="outlined"
                 sx={{
-                  bgcolor: "rgba(91,108,255,0.08)",
+                  bgcolor: alpha(theme.palette.primary.main, 0.08),
                   color: "primary.main",
-                  borderColor: "rgba(91,108,255,0.3)",
+                  borderColor: alpha(theme.palette.primary.main, 0.3),
                   fontWeight: 600,
                 }}
               />

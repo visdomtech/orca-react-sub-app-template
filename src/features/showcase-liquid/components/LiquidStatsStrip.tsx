@@ -1,13 +1,12 @@
 import type { ReactNode } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { alpha } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 import PaletteIcon from "@mui/icons-material/Palette";
 import StyleIcon from "@mui/icons-material/Style";
 import TuneIcon from "@mui/icons-material/Tune";
 import WidgetsIcon from "@mui/icons-material/Widgets";
-import { GlassCard, GradientText } from "@doublefin/orca-ui";
-import { CHROME_TEXT_GRADIENT_READABLE } from "../../../theme/theme-liquid";
+import { GlassCard } from "@doublefin/orca-ui";
 import type { SectionColor } from "./LiquidSectionHeader";
 
 interface Stat {
@@ -29,6 +28,7 @@ const STATS: Stat[] = [
  * Uses GlassCard (visibly translucent) with hover lift + glow + gradient stat values.
  */
 export function LiquidStatsStrip() {
+  const theme = useTheme();
   return (
     <Box
       sx={{
@@ -50,7 +50,7 @@ export function LiquidStatsStrip() {
               borderColor: "primary.main",
               transform: "translateY(-2px)",
               boxShadow:
-                "inset 0 1px 0 rgba(255,255,255,0.8), 0 12px 40px -4px rgba(15,23,42,0.12), 0 0 20px rgba(91,108,255,0.15)",
+                `inset 0 1px 0 rgba(255,255,255,0.8), 0 12px 40px -4px rgba(15,23,42,0.12), 0 0 20px ${alpha(theme.palette.primary.main, 0.15)}`,
             },
           }}
         >
@@ -70,13 +70,17 @@ export function LiquidStatsStrip() {
           </Box>
           <Box>
             <Typography sx={{ fontSize: "1.5rem", fontWeight: 700, lineHeight: 1.15, letterSpacing: "-0.02em" }}>
-              <GradientText
-                gradient={CHROME_TEXT_GRADIENT_READABLE}
+              <Typography
                 component="span"
-                sx={{ fontSize: "inherit", fontWeight: "inherit", letterSpacing: "inherit" }}
+                sx={{
+                  fontSize: "inherit",
+                  fontWeight: "inherit",
+                  letterSpacing: "inherit",
+                  color: "primary.main",
+                }}
               >
                 {stat.value}
-              </GradientText>
+              </Typography>
             </Typography>
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
               {stat.label}
