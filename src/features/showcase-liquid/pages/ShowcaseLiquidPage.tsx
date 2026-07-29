@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -163,6 +163,8 @@ export function ShowcaseLiquidPage() {
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loadingDemo, setLoadingDemo] = useState(false);
+  const loadingTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(loadingTimerRef.current), []);
   const [demoTab, setDemoTab] = useState(0);
   const basePath = useSubAppRouterBasePath();
 
@@ -583,7 +585,7 @@ export function ShowcaseLiquidPage() {
               <Button
                 variant="outlined"
                 size="small"
-                onClick={() => { setLoadingDemo(true); setTimeout(() => setLoadingDemo(false), 2000); }}
+                onClick={() => { setLoadingDemo(true); loadingTimerRef.current = setTimeout(() => setLoadingDemo(false), 2000); }}
                 sx={{ mb: 2 }}
               >
                 Toggle 2s loading
