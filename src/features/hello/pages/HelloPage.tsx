@@ -65,7 +65,15 @@ export function HelloPage() {
           variant="body2"
           underline="hover"
         >
-          Design System Showcase
+          Design System Showcase (Mercury)
+        </MuiLink>
+        <MuiLink
+          component={SubAppLink}
+          to="/showcase-liquid"
+          variant="body2"
+          underline="hover"
+        >
+          Design System Showcase (Liquid Metal)
         </MuiLink>
         <MuiLink
           component={SubAppLink}

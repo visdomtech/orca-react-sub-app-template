@@ -5,6 +5,7 @@ import { useLocation, useRoutes } from "react-router";
 import { useMemo } from "react";
 import { HelloPage } from "./features/hello/pages/HelloPage";
 import { ShowcasePage } from "./features/showcase/pages/ShowcasePage";
+import { ShowcaseLiquidPage } from "./features/showcase-liquid/pages/ShowcaseLiquidPage";
 import { SlackNotificationPage } from "./features/notifications/pages/SlackNotificationPage";
 import { SubAppBasenameContext } from "./shared/SubAppLink";
 import { theme } from "./theme/theme";
@@ -15,6 +16,7 @@ const queryClient = new QueryClient();
 const routes = [
   { path: "/", element: <HelloPage /> },
   { path: "/showcase", element: <ShowcasePage /> },
+  { path: "/showcase-liquid", element: <ShowcaseLiquidPage /> },
   { path: "/notifications", element: <SlackNotificationPage /> },
 ];
 

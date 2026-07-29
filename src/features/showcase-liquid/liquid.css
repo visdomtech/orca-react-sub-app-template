@@ -1,0 +1,162 @@
+/* Liquid Metal - Vivid Ambient Background Layer
+ * Fixed, pointer-events-none layer behind content.
+ * 4 large blurred radial gradients drifting slowly + faint noise overlay.
+ * Blobs at 12-18% opacity create visible color atmosphere.
+ * GPU-friendly: only transform animations, no layout thrashing.
+ */
+
+/* -- CSS Custom Properties ------------------------------------------------- */
+:root {
+  --lm-platinum: #f4f6fa;
+  --lm-chrome-silver: #c7d2e0;
+  --lm-liquid-accent: #5b6cff;
+  --lm-liquid-accent-soft: rgba(91, 108, 255, 0.08);
+  --lm-rose-tint: #f472b6;
+
+  /* Glass surface (overridden by LiquidThemeContext per theme) */
+  --lm-glass-bg: rgba(255,255,255,0.45);
+  --lm-glass-border: rgba(255,255,255,0.6);
+  --lm-glass-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 8px 32px -4px rgba(15,23,42,0.08), 0 2px 8px -2px rgba(91,108,255,0.06);
+
+  /* Ambient canvas + blob colors (overridden per theme) */
+  --lm-canvas-bg: #f4f6fa;
+  --lm-wave-1: rgba(199,210,224,0.18);
+  --lm-wave-2: rgba(91,108,255,0.14);
+  --lm-wave-3: rgba(199,210,224,0.12);
+  --lm-wave-4: rgba(244,114,182,0.06);
+  --lm-accent-soft: rgba(91,108,255,0.08);
+  --lm-nav-bg: rgba(244,246,250,0.6);
+  --lm-text-primary: #0f172a;
+  --lm-text-secondary: #475569;
+}
+
+/* -- Ambient container ----------------------------------------------------- */
+.lm-ambient {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+  background-color: var(--lm-canvas-bg, var(--lm-platinum));
+  transition: background-color 0.4s ease;
+}
+
+/* -- Drifting gradient blobs ----------------------------------------------- */
+.lm-ambient__blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  will-change: transform;
+  transition: background 0.5s ease;
+}
+
+.lm-ambient__blob--silver {
+  width: 700px;
+  height: 700px;
+  top: -10%;
+  left: -5%;
+  background: radial-gradient(
+    circle,
+    var(--lm-wave-1, rgba(199, 210, 224, 0.18)) 0%,
+    transparent 70%
+  );
+  animation: lm-drift-1 40s ease-in-out infinite alternate;
+}
+
+.lm-ambient__blob--accent {
+  width: 600px;
+  height: 600px;
+  bottom: -15%;
+  right: -8%;
+  background: radial-gradient(
+    circle,
+    var(--lm-wave-2, rgba(91, 108, 255, 0.14)) 0%,
+    transparent 70%
+  );
+  animation: lm-drift-2 50s ease-in-out infinite alternate;
+}
+
+.lm-ambient__blob--highlight {
+  width: 500px;
+  height: 500px;
+  top: 40%;
+  left: 50%;
+  background: radial-gradient(
+    circle,
+    var(--lm-wave-3, rgba(199, 210, 224, 0.12)) 0%,
+    transparent 65%
+  );
+  animation: lm-drift-3 35s ease-in-out infinite alternate;
+}
+
+.lm-ambient__blob--rose {
+  width: 450px;
+  height: 450px;
+  top: 60%;
+  left: 10%;
+  background: radial-gradient(
+    circle,
+    var(--lm-wave-4, rgba(244, 114, 182, 0.06)) 0%,
+    transparent 70%
+  );
+  animation: lm-drift-4 45s ease-in-out infinite alternate;
+}
+
+/* -- Noise overlay (SVG feTurbulence) -------------------------------------- */
+.lm-ambient__noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 180px 180px;
+}
+
+/* -- Drift keyframes (transform-only, GPU-friendly) ----------------------- */
+@keyframes lm-drift-1 {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(100px, 70px, 0); }
+  100% { transform: translate3d(-50px, 120px, 0); }
+}
+
+@keyframes lm-drift-2 {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(-80px, -60px, 0); }
+  100% { transform: translate3d(60px, -100px, 0); }
+}
+
+@keyframes lm-drift-3 {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(-70px, 50px, 0); }
+  100% { transform: translate3d(50px, -40px, 0); }
+}
+
+@keyframes lm-drift-4 {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(60px, -40px, 0); }
+  100% { transform: translate3d(-40px, 60px, 0); }
+}
+
+/* -- Reduced motion: static gradient -------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .lm-ambient__blob {
+    animation: none;
+  }
+}
+
+/* -- Mobile: static for performance --------------------------------------- */
+@media (max-width: 768px) {
+  .lm-ambient__blob {
+    animation: none;
+  }
+  .lm-ambient__blob--silver,
+  .lm-ambient__blob--accent {
+    width: 350px;
+    height: 350px;
+  }
+  .lm-ambient__blob--highlight,
+  .lm-ambient__blob--rose {
+    width: 250px;
+    height: 250px;
+  }
+}
