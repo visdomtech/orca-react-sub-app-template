@@ -29,7 +29,8 @@ Mechanism: The liquid metal theme does the visual work, the kit provides structu
   * Zero pure-black shadows on light backgrounds.
   * Zero placeholder-as-label in forms.
   * Zero em-dashes or en-dashes as punctuation in UI text or documentation.
-  * Glass surfaces, sheen-sweep effects, accent glows, and vivid ambient gradients ARE allowed (they are the signature of this design system).
+  * Glass surfaces, vivid ambient gradients, and accent glow on focused inputs ARE allowed (they are the signature of this design system).
+  * Contained primary buttons use flat solid accent color (no sheen-sweep or glow).
   * **Banned**: "Invisible glass" (white opacity > 0.80 with no visible blur), "flat ambient" (blob opacity < 12%), gradient text on any element.
 
 ---
@@ -53,8 +54,8 @@ Mechanism: The liquid metal theme does the visual work, the kit provides structu
 | `OVERLAY_SHADOW` | `0 12px 32px -8px rgba(30, 41, 59, 0.14), 0 4px 12px -4px rgba(91, 108, 255, 0.06)` | Accent-tinted soft shadow reserved for dialogs, popovers, and menus |
 | `HOVER_BG` | `rgba(30, 41, 59, 0.04)` | Neutral cool hover wash for rows, buttons, list items |
 | `CHROME_TEXT_GRADIENT` | `linear-gradient(...)` | Static chrome sweep for the default LIQUID_METAL preset (exported for backward compat, not used in UI) |
-| `ACCENT_GRADIENT` | `linear-gradient(135deg, #5b6cff 0%, #7b8aff 100%)` | Liquid accent gradient for contained primary buttons |
-| `SHEEN_GRADIENT` | `linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.35) 50%, transparent 75%)` | Sheen sweep pseudo-element on button hover |
+| `ACCENT_GRADIENT` | `linear-gradient(135deg, #5b6cff 0%, #7b8aff 100%)` | Liquid accent gradient (exported for backward compat, not used on buttons) |
+| `SHEEN_GRADIENT` | `linear-gradient(110deg, transparent 25%, rgba(255,255,255,0.35) 50%, transparent 75%)` | Sheen sweep pseudo-element (exported for backward compat, not used on buttons) |
 | `GLASS_HIGHLIGHT` | `inset 0 1px 0 rgba(255,255,255,0.8)` | Inner top highlight on glass surfaces (edge refraction) |
 | `GLASS_BG` | `rgba(255,255,255,0.45)` | Visibly translucent glass background (must look glassy, not white) |
 | `GLASS_BLUR` | `20px` | Backdrop-filter blur for glass surfaces |
@@ -89,9 +90,9 @@ Future visual work must conform to these component overrides in `src/theme/theme
 * **`MuiPaper`**: `elevation` defaults to 0. Elevation-0 Papers receive the hairline border + `GLASS_HIGHLIGHT` inner top highlight. Raised overlays keep their shadow and stay borderless.
 * **`MuiAppBar`**: Visibly translucent (`rgba(255,255,255,0.55)`) + `backdrop-filter: blur(20px)` + metallic gradient hairline (pseudo-element bottom border with stronger chrome sweep).
 * **`MuiTableCell`**: 13px body, `fontVariantNumeric: "tabular-nums"`; uppercase 11px/600 micro-headers on platinum fill; hairline row borders; `sizeSmall` padding 8px/16px.
-* **`MuiButton`**: `disableElevation` always. Contained primary = `ACCENT_GRADIENT` background + `ACCENT_GLOW` shadow + sheen-sweep `::after` on hover (transform-only) + `:active { transform: scale(0.98) }`. Outlined primary = neutral secondary action (slate text, INPUT_BORDER, HOVER_BG hover).
+* **`MuiButton`**: `disableElevation` always. Contained primary = flat solid `accent` background, `accentHover` on hover, `:active { transform: scale(0.98) }`. No gradient, sheen, or glow shadow (readability over drama). Outlined primary = neutral secondary action (slate text, INPUT_BORDER, HOVER_BG hover).
 * **`MuiOutlinedInput`**: White background, INPUT_BORDER border, SLATE_FAINT hover, 1px ACCENT border + FOCUS_RING + `ACCENT_GLOW` on focus; 13px input text.
-* **`MuiDialog` / `MuiPopover`**: Glass overlays (`rgba(255,255,255,0.65)` + `backdrop-filter: blur(16px)`) + `OVERLAY_SHADOW` (accent-tinted) + hairline + 12px/10px radius.
+* **`MuiDialog` / `MuiPopover`**: Solid white (`#ffffff`) background + `OVERLAY_SHADOW` (accent-tinted) + hairline + 12px/10px radius. No glass or backdrop blur (text readability over glassmorphism).
 * **`MuiMenu` / `MuiMenuItem`**: 4px list padding, 13px items with 6px radius.
 * **`MuiTabs` / `MuiTab`**: Underline style (2px indicator, liquid accent color), sentence-case 13px tabs, ink text when selected with font weight 600.
 * **`MuiListItemButton` / `MuiListItemIcon`**: 8px radius, slate text/icon, selected = ACCENT_SOFT wash + accent text/icon + 600 label.
@@ -155,7 +156,7 @@ Same as Mercury Console:
 
 * **Dramatic glass surfaces**: Use `<GlassCard>` for hero bands, feature cards, metric tiles, and section nav. Glass = visibly translucent (CSS var `--lm-glass-bg`, default `rgba(255,255,255,0.45)`) + `backdrop-filter: blur(20px)` + prismatic double-border + depth shadow. If it looks like plain white, the glass has failed.
 * **Hover state**: `translateY(-2px)` + stronger depth shadow + `borderColor` transition to `primary.main`. The lift and glow must be visible.
-* **Sheen sweep**: Contained primary buttons get the sheen-sweep + `ACCENT_GLOW` shadow via theme override (no per-page edits needed).
+* **Sheen sweep**: Removed from contained primary buttons for readability. Buttons use flat solid accent color via theme override (no per-page edits needed).
 * **Icon color tokens**: Replace raw hex icon colors with theme palette paths.
 
 ---
@@ -220,6 +221,8 @@ Do not relitigate these settled design and implementation decisions:
 * **Forcing Chat Pages into Admin Kit**: Chat pages are exempt; only token cleanup and skeleton loading.
 * **Flat Cards on Showcase Pages**: Glass surfaces (`GlassCard`) are the standard for cards on showcase/docs pages. Data pages may use flat hairline-bordered cards.
 * **Gradient Text on Any Element**: Gradient text was removed entirely for readability. All headings and body text use solid `text.primary` color. The `GradientText` component still exists in orca-ui for backward compatibility but should not be used.
+* **Gradient + Sheen Buttons**: Contained primary buttons were changed from gradient + sheen-sweep + glow to flat solid accent color. The gradient looked too dark in practice and reduced button text contrast. `ACCENT_GRADIENT` and `SHEEN_GRADIENT` constants remain exported for backward compat.
+* **Glass Dialogs and Popovers**: Dialog and popover surfaces were changed from glassmorphic (semi-transparent + backdrop blur) to solid white. Semi-transparent backgrounds reduced text readability in forms and data-dense overlays. `GlassCard` remains for hero bands and feature cards where readability is less critical.
 
 ---
 
@@ -291,8 +294,8 @@ When migrating any page to the Liquid Metal design system, apply these transform
 ### 9.3 Liquid Metal Upgrade
 1. Replace flat card surfaces with `<GlassCard>` for hero bands, feature cards, metric tiles (glass must be visibly translucent - if it looks white, it has failed).
 2. Add `<AmbientBackground>` to pages that need the vivid liquid ambient layer (blobs at 12-18% opacity, visible atmosphere).
-3. Verify contained primary buttons show the gradient + sheen sweep + accent glow (theme-level, no per-page edits).
-4. Verify glass overlays on dialogs and popovers (theme-level, visibly translucent + blur).
+3. Verify contained primary buttons use flat solid accent color (no gradient, sheen, or glow shadow; theme-level, no per-page edits).
+4. Verify dialogs and popovers use solid white background (theme-level, no glass or backdrop blur for text readability).
 5. Verify `fontVariantNumeric: "tabular-nums"` on table data cells (theme-level).
 6. Verify all headings use solid `text.primary` color (no gradient text).
 

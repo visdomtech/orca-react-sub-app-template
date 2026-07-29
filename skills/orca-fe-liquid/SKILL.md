@@ -90,7 +90,7 @@ For each target page, scan for violations in three categories:
 ### Liquid Metal Violations
 - **Invisible glass**: glass surfaces with white opacity > 0.80 or blur < 16px (should use `GlassCard` with visibly translucent glass)
 - **Flat ambient**: ambient blobs with opacity < 12% (should use `AmbientBackground` with vivid 12-18% opacity blobs)
-- Flat buttons where gradient + sheen sweep + accent glow should apply (contained primary)
+- Non-flat contained primary buttons (should use solid accent color, no gradient/sheen/glow)
 - Non-liquid accent colors (`#4f46e5` indigo instead of `#5b6cff` chrome blue-violet)
 - Missing accent glow on focused inputs or active interactive elements
 - **Gradient text on headings**: headings and body text must use solid `text.primary` color for readability. No gradient text.
@@ -121,8 +121,8 @@ Replace all raw values with liquid metal theme tokens:
 
 1. Replace flat card surfaces with `<GlassCard>` where appropriate (hero bands, feature cards, metric tiles). Glass must be visibly translucent - if it looks white, it has failed.
 2. Add `<AmbientBackground>` to pages that need the vivid liquid ambient layer (12-18% opacity blobs, visible atmosphere).
-3. Verify contained primary buttons show the gradient + sheen sweep + accent glow.
-4. Verify glass overlays on dialogs and popovers (visibly translucent + blur).
+3. Verify contained primary buttons use a flat solid accent color (no gradient, sheen, or glow shadow).
+4. Verify dialogs and popovers use a solid white background for text readability (no glass or backdrop blur).
 5. Verify input focus rings include accent glow.
 6. Verify all headings use solid `text.primary` color (no gradient text).
 
