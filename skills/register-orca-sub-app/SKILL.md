@@ -30,6 +30,9 @@ Then show this table with all placeholders substituted:
 | Admin Only | unchecked |
 | Remote URL | *(leave blank — you will fill this in after uploading and building)* |
 | Exposed Module | `./OrcaApp` |
+| Approval Object Types | *(see rule below)* |
+
+**Approval Object Types rule:** Scan the generated source files for any `<ApprovalFlow` usages. For each unique `objectType` prop value found, add one line in the format `objectType:Label` where Label is a human-readable name derived from the objectType (e.g. `expense_report` → `Expense Report`). If no `ApprovalFlow` usages exist, leave this field empty.
 
 Then tell the user:
 
