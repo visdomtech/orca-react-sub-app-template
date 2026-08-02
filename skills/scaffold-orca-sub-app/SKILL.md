@@ -29,16 +29,25 @@ Write or overwrite these five files. Adapt every placeholder and all business lo
 
 ```tsx
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { type ComponentType } from "react";
 import { {{COMPONENT_NAME}}Page } from "./features/{{FEATURE_NAME}}/pages/{{COMPONENT_NAME}}Page";
+import { OrcaHostProvider, type ApprovalFlowProps } from "./shared/OrcaHostContext";
 import "./index.css";
 
 const queryClient = new QueryClient();
 
-export function OrcaApp() {
+interface OrcaAppProps {
+  basename?: string;
+  ApprovalFlow?: ComponentType<ApprovalFlowProps>;
+}
+
+export function OrcaApp({ basename, ApprovalFlow }: OrcaAppProps) {
   return (
-    <QueryClientProvider client={queryClient}>
-      <{{COMPONENT_NAME}}Page />
-    </QueryClientProvider>
+    <OrcaHostProvider value={{ ApprovalFlow }}>
+      <QueryClientProvider client={queryClient}>
+        <{{COMPONENT_NAME}}Page />
+      </QueryClientProvider>
+    </OrcaHostProvider>
   );
 }
 
