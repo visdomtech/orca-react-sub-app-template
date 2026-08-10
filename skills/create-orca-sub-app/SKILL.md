@@ -68,7 +68,8 @@ Then write every file below exactly as shown, substituting `{{APP_NAME}}` throug
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.62.0",
@@ -80,10 +81,14 @@ Then write every file below exactly as shown, substituting `{{APP_NAME}}` throug
     "@tailwindcss/vite": "^4.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.1.0",
     "@vitejs/plugin-react": "^4.3.0",
+    "jsdom": "^25.0.1",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.0",
-    "vite": "^6.0.0"
+    "vite": "^6.0.0",
+    "vitest": "^2.1.0"
   },
   "peerDependencies": {
     "react": "^19",
@@ -127,6 +132,25 @@ export default defineConfig({
   },
   server: {
     port: 4173,
+  },
+});
+```
+
+---
+
+### `vitest.config.ts`
+
+A separate Vite config for tests that omits the Module Federation plugin (federation only applies to the production build, not tests).
+
+```typescript
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: "jsdom",
+    setupFiles: ["./src/test-setup.ts"],
   },
 });
 ```
@@ -199,6 +223,14 @@ createRoot(document.getElementById("root")!).render(
 
 ```css
 @import "tailwindcss";
+```
+
+---
+
+### `src/test-setup.ts`
+
+```typescript
+import "@testing-library/jest-dom";
 ```
 
 ---
@@ -435,6 +467,120 @@ export interface ApprovalDefinition {
 
 ---
 
+### `src/shared/OrcaHostContext.tsx`
+
+```tsx
+import { createContext, useContext, type ComponentType } from "react";
+
+export interface ApprovalPhaseSpec {
+  approvers: string[];
+  minRequiredApprovers: number;
+  conditions?: string;
+  description?: string;
+}
+
+export interface ApprovalFlowProps {
+  objectType: string;
+  objectId: string;
+  definitionId?: number;
+  phases?: ApprovalPhaseSpec[];
+  currentUserId?: string;
+  onApproved?: () => void;
+  onRejected?: () => void;
+  adminMode?: boolean;
+  displayMode?: "full" | "compact";
+}
+
+export interface OrcaHostComponents {
+  ApprovalFlow?: ComponentType<ApprovalFlowProps>;
+}
+
+const OrcaHostContext = createContext<OrcaHostComponents>({});
+
+export const OrcaHostProvider = OrcaHostContext.Provider;
+
+export function useOrcaHost(): OrcaHostComponents {
+  return useContext(OrcaHostContext);
+}
+```
+
+---
+
+### `src/shared/SubAppLink.tsx`
+
+```tsx
+import {
+  createContext,
+  useContext,
+  useCallback,
+  useMemo,
+  type AnchorHTMLAttributes,
+  type ReactNode,
+} from "react";
+import { useHref, useNavigate } from "react-router";
+
+export const SubAppBasenameContext = createContext<string>("");
+
+export function useSubAppBasePath(): string {
+  return useContext(SubAppBasenameContext);
+}
+
+export function useSubAppRouterBasePath(): string {
+  const basename = useSubAppBasePath();
+  const routerHrefRoot = useHref("/");
+  const routerBasename = routerHrefRoot.endsWith("/")
+    ? routerHrefRoot.slice(0, -1)
+    : routerHrefRoot;
+  return useMemo(() => {
+    if (routerBasename && basename.startsWith(routerBasename)) {
+      return basename.slice(routerBasename.length) || "/";
+    }
+    return basename;
+  }, [basename, routerBasename]);
+}
+
+interface SubAppLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
+  to: string;
+  children?: ReactNode;
+}
+
+export function SubAppLink({ to, children, onClick, ...rest }: SubAppLinkProps) {
+  const basename = useSubAppBasePath();
+  const navigate = useNavigate();
+  const routerHrefRoot = useHref("/");
+  const routerBasename = routerHrefRoot.endsWith("/")
+    ? routerHrefRoot.slice(0, -1)
+    : routerHrefRoot;
+
+  const href = `${basename}${to}`;
+  const navigatePath = useMemo(() => {
+    if (routerBasename && href.startsWith(routerBasename)) {
+      return href.slice(routerBasename.length) || "/";
+    }
+    return href;
+  }, [href, routerBasename]);
+
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>) => {
+      onClick?.(e);
+      if (e.defaultPrevented) return;
+      if (e.metaKey || e.altKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      navigate(navigatePath);
+    },
+    [navigatePath, navigate, onClick],
+  );
+
+  return (
+    <a href={href} onClick={handleClick} {...rest}>
+      {children}
+    </a>
+  );
+}
+```
+
+---
+
 ## Step 3 — Generate feature code
 
 Fetch and follow:
@@ -447,15 +593,27 @@ Pass `APP_NAME`, `COMPONENT_NAME`, `FEATURE_NAME`, `DISPLAY_NAME`, and `DESCRIPT
 
 ---
 
-## Step 4 — Install, build, and zip
+## Step 3.5 — Review generated code
 
-Fetch and follow **Steps 1–3** of:
+Fetch and follow:
+
+```
+https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/review-orca-sub-app/SKILL.md
+```
+
+Pass `APP_NAME`, `COMPONENT_NAME`, and `FEATURE_NAME` as inputs. Output the review report to the user, then continue to Step 4 regardless of findings.
+
+---
+
+## Step 4 — Install, build, test, and zip
+
+Fetch and follow **Steps 1–4** of:
 
 ```
 https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/build-orca-sub-app/SKILL.md
 ```
 
-Stop after Step 3 (zip created). Do **not** follow Step 4 (serve) or Step 5 (confirm) — the dev server and deliverables summary are handled below.
+Stop after Step 4 (zip created). Do **not** follow Step 5 (serve) or Step 6 (confirm) — the dev server and deliverables summary are handled below.
 
 ---
 
@@ -532,8 +690,10 @@ A file explorer window has opened with **{{APP_NAME}}.zip** selected. Save it so
 Before declaring done:
 
 - [ ] `bun --version` succeeds
-- [ ] All boilerplate files written with `{{APP_NAME}}` substituted
-- [ ] Feature files generated and typecheck passes
+- [ ] All boilerplate files written with `{{APP_NAME}}` substituted (including `vitest.config.ts`, `src/test-setup.ts`, `src/shared/`)
+- [ ] Feature files generated (including `{{COMPONENT_NAME}}Page.test.tsx`) and typecheck passes
+- [ ] Code review report output to user (advisory — pipeline continues regardless)
+- [ ] `bun test` passes
 - [ ] `dist/app.js` exists after build
 - [ ] Zip created at `~/{{APP_NAME}}/{{APP_NAME}}.zip`
 - [ ] Dev server running at `http://localhost:4173`
