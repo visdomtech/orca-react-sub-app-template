@@ -30,6 +30,45 @@ Go to **System Admin → Sub-App Registry** (`/orca/sysadmin/apps`) and follow t
 
 ---
 
+## Code review
+
+When you create an app, Claude automatically checks it for common problems before handing you the zip file. You can also run this check at any time on an existing app — for example, after you've made changes.
+
+### Check an existing app
+
+Open Claude Desktop inside your app folder and paste this message:
+
+```
+Review my Orca sub-app using this skill: https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/review-orca-sub-app/SKILL.md
+
+APP_NAME: your-app-name
+COMPONENT_NAME: YourAppName
+FEATURE_NAME: yourAppName
+```
+
+Fill in your app's name in the three lines — Claude will do the rest.
+
+### What the review looks for
+
+Claude reads through your entire app and checks for things like:
+
+- **Will it actually work in Orca?** Common setup mistakes that cause a blank page or broken navigation
+- **Is data being saved and loaded correctly?** Checks that your app talks to Orca's database the right way
+- **Does the app handle slow connections?** Makes sure loading and error messages are shown to users
+- **Is it safe?** Looks for accidentally exposed passwords or other security issues
+- **Is the code clean?** Flags leftover debug code and other things that should be tidied up before going live
+
+### What happens with the results
+
+Claude gives you a report with two types of findings:
+
+- 🔴 **Issues** — things that will likely cause the app to break in production. Worth fixing before you upload.
+- ⚠️ **Warnings** — things that are not ideal but won't stop the app from working. Good to fix before sharing with users.
+
+The review never blocks your build — you always get the zip file regardless of what it finds.
+
+---
+
 ## Adding features to your app
 
 ### Approval workflows
