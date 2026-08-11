@@ -36,19 +36,6 @@ src/
         └── components/  ← reusable components for this feature
 ```
 
-## Zip creation rule
-
-**Never create a zip of the app without first running a code review.** This applies regardless of how the request is phrased ("zip it", "create the zip", "build and zip", etc.).
-
-Before running the zip command:
-
-1. Read every `.ts` and `.tsx` file under `src/` (excluding test files and `test-setup.ts`), plus `vite.config.ts` and `package.json`.
-2. Apply the full checklist from `skills/review-orca-sub-app/SKILL.md` (categories A–G).
-3. Apply the gate:
-   - **🔴 Issues found** → do not create the zip. Tell the user which files have issues, what the violation is, and exactly what to change to fix it. Stop.
-   - **⚠️ Warnings only** → list each warning with the file, problem, and fix. Ask the user: "fix or skip?" If fix, apply the changes and re-review once before proceeding. If skip, create the zip.
-   - **Clean** → create the zip.
-
 ## Key Rules
 
 ### Module Federation constraints

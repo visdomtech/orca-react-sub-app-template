@@ -58,7 +58,15 @@ If any test fails, stop here — do not create the zip. Fix the failing tests fi
 
 ## Step 3.5 — Code Review Gate
 
-Apply the **Zip creation rule** from `CLAUDE.md` now. Read the source files, run the review checklist, and apply the gate (block on 🔴 Issues, ask on ⚠️ Warnings, proceed if clean) before continuing to Step 4.
+The `postbuild` hook in `package.json` already printed the code review instructions in the build output above. Apply them now — read the source files, run the checklist, and apply the gate before continuing to Step 4.
+
+If the build output is no longer visible, run the reminder script directly:
+
+```bash
+node scripts/pre-zip-check.mjs
+```
+
+Then follow its output: block on 🔴 Issues, ask the user on ⚠️ Warnings, proceed if clean.
 
 ---
 

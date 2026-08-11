@@ -67,6 +67,7 @@ Then write every file below exactly as shown, substituting `{{APP_NAME}}` throug
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "postbuild": "node scripts/pre-zip-check.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
@@ -231,6 +232,40 @@ createRoot(document.getElementById("root")!).render(
 
 ```typescript
 import "@testing-library/jest-dom";
+```
+
+---
+
+### `scripts/pre-zip-check.mjs`
+
+Prints a mandatory code review reminder after every `bun run build`. Claude reads this output and must complete the review before creating a zip.
+
+```javascript
+console.log(`
+┌─────────────────────────────────────────────────────────────────────┐
+│  ⚠️  CODE REVIEW REQUIRED BEFORE CREATING ZIP                       │
+│                                                                      │
+│  Review every .ts/.tsx file under src/ plus vite.config.ts and      │
+│  package.json. Check all seven categories:                           │
+│                                                                      │
+│  A – Module Federation (exposes ./OrcaApp, shared singletons,        │
+│      default export)                                                 │
+│  B – Routing (no BrowserRouter, useRoutes, basename accepted         │
+│      and stripped)                                                   │
+│  C – Navigation (SubAppLink only, correct backHref hook)             │
+│  D – API patterns (httpClient only, /orcaagents/* endpoints,         │
+│      IS_STANDALONE guard, realistic mock data)                       │
+│  D2– Types (no any, domain-specific names, intentional ?)            │
+│  E – UX completeness (loading + error states rendered)               │
+│  F – Code quality (no console.log, no @ts-ignore)                   │
+│  G – Security (no dangerouslySetInnerHTML, no eval,                  │
+│      no hardcoded secrets or API keys)                               │
+│                                                                      │
+│  🔴 Issues   → STOP. Do not create zip. Explain fixes. Stop here.   │
+│  ⚠️  Warnings → Ask user: "fix or skip?" before proceeding.          │
+│  ✅ Clean     → Proceed to create the zip.                           │
+└─────────────────────────────────────────────────────────────────────┘
+`);
 ```
 
 ---
@@ -680,7 +715,7 @@ A file explorer window has opened with **{{APP_NAME}}.zip** selected. Save it so
 Before declaring done:
 
 - [ ] `bun --version` succeeds
-- [ ] All boilerplate files written with `{{APP_NAME}}` substituted (including `vitest.config.ts`, `src/test-setup.ts`, `src/shared/`)
+- [ ] All boilerplate files written with `{{APP_NAME}}` substituted (including `vitest.config.ts`, `src/test-setup.ts`, `src/shared/`, `scripts/pre-zip-check.mjs`)
 - [ ] Feature files generated (including `{{COMPONENT_NAME}}Page.test.tsx`) and typecheck passes
 - [ ] Code review gate passed — no 🔴 Issues blocking zip creation (warnings resolved or user-skipped)
 - [ ] `bun test` passes
