@@ -56,6 +56,12 @@ If any test fails, stop here — do not create the zip. Fix the failing tests fi
 
 ---
 
+## Step 3.5 — Code Review Gate
+
+Apply the **Zip creation rule** from `CLAUDE.md` now. Read the source files, run the review checklist, and apply the gate (block on 🔴 Issues, ask on ⚠️ Warnings, proceed if clean) before continuing to Step 4.
+
+---
+
 ## Step 4 — Create the zip file
 
 Create a zip of the source files (excluding `dist`, `node_modules`, and `.git`) next to the app folder. The host builds the app from source when you upload this zip.

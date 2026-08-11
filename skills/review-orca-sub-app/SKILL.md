@@ -1,11 +1,11 @@
 ---
 name: review-orca-sub-app
-description: Automated advisory code review for generated Orca sub-apps. Checks generated source files against AGENTS.md routing rules, API patterns, UX completeness, and security. Produces a structured report but never blocks the build pipeline. Called by create-orca-sub-app after scaffold-orca-sub-app completes.
+description: Code review for generated Orca sub-apps. Checks source files against Module Federation rules, routing patterns, API patterns, UX completeness, and security. Produces a structured report. The caller decides whether to block, warn, or proceed based on the findings.
 ---
 
 # Review Orca Sub-App
 
-Read the generated source files and check them against the rules below. This review is **advisory only** — findings are reported to the user but the pipeline always continues.
+Read the generated source files and check them against the rules below. Produce a structured report and return it to the caller. The caller applies the gate logic (block on 🔴 Issues, ask on ⚠️ Warnings, proceed if clean).
 
 ## Inputs
 
@@ -142,6 +142,6 @@ Output a single formatted report using this template. Substitute all placeholder
 
 ---
 
-## Step 4 — Return to the pipeline
+## Step 4 — Return the report
 
-After outputting the report, return control to `create-orca-sub-app`. Do **not** stop or error — the build pipeline continues regardless of findings.
+After outputting the report, return control to the caller with the full report including the count of 🔴 Issues and ⚠️ Warnings. The caller (e.g. `build-orca-sub-app`) applies the gate: block on issues, ask on warnings, proceed if clean.

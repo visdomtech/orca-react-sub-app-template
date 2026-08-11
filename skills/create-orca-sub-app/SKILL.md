@@ -593,27 +593,17 @@ Pass `APP_NAME`, `COMPONENT_NAME`, `FEATURE_NAME`, `DISPLAY_NAME`, and `DESCRIPT
 
 ---
 
-## Step 3.5 — Review generated code
+## Step 4 — Install, build, test, review, and zip
 
-Fetch and follow:
-
-```
-https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/review-orca-sub-app/SKILL.md
-```
-
-Pass `APP_NAME`, `COMPONENT_NAME`, and `FEATURE_NAME` as inputs. Output the review report to the user, then continue to Step 4 regardless of findings.
-
----
-
-## Step 4 — Install, build, test, and zip
-
-Fetch and follow **Steps 1–4** of:
+Fetch and follow **Steps 1–4** (including Step 3.5 — Code Review Gate) of:
 
 ```
 https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/build-orca-sub-app/SKILL.md
 ```
 
 Stop after Step 4 (zip created). Do **not** follow Step 5 (serve) or Step 6 (confirm) — the dev server and deliverables summary are handled below.
+
+> If Step 3.5 blocks due to 🔴 Issues, the zip will not be created and the flow stops here. The user must fix the issues and ask to build again.
 
 ---
 
@@ -692,7 +682,7 @@ Before declaring done:
 - [ ] `bun --version` succeeds
 - [ ] All boilerplate files written with `{{APP_NAME}}` substituted (including `vitest.config.ts`, `src/test-setup.ts`, `src/shared/`)
 - [ ] Feature files generated (including `{{COMPONENT_NAME}}Page.test.tsx`) and typecheck passes
-- [ ] Code review report output to user (advisory — pipeline continues regardless)
+- [ ] Code review gate passed — no 🔴 Issues blocking zip creation (warnings resolved or user-skipped)
 - [ ] `bun test` passes
 - [ ] `dist/app.js` exists after build
 - [ ] Zip created at `~/{{APP_NAME}}/{{APP_NAME}}.zip`
