@@ -55,22 +55,38 @@ Work through each category. For every item, mark it as:
 |---|---|
 | `vite.config.ts` exposes `"./OrcaApp": "./src/OrcaApp.tsx"` | 🔴 Issue |
 | `react` and `react-dom` are in `shared` with `singleton: true` | 🔴 Issue |
-| No extra packages added to `shared` beyond `react` and `react-dom` | ⚠️ Warning |
+| If the app uses routing (any `react-router` import), `react-router` is ALSO in `shared` with `singleton: true` | 🔴 Issue |
+| No extra packages added to `shared` beyond `react`, `react-dom`, and (only when routing is used) `react-router` | ⚠️ Warning |
 | `src/OrcaApp.tsx` has `export default OrcaApp` | 🔴 Issue |
 
 ### Category B — Routing
 
+Only applies if the app has more than one page/view. Skip this category entirely (mark N/A, not pass) if the app is single-page.
+
 | Check | Severity |
 |---|---|
+| All routing imports come from `react-router` — never `react-router-dom` | 🔴 Issue |
+| `package.json` declares `react-router` (not `react-router-dom`) as a dependency | 🔴 Issue |
 | `OrcaApp.tsx` does NOT import `BrowserRouter`, `HashRouter`, or call `createBrowserRouter` | 🔴 Issue |
 | Routing uses `useRoutes()` or `<Routes>` (hooks into host router) | 🔴 Issue |
 | `OrcaApp` accepts `basename?: string` prop | 🔴 Issue |
-| `basename` is stripped from `useLocation().pathname` before passing to `useRoutes` | 🔴 Issue |
+| The raw `basename` PROP is used ONLY to seed `SubAppBasenameContext` (Category C) — it is never passed directly to `useLocation()`/`useRoutes()` stripping logic or `navigate()` targets | 🔴 Issue |
+| Any manual location override passed to `useRoutes(routes, override)` is derived from `useSubAppRouterBasePath()` (router-relative), never the raw `basename` prop | 🔴 Issue |
+| If the app's top-level route table is a single catch-all (`{ path: "*", element: ... }`), `useRoutes` is called WITHOUT a second (location override) argument — it matches unconditionally, so an override only adds risk | ⚠️ Warning |
+
+> **Why `react-router` vs `react-router-dom` is a 🔴, not a style nit:** the Orca host shares `react-router` (not `react-router-dom`) as a federation singleton and renders `OrcaApp` nested inside its own `react-router` Router. If the sub-app imports `react-router-dom` — or imports `react-router` but omits it from `shared` — Module Federation bundles a second, unshared copy with its own React Context. The sub-app then crashes at runtime with `useLocation() may be used only in the context of a <Router> component`, even though it visibly *is* nested inside the host's Router in the component tree — because Context matching requires the exact same module instance, not just a matching shape. This only surfaces when the built remote is actually loaded by the host, never in standalone `bun run dev` — so it will not be caught by typecheck, tests, or a standalone smoke test. Reviewers must check `vite.config.ts`'s `shared` and `package.json`'s dependency name directly.
+
+> **Why the raw `basename` prop is a trap:** it is HOST-absolute (e.g. `/ng/orca/apps/my-app`) — it already includes the ambient router's OWN basename (`/ng`). Once `react-router` is correctly shared (above), `useLocation()`/`useNavigate()` inside the sub-app read that SAME ambient Router, so they already operate relative to `/ng`. Stripping or re-prefixing the RAW prop against them double-counts it, producing URLs like `/ng/ng/orca/apps/my-app/...` and silent 404s — the app renders, tab navigation visibly "works" in isolation, and the bug only shows up as a broken URL after a click. Separately, passing a manually-stripped path as `useRoutes`'s location override throws `the location pathname must begin with the portion of the URL pathname that was matched by all parent routes`, because that override must stay consistent with whatever ancestor route (e.g. the host's `/orca/apps/:appId/*`) already matched — a locally-stripped path never is. Both failure modes are invisible in standalone `bun run dev` (no ambient basename or ancestor route there) and only surface once the built remote is loaded by the real host nested under a route. `useSubAppRouterBasePath()` (Category C) exists specifically to compute the safe, router-relative value — reviewers should treat any other use of the raw `basename` prop for navigation as suspect.
 
 ### Category C — Navigation
 
+Only applies if the app uses routing (Category B). Skip if single-page.
+
 | Check | Severity |
 |---|---|
+| `src/shared/SubAppLink.tsx` (or equivalent) exists, exporting `SubAppBasenameContext`, `useSubAppBasePath()`, and `useSubAppRouterBasePath()` | 🔴 Issue |
+| `OrcaApp.tsx` provides `SubAppBasenameContext` with the raw (host-absolute) resolved `basename` | ⚠️ Warning |
+| Tab/segment derivation from the current path, and all `navigate()` targets, use `useSubAppRouterBasePath()` — not the raw `basename` prop, not `useSubAppBasePath()` | 🔴 Issue |
 | No plain `<Link to="...">` from react-router in page components — only `<SubAppLink>` | ⚠️ Warning |
 | `backHref` props use `useSubAppRouterBasePath()`, not `useSubAppBasePath()` | ⚠️ Warning |
 
