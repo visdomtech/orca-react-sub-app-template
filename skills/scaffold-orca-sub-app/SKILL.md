@@ -201,6 +201,43 @@ if (error) return <div className="p-8"><p className="text-red-600 text-sm">Faile
 
 ---
 
+### `src/features/{{FEATURE_NAME}}/pages/{{COMPONENT_NAME}}Page.test.tsx`
+
+A smoke test that confirms the page renders without throwing. The `IS_STANDALONE` guard in `api.ts` returns mock data automatically in the test environment, so no network mocking is needed.
+
+```tsx
+import type { ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { {{COMPONENT_NAME}}Page } from "./{{COMPONENT_NAME}}Page";
+
+vi.mock("../../../shared/OrcaHostContext", () => ({
+  OrcaHostProvider: ({ children }: { children?: ReactNode }) => children,
+  useOrcaHost: () => ({ ApprovalFlow: undefined }),
+}));
+
+function Providers({ children }: { children: ReactNode }) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+}
+
+describe("{{COMPONENT_NAME}}Page", () => {
+  it("renders without crashing", () => {
+    const { container } = render(
+      <Providers>
+        <{{COMPONENT_NAME}}Page />
+      </Providers>
+    );
+    expect(container.firstChild).not.toBeNull();
+  });
+});
+```
+
+---
+
 ## After writing files
 
 Run `bun run typecheck` from the app folder. Fix every TypeScript error before returning to `create-orca-sub-app`.

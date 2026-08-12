@@ -1,6 +1,6 @@
 ---
 name: build-orca-sub-app
-description: Install dependencies, build, create a zip archive, and serve the built bundle for host testing. Steps 1–3 are the canonical install/build/zip sequence — create-orca-sub-app delegates to those steps after scaffolding. Also usable standalone to rebuild an existing app.
+description: Install dependencies, build, run tests, create a zip archive, and serve the built bundle for host testing. Steps 1–4 are the canonical install/build/test/zip sequence — create-orca-sub-app delegates to those steps after scaffolding. Also usable standalone to rebuild an existing app.
 ---
 
 # Build Orca Sub-App
@@ -44,7 +44,33 @@ If `bun run build` fails with TypeScript errors, fix them before continuing — 
 
 ---
 
-## Step 3 — Create the zip file
+## Step 3 — Run tests
+
+Run the component tests from inside the app folder:
+
+```bash
+bun test
+```
+
+If any test fails, stop here — do not create the zip. Fix the failing tests first, then re-run until all pass. Tests verify that the generated components render without errors.
+
+---
+
+## Step 3.5 — Code Review Gate
+
+The `postbuild` hook in `package.json` already printed the code review instructions in the build output above. Apply them now — read the source files, run the checklist, and apply the gate before continuing to Step 4.
+
+If the build output is no longer visible, run the reminder script directly:
+
+```bash
+node scripts/pre-zip-check.mjs
+```
+
+Then follow its output: block on 🔴 Issues, ask the user on ⚠️ Warnings, proceed if clean.
+
+---
+
+## Step 4 — Create the zip file
 
 Create a zip of the source files (excluding `dist`, `node_modules`, and `.git`) next to the app folder. The host builds the app from source when you upload this zip.
 
@@ -91,7 +117,7 @@ Write-Host "Created: $outZip"
 
 ---
 
-## Step 4 — Serve the built bundle
+## Step 5 — Serve the built bundle
 
 Start the static server so the Orca host can load the app for integration testing:
 
@@ -103,7 +129,7 @@ Leave the server running. Closing the terminal stops the app.
 
 ---
 
-## Step 5 — Confirm with the user
+## Step 6 — Confirm with the user
 
 Tell the user:
 
