@@ -80,3 +80,31 @@ Add an approval flow to my app using this skill: https://raw.githubusercontent.c
 ```
 
 The skill covers the `ApprovalFlow` component that the host injects into every sub-app. You only need to pass your `objectType` and `objectId` — the approval definition (approvers, phases, thresholds) is configured by admins in **Admin → Approval Flows** (`/orca/admin/approval-flows`) without touching your code.
+
+---
+
+### Digital document signing
+
+To add a digital signature panel to any page (send a PDF for signing, track signing status, support multiple signers), use the digital sign skill:
+
+```
+Add digital signing to my app using this skill: https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/orca-fe-components/digital-sign/SKILL.md
+```
+
+Claude will ask five short questions — which page, what object type, whether the user uploads a document first or a file ID is already available, where in the page to place the panel, and what to do when signing completes. It then generates:
+
+- `DocumentSignaturePanel` — a TailwindCSS panel with status badge, signer list, and send/sync buttons
+- `useDocumentSignature` — React Query hook for all signature API calls
+- `DocumentUploadButton` — if the user needs to upload a file before signing
+
+**No API keys in your app.** Dropbox Sign and Adobe Acrobat Sign credentials are configured once by a workspace admin at **Admin → Integrations → E-Sign** (`/orca/admin/integrations/esign`). Sub-apps read the configured provider automatically.
+
+#### Document upload only
+
+If you only need a reusable file-upload button (without the signing flow), use the standalone upload skill instead:
+
+```
+Add document upload to my app using this skill: https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/orca-fe-components/document-upload/SKILL.md
+```
+
+This generates a `DocumentUploadButton` that handles the three-step GCS upload (get signed URL → PUT to GCS → confirm). Supports PDF, DOCX, XLSX, PNG, JPEG, ZIP, TXT, CSV up to 100 MB.

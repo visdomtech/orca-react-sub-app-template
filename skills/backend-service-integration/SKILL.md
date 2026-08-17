@@ -38,6 +38,7 @@ The OrcaAgents backend exposes REST endpoints under `/orcaagents/*` for frontend
 | 18 | [Policy](policy/SKILL.md) | `/orcaagents/orca` | `policy/SKILL.md` | AI-powered policy draft generation, refinement, versioning, and PDF export |
 | 19 | [Notifications](notifications/SKILL.md) | `/orcaagents/notification` | `notifications/SKILL.md` | OAuth2 channel connection and notification sending |
 | 20 | [Render Configs](render-configs/SKILL.md) | `/orcaagents/renderconfig` | `render-configs/SKILL.md` | JsonLogic-based render configurations for agent output UI |
+| 21 | [Digital Sign](digital-sign/SKILL.md) | `/orcaagents/esign` | `digital-sign/SKILL.md` | Send workspace files for digital signature via Dropbox Sign or Adobe Acrobat Sign |
 
 ---
 
