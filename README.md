@@ -28,16 +28,24 @@ Go to **System Admin → Sub-App Registry** and follow these steps:
 
 ---
 
+## Step 3 — Rebuild after changes
+
+When you've made changes and need a new zip to upload, paste this into Claude Desktop:
+
+```
+Build my Orca sub-app using this skill: https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/build-orca-sub-app/SKILL.md
+```
+
+Claude will install dependencies, run tests, and produce an updated `.zip` file ready to upload.
+
+---
+
 ## Code review
 
 Claude automatically reviews your app before handing you the zip. To run the review manually at any time, paste this into Claude Desktop:
 
 ```
 Review my Orca sub-app using this skill: https://raw.githubusercontent.com/visdomtech/orca-react-sub-app-template/main/skills/review-orca-sub-app/SKILL.md
-
-APP_NAME: your-app-name
-COMPONENT_NAME: YourAppName
-FEATURE_NAME: yourAppName
 ```
 
 <details>
