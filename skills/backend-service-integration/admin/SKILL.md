@@ -1,123 +1,153 @@
-# Admin Service
+---
+name: admin-service-integration
+description: "Integrate with the Orca Admin Backend API (`/orcaagents/admin`). Operations: reloadConfig, clearCache, getLogLevel, setLogLevel."
+compatibility: "Orcaagents backend v2+ (Huma OpenAPI compliant)"
+---
 
-> System hot-reload and prompt cache management.
+# Admin Service Integration Guide
 
-**Route prefix:** `/orcaagents/admin`
-**Handler:** `handler/web/mgmt_handler.go`
-**Auth required:** Yes
-
-> **Prerequisites:** All examples use the shared [`orcaFetch`](../SKILL.md#fetch-wrapper-orcafetch) wrapper and [`headers()`](../SKILL.md#fetch-wrapper-orcafetch) helper from the [root skill](../SKILL.md). Import or define them once before using any endpoint below.
+The **Admin Service** manages core system lifecycle, atomic configuration hot-reloading from Firestore, LLM prompt cache invalidation, and dynamic log-level adjustment at runtime.
 
 ---
 
-## Endpoints
+## 1. Overview & Scope
 
-| Method | Path | Operation | Description |
-|--------|------|-----------|-------------|
-| `POST` | `/orcaagents/admin/config/reload` | `reloadConfig` | Force atomic hot-reload of all agents and prompts from Firestore |
-| `DELETE` | `/orcaagents/admin/config/cache` | `clearCache` | Clear cached LLM templates and system instructions |
-| `GET` | `/orcaagents/admin/loglevel` | `getLogLevel` | Get current slog log level |
-| `PUT` | `/orcaagents/admin/loglevel` | `setLogLevel` | Set slog log level at runtime |
+- **Route Prefix**: `/orcaagents/admin`
+- **Base URL**: Set via `ORCA_API_BASE` or defaults to `/orcaagents/admin`
+- **Auth & RBAC**:
+  - `GET /loglevel`: Requires JWT authentication (any authenticated user); no `SYSTEM_ADMIN` role required
+  - `POST /config/reload`, `DELETE /config/cache`, `PUT /loglevel`: Strictly requires **`SYSTEM_ADMIN`** role
+- **Key Responsibilities**:
+  - Hot-reloading system prompt templates and agent configurations without restarting the server process
+  - Invalidate model prompt cache (all or per-agent)
+  - Query and dynamically mutate structured logging level (`DEBUG`, `INFO`, `WARN`, `ERROR`)
 
 ---
 
-## Hot-Reload
+## 2. Endpoint Reference Table
 
-Triggers an immediate atomic rebuild of all active agents from Firestore configuration. This is an all-or-nothing operation — if any agent fails to build, the entire reload is rolled back.
+| Method | Path | Operation ID | Request Type | Response Type | Description |
+|---|---|---|---|---|---|
+| `POST` | `/orcaagents/admin/config/reload` | `reloadConfig` | `void` | `OkResponse` | Forces an immediate atomic hot-reload of all agents and prompts from Firestore |
+| `DELETE` | `/orcaagents/admin/config/cache` | `clearCache` | `ClearCacheQuery` | `OkResponse` | Clears cached LLM templates or custom system instructions from local memory |
+| `GET` | `/orcaagents/admin/loglevel` | `getLogLevel` | `void` | `LogLevelResponse` | Returns the current slog log level (`DEBUG`, `INFO`, `WARN`, `ERROR`) |
+| `PUT` | `/orcaagents/admin/loglevel` | `setLogLevel` | `SetLogLevelRequest` | `OkResponse` | Changes the slog log level at runtime |
 
-```ts
-async function reloadConfig(): Promise<void> {
-  const res = await orcaFetch("/orcaagents/admin/config/reload", {
-    method: "POST",
-    credentials: "include",
-  });
-  if (!res.ok) {
-    const body = await res.json();
-    throw new Error(body.error);
-  }
-}
-```
+---
 
-## Clear Prompt Cache
+## 3. TypeScript Interfaces & Enums
 
-Clears in-memory LLM template caches. Optionally target a specific agent.
+```typescript
+export type SlogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
 
-```ts
-// Clear all agent caches
-async function clearAllCaches(): Promise<void> {
-  const res = await orcaFetch("/orcaagents/admin/config/cache", {
-    method: "DELETE",
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error((await res.json()).error);
+export interface OkResponse {
+  status: 'ok';
 }
 
-// Clear cache for a specific agent
-async function clearAgentCache(agentId: string): Promise<void> {
-  const res = await orcaFetch(`/orcaagents/admin/config/cache?agent=${agentId}`, {
-    method: "DELETE",
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error((await res.json()).error);
+export interface LogLevelResponse {
+  level: SlogLevel | string;
+}
+
+export interface SetLogLevelRequest {
+  level: SlogLevel;
+}
+
+export interface ClearCacheQuery {
+  agent?: string;
 }
 ```
 
 ---
 
-## Get Log Level
+## 4. Client SDK / Integration Functions
 
-```http
-GET /orcaagents/admin/loglevel
+```typescript
+import { orcaFetch } from '../common';
+
+export const adminClient = {
+  /**
+   * Reload all agents, prompts, and config from Firestore atomically.
+   * Requires SYSTEM_ADMIN role.
+   */
+  async reloadConfig(): Promise<OkResponse> {
+    return orcaFetch<OkResponse>('/orcaagents/admin/config/reload', {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Clear prompt cache across all agents or for a specific agent.
+   * Requires SYSTEM_ADMIN role.
+   */
+  async clearCache(agentId?: string): Promise<OkResponse> {
+    const query = agentId ? `?agent=${encodeURIComponent(agentId)}` : '';
+    return orcaFetch<OkResponse>(`/orcaagents/admin/config/cache${query}`, {
+      method: 'DELETE',
+    });
+  },
+
+  /**
+   * Get the current server log level.
+   */
+  async getLogLevel(): Promise<LogLevelResponse> {
+    return orcaFetch<LogLevelResponse>('/orcaagents/admin/loglevel', {
+      method: 'GET',
+    });
+  },
+
+  /**
+   * Dynamically update the server log level at runtime.
+   * Requires SYSTEM_ADMIN role.
+   */
+  async setLogLevel(level: SlogLevel): Promise<OkResponse> {
+    return orcaFetch<OkResponse>('/orcaagents/admin/loglevel', {
+      method: 'PUT',
+      body: JSON.stringify({ level }),
+    });
+  },
+};
 ```
 
-Returns the current `slog` log level.
+---
 
-### TypeScript
+## 5. Code Examples & Real-World Flows
 
-```ts
-interface LogLevelResponse {
-  level: string; // "DEBUG" | "INFO" | "WARN" | "ERROR"
+### Flow: Updating Prompt Config and Reloading
+```typescript
+import { adminClient } from './adminClient';
+
+async function applyPromptUpdate(agentName: string) {
+  console.log(`Invalidating cache for agent: ${agentName}...`);
+  await adminClient.clearCache(agentName);
+
+  console.log('Reloading agent configurations atomically...');
+  const reloadRes = await adminClient.reloadConfig();
+  console.log('Registry reloaded:', reloadRes.status);
 }
+```
 
-async function getLogLevel(): Promise<LogLevelResponse> {
-  const res = await orcaFetch("/orcaagents/admin/loglevel", {
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error((await res.json()).error);
-  return res.json();
+### Flow: Temporarily Enabling Debug Logging
+```typescript
+import { adminClient } from './adminClient';
+
+async function enableTemporaryDebugLogs(durationMs: number = 60000) {
+  const previous = await adminClient.getLogLevel();
+  console.log(`Current log level: ${previous.level}`);
+
+  await adminClient.setLogLevel('DEBUG');
+  console.log('Log level set to DEBUG for troubleshooting');
+
+  setTimeout(async () => {
+    await adminClient.setLogLevel(previous.level as any);
+    console.log(`Restored log level back to ${previous.level}`);
+  }, durationMs);
 }
 ```
 
 ---
 
-## Set Log Level
+## 6. Common Gotchas & Edge Cases
 
-```http
-PUT /orcaagents/admin/loglevel
-```
-
-Changes the `slog` log level at runtime. No restart required.
-
-### TypeScript
-
-```ts
-async function setLogLevel(level: "DEBUG" | "INFO" | "WARN" | "ERROR"): Promise<void> {
-  const res = await orcaFetch("/orcaagents/admin/loglevel", {
-    method: "PUT",
-    headers: headers(),
-    credentials: "include",
-    body: JSON.stringify({ level }),
-  });
-  if (!res.ok) throw new Error((await res.json()).error);
-}
-```
-
-
----
-
-## Error Scenarios
-
-| Status | Condition |
-|--------|-----------|
-| `401` | Not authenticated |
-| `500` | Hot-reload failed (agent build error) |
+1. **403 Forbidden on Reload/Cache/LogLevel**: Mutating routes require the `SYSTEM_ADMIN` role claim in the JWT. Standard users or `WORKSPACE_ADMIN`s will receive a 403 Forbidden.
+2. **Atomic Hot-Reload**: `/config/reload` is transactional. If one agent configuration fails Yaegi compilation or schema parsing, the entire reload rolls back and the old registry remains active.
+3. **Query Parameter Encoding**: When clearing cache for a specific agent (`DELETE /config/cache?agent=foo`), ensure agent identifiers with special characters are URI-encoded.

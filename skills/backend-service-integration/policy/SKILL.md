@@ -1,354 +1,253 @@
-# Policy Service
+---
+name: policy-service-integration
+description: "Integrate with the Orca Policy Drafts & Templates API (`/orcaagents/orca/policy-*`). Operations: listPolicyTemplates, listPolicyDrafts, initPolicyDraft, getPolicyDraft, deletePolicyDraft, generatePolicyDraft, refinePolicyDraft, finalizePolicyDraft, listPolicyDraftVersions, restorePolicyDraftVersion, exportPolicyDraftPDF."
+compatibility: "Orcaagents backend v2+ (Huma OpenAPI compliant)"
+---
 
-> AI-powered policy draft generation, refinement, versioning, and PDF export.
+# Policy Drafts & Templates Service Integration Guide
 
-**Route prefix:** `/orcaagents/orca`
-**Handler:** `handler/web/policy_handler.go`
-**Auth required:** Yes (JWT)
-
-> **Prerequisites:** All examples use the shared [`orcaFetch`](../SKILL.md#fetch-wrapper-orcafetch) wrapper and [`headers()`](../SKILL.md#fetch-wrapper-orcafetch) helper from the [root skill](../SKILL.md). Import or define them once before using any endpoint below.
+The **Policy Service** provides an AI-assisted workplace policy generation, editing, versioning, and PDF export lifecycle.
 
 ---
 
-## Endpoints
+## 1. Endpoint Reference Table
 
-| Method | Path | Operation | Description |
-|--------|------|-----------|-------------|
-| `GET` | `/orcaagents/orca/policy-templates` | `listPolicyTemplates` | List active policy templates |
-| `GET` | `/orcaagents/orca/policy-drafts` | `listPolicyDrafts` | List policy drafts (cursor-paginated, 25/page) |
-| `POST` | `/orcaagents/orca/policy-drafts/init` | `initPolicyDraft` | Create a new draft from a template |
-| `GET` | `/orcaagents/orca/policy-drafts/{id}` | `getPolicyDraft` | Get a single draft by ID |
-| `DELETE` | `/orcaagents/orca/policy-drafts/{id}` | `deletePolicyDraft` | Soft-delete a draft |
-| `POST` | `/orcaagents/orca/policy-drafts/{id}/actions/generate` | `generatePolicyDraft` | Start AI generation (returns 202, runs async) |
-| `POST` | `/orcaagents/orca/policy-drafts/{id}/actions/refine` | `refinePolicyDraft` | Start AI refinement of existing content (returns 202) |
-| `POST` | `/orcaagents/orca/policy-drafts/{id}/actions/finalize` | `finalizePolicyDraft` | Mark draft as FINALIZED |
-| `GET` | `/orcaagents/orca/policy-drafts/{id}/versions` | `listPolicyDraftVersions` | List version history (newest first) |
-| `POST` | `/orcaagents/orca/policy-drafts/{id}/versions/{version}/actions/restore` | `restorePolicyDraftVersion` | Restore draft to a previous version |
-| `GET` | `/orcaagents/orca/policy-drafts/{id}/export/pdf` | `exportPolicyDraftPDF` | Export draft as a PDF download |
-
----
-
-## Architecture
-
-The policy service manages the lifecycle of workplace policy documents:
-
-1. **Template catalog** — `orca.policy_templates` stores pre-defined templates (e.g. HR handbook, code of conduct) with a system prompt per template.
-2. **Draft lifecycle** — a draft moves through statuses: `INITIALIZED` → `GENERATING` / `REFINING` → `DRAFT` → `FINALIZED`. Soft-deleted drafts set `deleted_at`.
-3. **AI generation** — `generate` and `refine` return `202 Accepted` immediately; Gemini runs in a background goroutine (5-min timeout). On success a new version is saved and the draft status becomes `DRAFT`. On failure the status reverts to `DRAFT`.
-4. **Version history** — every content change (generate, refine, restore) creates an immutable `orca.policy_draft_versions` row with an incrementing `version_number`.
-5. **PDF export** — the finalize step locks the draft; `export/pdf` streams a generated PDF (via `go-pdf/fpdf`).
-
-All drafts are scoped to `workspace_id`. The `friendly_id` follows the format `POL-00001`.
-
-### Draft Statuses
-
-| Status | Meaning |
-|--------|---------|
-| `INITIALIZED` | Just created from template, no content yet |
-| `GENERATING` | AI generation in progress |
-| `REFINING` | AI refinement in progress |
-| `DRAFT` | Content ready for review (can be refined again or finalized) |
-| `FINALIZED` | Locked, no more edits |
+| Method | Path | Operation ID | Request Body | Response | Status | Description |
+|---|---|---|---|---|---|---|
+| `GET` | `/orcaagents/orca/policy-templates` | `listPolicyTemplates` | — | `{ success, data: PolicyTemplate[] }` | 200 | Lists active policy templates |
+| `GET` | `/orcaagents/orca/policy-drafts` | `listPolicyDrafts` | — | `{ success, data: { items, nextPageKey } }` | 200 | Lists drafts (cursor-paginated) |
+| `POST` | `/orcaagents/orca/policy-drafts/init` | `initPolicyDraft` | `InitDraftRequest` | `{ success, data: PolicyDraft }` | 201 | Initializes a draft from a template |
+| `GET` | `/orcaagents/orca/policy-drafts/{id}` | `getPolicyDraft` | — | `{ success, data: PolicyDraft }` | 200 | Gets a single policy draft |
+| `DELETE` | `/orcaagents/orca/policy-drafts/{id}` | `deletePolicyDraft` | — | `{ status: "ok" }` | 200 | Soft-deletes a policy draft |
+| `POST` | `/orcaagents/orca/policy-drafts/{id}/actions/generate` | `generatePolicyDraft` | `GenerationConfigRequest` | `{ success, data: { status: "accepted" } }` | 202 | Starts async AI generation |
+| `POST` | `/orcaagents/orca/policy-drafts/{id}/actions/refine` | `refinePolicyDraft` | `GenerationConfigRequest` | `{ success, data: { status: "accepted" } }` | 202 | Starts async AI refinement |
+| `POST` | `/orcaagents/orca/policy-drafts/{id}/actions/finalize` | `finalizePolicyDraft` | — | `{ status: "ok" }` | 200 | Finalizes a draft (must be in DRAFT status) |
+| `GET` | `/orcaagents/orca/policy-drafts/{id}/versions` | `listPolicyDraftVersions` | — | `{ success, data: PolicyDraftVersion[] }` | 200 | Lists version history |
+| `POST` | `/orcaagents/orca/policy-drafts/{id}/versions/{version}/actions/restore` | `restorePolicyDraftVersion` | — | `{ status: "ok" }` | 200 | Restores draft to a previous version |
+| `GET` | `/orcaagents/orca/policy-drafts/{id}/export/pdf` | `exportPolicyDraftPDF` | — | `application/pdf` (binary) | 200 | Exports formatted PDF |
 
 ---
 
-## Types
+## 2. Architecture
 
-```ts
-interface PolicyTemplate {
+- **Route Prefix**: `/orcaagents/orca` (paths: `/orca/policy-templates`, `/orca/policy-drafts`)
+- **Auth & RBAC**: Authenticated workspace users. All queries are scoped to the caller's `workspace_id`.
+- **Response Wrapping**: All JSON responses use `{ success: boolean, data: ... }` wrapper (except `OkResponse` endpoints which return `{ status: "ok" }`).
+- **Async AI Generation**: `generatePolicyDraft` and `refinePolicyDraft` return 202 Accepted immediately. The AI generation runs in a background goroutine (5-minute timeout). On completion, draft status returns to `DRAFT` with updated `contentMd` and a new version row.
+- **Draft Status Lifecycle**: `INITIALIZED` → `GENERATING` → `DRAFT` → `REFINING` → `DRAFT` → `FINALIZED`
+
+---
+
+## 3. TypeScript Interfaces & Enums
+
+```typescript
+export interface PolicyTemplate {
   templateId: number;
-  templateType: string;     // e.g. "HR_HANDBOOK"
+  templateType: string;
   name: string;
   description: string;
   isActive: boolean;
   displayOrder: number;
 }
 
-interface PolicyDraft {
+export type PolicyDraftStatus = 'INITIALIZED' | 'GENERATING' | 'REFINING' | 'DRAFT' | 'FINALIZED';
+
+export interface PolicyDraft {
   draftId: number;
-  friendlyId: string;        // "POL-00001"
+  friendlyId: string;          // e.g. "POL-00001"
   title: string;
-  contentMd: string;         // Markdown content
-  status: string;            // INITIALIZED | GENERATING | REFINING | DRAFT | FINALIZED
+  contentMd: string;           // flat Markdown content (not nested sections)
+  status: PolicyDraftStatus;
   templateType?: string;
   generationMessage?: string;
-  generationConfig: Record<string, unknown>;
+  generationConfig?: Record<string, any>;
   progressTrackerId?: string;
   currentVersion: number;
   createdBy: string;
   updatedBy: string;
-  createdAt: string;         // ISO 8601
-  updatedAt: string;
-  finalizedAt?: string;
+  createdAt: string;           // ISO-8601
+  updatedAt: string;           // ISO-8601
+  finalizedAt?: string;        // ISO-8601 or null
 }
 
-interface PolicyDraftVersion {
+export interface PolicyDraftVersion {
   versionId: number;
   draftId: number;
   versionNumber: number;
   title: string;
   contentMd: string;
   editSummary: string;
-  generationConfig: Record<string, unknown>;
+  generationConfig?: Record<string, any>;
   createdBy: string;
-  createdAt: string;
+  createdAt: string;           // ISO-8601
 }
 
-interface GenerationConfig {
-  cultureStyle?: string;          // e.g. "professional", "casual"
-  communicationStyle?: string;    // e.g. "formal", "friendly"
+export interface InitDraftRequest {
+  templateType: string;        // references policy_templates.template_type
+}
+
+// Used for both generate and refine actions
+export interface GenerationConfigRequest {
+  cultureStyle?: string;
+  communicationStyle?: string;
   coreValues?: string[];
   policyTones?: string[];
-  instruction?: string;           // free-form additional instruction
+  instruction?: string;
 }
 
-interface InitDraftRequest {
-  templateType: string;
+// Cursor-based pagination for listPolicyDrafts
+export interface ListDraftsQuery {
+  status?: string;             // filter by status
+  pageKey?: string;            // cursor (last draft ID from previous page)
 }
-```
 
-All responses are wrapped in:
+export interface ListDraftsResponse {
+  items: PolicyDraft[];
+  nextPageKey: string | null;  // null when no more pages (page size = 25)
+}
 
-```ts
-interface PolicyResponse<T> {
-  success: boolean;  // always true on success
+// Standard API response wrapper used by most endpoints
+export interface PolicyAPIResponse<T> {
+  success: boolean;
   data: T;
 }
 ```
 
 ---
 
-## List Policy Templates
+## 4. Client Functions
 
-```ts
-async function listPolicyTemplates(): Promise<PolicyTemplate[]> {
-  const res = await orcaFetch("/orcaagents/orca/policy-templates", {
-    headers: headers(),
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error((await res.json()).error);
-  const body = await res.json();
-  return body.data;
-}
-```
+```typescript
+import { orcaFetch } from '../common';
 
----
+const BASE = '/orcaagents/orca';
 
-## List Policy Drafts
+export const policyClient = {
+  /** List available active policy templates. */
+  async listTemplates(): Promise<PolicyTemplate[]> {
+    const res = await orcaFetch<PolicyAPIResponse<PolicyTemplate[]>>(`${BASE}/policy-templates`, {
+      method: 'GET',
+    });
+    return res.data;
+  },
 
-Cursor-based pagination (25 per page). Use the `draftId` of the last item as the next `pageKey`.
+  /** List policy drafts with cursor-based pagination. */
+  async listDrafts(query?: ListDraftsQuery): Promise<ListDraftsResponse> {
+    const params = new URLSearchParams();
+    if (query?.status) params.set('status', query.status);
+    if (query?.pageKey) params.set('pageKey', query.pageKey);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    const res = await orcaFetch<PolicyAPIResponse<ListDraftsResponse>>(`${BASE}/policy-drafts${qs}`, {
+      method: 'GET',
+    });
+    return res.data;
+  },
 
-| Query Param | Type | Description |
-|-------------|------|-------------|
-| `status` | string | Optional filter: `INITIALIZED`, `DRAFT`, `FINALIZED`, etc. |
-| `pageKey` | string | Cursor (last item's `draftId`) for next page |
+  /** Initialize a new policy draft from a template type. */
+  async initDraft(templateType: string): Promise<PolicyDraft> {
+    const res = await orcaFetch<PolicyAPIResponse<PolicyDraft>>(`${BASE}/policy-drafts/init`, {
+      method: 'POST',
+      body: JSON.stringify({ templateType }),
+    });
+    return res.data;
+  },
 
-```ts
-async function listPolicyDrafts(params?: {
-  status?: string;
-  pageKey?: string;
-}): Promise<PolicyDraft[]> {
-  const p = new URLSearchParams();
-  if (params?.status) p.set("status", params.status);
-  if (params?.pageKey) p.set("pageKey", params.pageKey);
-  const qs = p.toString() ? `?${p}` : "";
-  const res = await orcaFetch(`/orcaagents/orca/policy-drafts${qs}`, {
-    headers: headers(),
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error((await res.json()).error);
-  const body = await res.json();
-  return body.data;
-}
-```
+  /** Get draft by ID. */
+  async getDraft(draftId: number): Promise<PolicyDraft> {
+    const res = await orcaFetch<PolicyAPIResponse<PolicyDraft>>(`${BASE}/policy-drafts/${draftId}`, {
+      method: 'GET',
+    });
+    return res.data;
+  },
 
----
+  /** Soft-delete a policy draft. */
+  async deleteDraft(draftId: number): Promise<void> {
+    await orcaFetch(`${BASE}/policy-drafts/${draftId}`, { method: 'DELETE' });
+  },
 
-## Initialise Policy Draft
-
-```ts
-async function initPolicyDraft(
-  templateType: string
-): Promise<PolicyDraft> {
-  const res = await orcaFetch("/orcaagents/orca/policy-drafts/init", {
-    method: "POST",
-    headers: headers(),
-    credentials: "include",
-    body: JSON.stringify({ templateType }),
-  });
-  if (!res.ok) throw new Error((await res.json()).error);
-  const body = await res.json();
-  return body.data;
-}
-```
-
----
-
-## Get Policy Draft
-
-```ts
-async function getPolicyDraft(draftId: number): Promise<PolicyDraft> {
-  const res = await orcaFetch(`/orcaagents/orca/policy-drafts/${draftId}`, {
-    headers: headers(),
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error((await res.json()).error);
-  const body = await res.json();
-  return body.data;
-}
-```
-
----
-
-## Delete Policy Draft (soft-delete)
-
-```ts
-async function deletePolicyDraft(draftId: number): Promise<void> {
-  const res = await orcaFetch(`/orcaagents/orca/policy-drafts/${draftId}`, {
-    method: "DELETE",
-    headers: headers(),
-    credentials: "include",
-  });
-  if (!res.ok) throw new Error((await res.json()).error);
-}
-```
-
----
-
-## Generate Draft (AI)
-
-Returns `202 Accepted`. Generation runs asynchronously (up to 5 minutes). Poll `GET /policy-drafts/{id}` to check when `status` becomes `DRAFT` (success) or remains `DRAFT` after a failed generation.
-
-```ts
-async function generatePolicyDraft(
-  draftId: number,
-  config: GenerationConfig
-): Promise<void> {
-  const res = await orcaFetch(
-    `/orcaagents/orca/policy-drafts/${draftId}/actions/generate`,
-    {
-      method: "POST",
-      headers: headers(),
-      credentials: "include",
+  /** Start AI generation (async, returns 202). */
+  async generateDraft(draftId: number, config: GenerationConfigRequest): Promise<void> {
+    await orcaFetch(`${BASE}/policy-drafts/${draftId}/actions/generate`, {
+      method: 'POST',
       body: JSON.stringify(config),
-    }
-  );
-  if (!res.ok) throw new Error((await res.json()).error);
-}
-```
+    });
+  },
 
----
-
-## Refine Draft (AI)
-
-Returns `202 Accepted`. Uses the current draft content plus the `GenerationConfig` to produce a refined version. A new version row is created on success.
-
-```ts
-async function refinePolicyDraft(
-  draftId: number,
-  config: GenerationConfig
-): Promise<void> {
-  const res = await orcaFetch(
-    `/orcaagents/orca/policy-drafts/${draftId}/actions/refine`,
-    {
-      method: "POST",
-      headers: headers(),
-      credentials: "include",
+  /** Start AI refinement (async, returns 202). Uses same body as generate. */
+  async refineDraft(draftId: number, config: GenerationConfigRequest): Promise<void> {
+    await orcaFetch(`${BASE}/policy-drafts/${draftId}/actions/refine`, {
+      method: 'POST',
       body: JSON.stringify(config),
-    }
-  );
-  if (!res.ok) throw new Error((await res.json()).error);
-}
+    });
+  },
+
+  /** Finalize a policy draft (must be in DRAFT status). */
+  async finalizeDraft(draftId: number): Promise<void> {
+    await orcaFetch(`${BASE}/policy-drafts/${draftId}/actions/finalize`, { method: 'POST' });
+  },
+
+  /** List version history for a draft. */
+  async listVersions(draftId: number): Promise<PolicyDraftVersion[]> {
+    const res = await orcaFetch<PolicyAPIResponse<PolicyDraftVersion[]>>(
+      `${BASE}/policy-drafts/${draftId}/versions`,
+      { method: 'GET' },
+    );
+    return res.data;
+  },
+
+  /** Restore draft to a previous version. */
+  async restoreVersion(draftId: number, version: number): Promise<void> {
+    await orcaFetch(`${BASE}/policy-drafts/${draftId}/versions/${version}/actions/restore`, {
+      method: 'POST',
+    });
+  },
+
+  /** Download the policy draft as a PDF blob. */
+  async downloadPDF(draftId: number): Promise<Blob> {
+    const res = await fetch(`${BASE}/policy-drafts/${draftId}/export/pdf`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${localStorage.getItem('orca_token') || ''}` },
+    });
+    if (!res.ok) throw new Error(`PDF export failed: ${res.statusText}`);
+    return res.blob();
+  },
+};
 ```
 
 ---
 
-## Finalize Draft
+## 5. Query & Path Parameters
 
-Locks the draft. Only drafts in `DRAFT` status can be finalized.
-
-```ts
-async function finalizePolicyDraft(draftId: number): Promise<void> {
-  const res = await orcaFetch(
-    `/orcaagents/orca/policy-drafts/${draftId}/actions/finalize`,
-    {
-      method: "POST",
-      headers: headers(),
-      credentials: "include",
-    }
-  );
-  if (!res.ok) throw new Error((await res.json()).error);
-}
-```
+| Operation | Path Params | Query Params | Notes |
+|---|---|---|---|
+| `listPolicyDrafts` | — | `status` (optional filter), `pageKey` (cursor) | Cursor-based pagination, page size = 25. `nextPageKey` is null when exhausted. |
+| `initPolicyDraft` | — | — | Body: `{ templateType: string }` — must match an active template's `template_type` |
+| `getPolicyDraft` / `deletePolicyDraft` | `{id}` (int64) | — | — |
+| `generatePolicyDraft` / `refinePolicyDraft` | `{id}` (int64) | — | Body: `GenerationConfigRequest`. Returns 202 immediately. |
+| `finalizePolicyDraft` | `{id}` (int64) | — | Only works when draft status is `DRAFT` |
+| `listPolicyDraftVersions` | `{id}` (int64) | — | Returns versions sorted descending by `versionNumber` |
+| `restorePolicyDraftVersion` | `{id}` (int64), `{version}` (int) | — | Creates a new version snapshot |
+| `exportPolicyDraftPDF` | `{id}` (int64) | — | Returns binary PDF |
 
 ---
 
-## List Draft Versions
+## 6. SSE / Binary
 
-Returns all versions, newest first. Each version is an immutable snapshot of content + config.
-
-```ts
-async function listPolicyDraftVersions(
-  draftId: number
-): Promise<PolicyDraftVersion[]> {
-  const res = await orcaFetch(
-    `/orcaagents/orca/policy-drafts/${draftId}/versions`,
-    { headers: headers(), credentials: "include" }
-  );
-  if (!res.ok) throw new Error((await res.json()).error);
-  const body = await res.json();
-  return body.data;
-}
-```
+- **PDF Export**: `GET /orca/policy-drafts/{id}/export/pdf` returns `application/pdf` binary with `Content-Disposition: attachment; filename="POL-XXXXX.pdf"`.
+- No SSE endpoints. AI generation/refinement runs as background goroutines; poll the draft's `status` field to detect completion (`GENERATING`/`REFINING` → `DRAFT`).
 
 ---
 
-## Restore Draft Version
+## 7. Error Scenarios
 
-Restores the draft to the content of a previous version. Creates a new version row as a snapshot of the restored state.
-
-```ts
-async function restorePolicyDraftVersion(
-  draftId: number,
-  versionNumber: number
-): Promise<void> {
-  const res = await orcaFetch(
-    `/orcaagents/orca/policy-drafts/${draftId}/versions/${versionNumber}/actions/restore`,
-    {
-      method: "POST",
-      headers: headers(),
-      credentials: "include",
-    }
-  );
-  if (!res.ok) throw new Error((await res.json()).error);
-}
-```
-
----
-
-## Export Draft as PDF
-
-Streams a PDF file. The response `Content-Type` is `application/pdf` and `Content-Disposition` is `attachment; filename="<friendlyId>.pdf"`.
-
-```ts
-async function exportPolicyDraftPDF(draftId: number): Promise<Blob> {
-  const res = await orcaFetch(
-    `/orcaagents/orca/policy-drafts/${draftId}/export/pdf`,
-    { headers: headers(), credentials: "include" }
-  );
-  if (!res.ok) throw new Error((await res.json()).error);
-  return res.blob();
-}
-```
-
----
-
-## Error Scenarios
-
-| Status | Condition |
-|--------|-----------|
-| `400` | Invalid draft ID, invalid JSON body, template not found or inactive, draft has no template type (generate) |
-| `401` | Not authenticated |
-| `404` | Draft not found (not in caller's workspace or soft-deleted), version not found |
-| `409` | Generation or refinement already in progress (`GENERATING` / `REFINING` status) |
-| `500` | Database error, AI generation failure (logged server-side) |
+| Scenario | HTTP Status | Details |
+|---|---|---|
+| Unauthenticated | 401 | Missing or invalid JWT |
+| Draft not found | 404 | `draft not found` |
+| Draft not found or wrong status (finalize) | 404 | `draft not found or not in DRAFT status` |
+| Template not found or inactive (init) | 400 | `template not found or inactive` |
+| Missing templateType (init) | 400 | `templateType is required` |
+| Generation already in progress | 409 | `generation already in progress` (status is GENERATING or REFINING) |
+| Draft has no template type (generate) | 400 | `draft has no template type` |
+| Invalid pageKey | 400 | `invalid pageKey` (must be numeric) |
+| Version not found (restore) | 404 | `version not found` |

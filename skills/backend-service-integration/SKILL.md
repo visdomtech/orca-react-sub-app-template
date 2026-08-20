@@ -1,187 +1,218 @@
 # OrcaAgents Backend Service Skills
 
-> Comprehensive guide for connecting to and integrating with the OrcaAgents backend service.
+> Comprehensive developer guide and TypeScript integration reference for the OrcaAgents backend platform.
 
 ---
 
-## Overview
+## 1. Overview
 
-The OrcaAgents backend exposes REST endpoints under `/orcaagents/*` for frontend and third-party integrations. All JSON APIs require JWT authentication (via cookie or `Authorization: Bearer` header) unless noted otherwise.
+The OrcaAgents backend exposes typed REST APIs and SSE streams under `/orcaagents/*` for frontend single-page applications and client services. All JSON APIs require JWT authentication (via cookie or `Authorization: Bearer` header) unless explicitly documented otherwise.
 
-**Base URL pattern:** `https://{host}/orcaagents/{service}/{resource}`
+**Base URL Pattern:** `https://{host}/orcaagents/{service}/{resource}`
 
-**Frontend SPA:** Served separately at `/ng` (unauthenticated, CDN-proxied).
-
----
-
-## Service Index
-
-| # | Service | Route Prefix | Skill Guide | Purpose |
-|---|---------|-------------|-------------|---------|
-| 1 | [Authentication](authentication/SKILL.md) | `/orcaagents/auth` | `authentication/SKILL.md` | Retrieve authenticated user info |
-| 2 | [Access Management](access-management/SKILL.md) | `/orcaagents/access` | `access-management/SKILL.md` | User CRUD, roles, sessions, MFA, impersonation (admin only, proxied to auth-go) |
-| 3 | [Document Storage (DB)](document-storage/SKILL.md) | `/orcaagents/db` | `document-storage/SKILL.md` | Firestore-backed document CRUD with workspace and user scopes |
-| 4 | [Agent Runtime (App)](agent-runtime/SKILL.md) | `/orcaagents/app` | `agent-runtime/SKILL.md` | Run agents with SSE streaming, list agents/sessions |
-| 5 | [App Registry](app-registry/SKILL.md) | `/orcaagents/appregistry` | `app-registry/SKILL.md` | App descriptor CRUD, workspace enable/disable, Cloud Build deployment |
-| 6 | [Approval Engine](approval-engine/SKILL.md) | `/orcaagents/approval` | `approval-engine/SKILL.md` | Multi-phase approval workflows, definitions, approver management |
-| 7 | [Workflow](workflow/SKILL.md) | `/orcaagents/workflow` | `workflow/SKILL.md` | Email sending via Mailgun |
-| 8 | [Background Jobs](background-jobs/SKILL.md) | `/orcaagents/jobs` | `background-jobs/SKILL.md` | River-backed job status tracking and listing |
-| 9 | [Files](files/SKILL.md) | `/orcaagents/files` | `files/SKILL.md` | GCS file upload/download with signed URLs |
-| 10 | [Feature Flags](feature-flags/SKILL.md) | `/orcaagents/featureflags` | `feature-flags/SKILL.md` | Workspace-level feature and module flag toggles |
-| 11 | [Feature Progress](feature-progress/SKILL.md) | `/orcaagents/featureprogress` | `feature-progress/SKILL.md` | Onboarding feature adoption tracking |
-| 12 | [Jurisdictions](jurisdictions/SKILL.md) | `/orcaagents/jurisdictions` | `jurisdictions/SKILL.md` | Legal jurisdiction CRUD (federal/state/city hierarchy) |
-| 13 | [RAG Agent Configs](rag-agents/SKILL.md) | `/orcaagents/ragagent` | `rag-agents/SKILL.md` | Custom RAG agent configuration CRUD |
-| 14 | [Vertex AI](vertex-ai/SKILL.md) | `/orcaagents/vertexai` | `vertex-ai/SKILL.md` | Vertex AI RAG corpus management and file sync |
-| 15 | [Admin](admin/SKILL.md) | `/orcaagents/admin` | `admin/SKILL.md` | System hot-reload and prompt cache management |
-| 16 | [Audit Log](audit-log/SKILL.md) | `/orcaagents/audit` | `audit-log/SKILL.md` | Workspace-scoped audit trail (admin-only read, tx-aware logging from Go/SQL) |
-| 17 | [Regulations](regulations/SKILL.md) | `/orcaagents/regulations` | `regulations/SKILL.md` | Source-of-truth regulation records with batch upload + AI extraction pipeline |
-| 18 | [Policy](policy/SKILL.md) | `/orcaagents/orca` | `policy/SKILL.md` | AI-powered policy draft generation, refinement, versioning, and PDF export |
-| 19 | [Notifications](notifications/SKILL.md) | `/orcaagents/notification` | `notifications/SKILL.md` | OAuth2 channel connection and notification sending |
-| 20 | [Render Configs](render-configs/SKILL.md) | `/orcaagents/renderconfig` | `render-configs/SKILL.md` | JsonLogic-based render configurations for agent output UI |
-| 21 | [Digital Sign](digital-sign/SKILL.md) | `/orcaagents/esign` | `digital-sign/SKILL.md` | Send workspace files for digital signature via Dropbox Sign or Adobe Acrobat Sign |
+**Frontend SPA:** Served at `/ng` (CDN-proxied single-page application).
 
 ---
 
-## Base URL & Authentication
+## 2. Service Index
 
-All endpoints (except `/ng` frontend) require a valid JWT. The JWT can be provided via:
+All backend services are organized 1:1 by their sublauncher keyword:
 
-- **Cookie**: The `s` cookie (production) or any cookie containing a valid JWT
-- **Authorization header**: `Authorization: Bearer <token>`
+| # | Service Keyword | Route Prefix | Skill Guide | Description |
+|---|-----------------|--------------|-------------|-------------|
+| 1 | `access` | `/orcaagents/access` | [`access/SKILL.md`](access/SKILL.md) | User management, roles, sessions, MFA, and auth-go administration |
+| 2 | `admin` | `/orcaagents/admin` | [`admin/SKILL.md`](admin/SKILL.md) | System hot-reload, prompt cache management, and slog log level control |
+| 3 | `app` | `/orcaagents/app` | [`app/SKILL.md`](app/SKILL.md) | Real-time agent runtime execution with SSE streaming and session listings |
+| 4 | `appregistry` | `/orcaagents/appregistry` | [`appregistry/SKILL.md`](appregistry/SKILL.md) | Workspace app descriptor catalog, app lifecycle, and Cloud Build deployments |
+| 5 | `approval` | `/orcaagents/approval` | [`approval/SKILL.md`](approval/SKILL.md) | Multi-phase polymorphic approval workflows, approver management, and audit trails |
+| 6 | `audit` | `/orcaagents/audit` | [`audit/SKILL.md`](audit/SKILL.md) | Workspace-scoped compliance audit log querying and export |
+| 7 | `auth` | `/orcaagents/auth` | [`auth/SKILL.md`](auth/SKILL.md) | Current authenticated user claims and workspace resolution |
+| 8 | `bamboohr` | `/orcaagents/bamboohr` | [`bamboohr/SKILL.md`](bamboohr/SKILL.md) | BambooHR HRIS integration — connection management and employee directory |
+| 9 | `db` | `/orcaagents/db` | [`db/SKILL.md`](db/SKILL.md) | Scoped Firestore document storage with workspace and user isolation |
+| 10 | `deel` | `/orcaagents/deel` | [`deel/SKILL.md`](deel/SKILL.md) | Deel HRIS integration — connection management and employee retrieval |
+| 11 | `featureflags` | `/orcaagents/featureflags` | [`featureflags/SKILL.md`](featureflags/SKILL.md) | Workspace-level feature flags, toggles, and rollout controls |
+| 12 | `featureprogress` | `/orcaagents/featureprogress` | [`featureprogress/SKILL.md`](featureprogress/SKILL.md) | Onboarding checklist tracking and feature adoption progress |
+| 13 | `files` | `/orcaagents/files` | [`files/SKILL.md`](files/SKILL.md) | File metadata persistence and Google Cloud Storage signed URL generation |
+| 14 | `frontend` | `/ng` | [`frontend/SKILL.md`](frontend/SKILL.md) | CDN-hosted React SPA serving, version management, and CSP nonce injection |
+| 15 | `governance` | `/orcaagents/orca/governance` | [`governance/SKILL.md`](governance/SKILL.md) | AI governance rules, risk assessments, and compliance constraints |
+| 16 | `gusto` | `/orcaagents/gusto` | [`gusto/SKILL.md`](gusto/SKILL.md) | Gusto HRIS integration — OAuth2 connection flow and employee retrieval |
+| 17 | `headcount` | `/orcaagents/headcount` | [`headcount/SKILL.md`](headcount/SKILL.md) | Headcount data engine, 3-phase CSV import, org tree, and requisitions |
+| 18 | `health` | `/orcaagents/healthz` | [`health/SKILL.md`](health/SKILL.md) | Unauthenticated liveness and readiness probe endpoint |
+| 19 | `hibob` | `/orcaagents/hibob` | [`hibob/SKILL.md`](hibob/SKILL.md) | HiBob HRIS integration — connection management and employee retrieval |
+| 20 | `jobs` | `/orcaagents/jobs` | [`jobs/SKILL.md`](jobs/SKILL.md) | River background job queue status tracking and inspection |
+| 21 | `jurisdiction` | `/orcaagents/jurisdictions` | [`jurisdiction/SKILL.md`](jurisdiction/SKILL.md) | US employment-law jurisdiction tree (Federal, State, City) |
+| 22 | `mcp` | `/orcaagents/mcp` | [`mcp/SKILL.md`](mcp/SKILL.md) | MCP streamable HTTP endpoint with `regulation_qa` tool for AI agent clients |
+| 23 | `notification` | `/orcaagents/notification` | [`notification/SKILL.md`](notification/SKILL.md) | Slack OAuth2 integration and transactional notifications |
+| 24 | `objects` | `/orcaagents/objects` | [`objects/SKILL.md`](objects/SKILL.md) | Generic dynamic object datamodel, variants, schema rules, and layout editor |
+| 25 | `personio` | `/orcaagents/personio` | [`personio/SKILL.md`](personio/SKILL.md) | Personio HRIS integration — connection management and employee retrieval |
+| 26 | `policy` | `/orcaagents/orca` | [`policy/SKILL.md`](policy/SKILL.md) | Multi-turn AI policy generation, drafting, versioning, and PDF export |
+| 27 | `proxy` | `/orcaagents/proxy` | [`proxy/SKILL.md`](proxy/SKILL.md) | External HTTP forwarding proxy and RSS feed aggregation |
+| 28 | `ragagent` | `/orcaagents/ragagent` | [`ragagent/SKILL.md`](ragagent/SKILL.md) | Dynamic RAG agent configurations with metadata filters |
+| 29 | `regulation` | `/orcaagents/regulations` | [`regulation/SKILL.md`](regulation/SKILL.md) | Canonical labor regulations repository with AI batch multimodal ingestion |
+| 30 | `renderconfig` | `/orcaagents/renderconfig` | [`renderconfig/SKILL.md`](renderconfig/SKILL.md) | JsonLogic render configurations for dynamic agent event presentation |
+| 31 | `rippling` | `/orcaagents/rippling` | [`rippling/SKILL.md`](rippling/SKILL.md) | Rippling HRIS integration — connection management and employee retrieval |
+| 32 | `structuredlaw` | `/orcaagents/structuredlaw` | [`structuredlaw/SKILL.md`](structuredlaw/SKILL.md) | Structured statutory legal rules, exposure nodes, and citations |
+| 33 | `vertexai` | `/orcaagents/vertexai` | [`vertexai/SKILL.md`](vertexai/SKILL.md) | Google Vertex AI RAG corpus metadata mirror and sync pipeline |
+| 34 | `workday` | `/orcaagents/workday` | [`workday/SKILL.md`](workday/SKILL.md) | Workday HRIS integration — connection management and worker retrieval |
+| 35 | `workflow` | `/orcaagents/workflow` | [`workflow/SKILL.md`](workflow/SKILL.md) | Transactional email delivery via Mailgun |
 
-### Development Access
+### Cross-Cutting Guides
 
-In local development, requests from `localhost:8080` are automatically granted a dev JWT with system admin privileges. For dev/staging environments, inject the `X-doublefin-api-key` header with the appropriate API key.
+These guides span multiple services and explain shared concepts rather than a single sublauncher:
 
-### Fetch Wrapper (`orcaFetch`)
+| Guide | Description |
+|-------|-------------|
+| [`datamodel/SKILL.md`](datamodel/SKILL.md) | Datamodel concepts (scopes, objects, attributes), the shared global `employee` object, ReBAC visibility model, and employee list/filter usage — read before integrating with `objects` or `headcount` |
 
-Use this wrapper everywhere instead of calling `fetch` directly. It transparently routes requests through the dev API when not running on a production domain.
+---
 
-- **Production** (`*.doublefin.com`): calls are passed through to the native `fetch` with no modifications (JWT is in the `s` cookie).
-- **Development** (localhost, etc.): the request URL is prepended with the dev API base URL, and the `X-doublefin-api-key` header is injected for authentication.
+## 3. Base URL & Authentication
+
+All API endpoints (except public assets and `/ng`) require a valid JWT token. The token can be passed via:
+
+- **Cookie**: The HTTP-only `s` session cookie (default in browser production).
+- **Authorization Header**: `Authorization: Bearer <jwt-token>` (for CLI / third-party clients).
+
+### 3.1 Fetch Wrapper (`orcaFetch`)
+
+Use this typed wrapper across all client implementations. It handles local development proxying, API key injection, and production same-origin requests transparently.
 
 ```ts
-const DEV_API_BASE = "https://devorcaapi.doublefin.com";
-const DEV_API_KEY = "your api key connects to devorcaapi.doublefin.com";
+const DEV_API_BASE = "https://<your-dev-api-host>";
+const DEV_API_KEY = "<your-dev-api-key>";
 
 /**
- * Whether the current page is served from a *.doublefin.com production domain.
- * When true, requests go directly to the same origin (no proxying).
+ * Checks whether the application is running in a production environment.
  */
-function isProduction(): boolean {
-  return window.location.host.endsWith(".doublefin.com");
+export function isProduction(): boolean {
+  return typeof window !== "undefined" && window.location.host.endsWith(".doublefin.com");
 }
 
 /**
- * Default request headers.
- * In production, no special headers are needed (JWT is in the `s` cookie).
- * In development, the `X-doublefin-api-key` header is injected automatically.
+ * Standard JSON headers.
  */
-function headers(): Record<string, string> {
+export function headers(): Record<string, string> {
   return {
     "Content-Type": "application/json",
   };
 }
 
 /**
- * Fetch wrapper that transparently routes requests through the dev API
- * when not running on a production domain.
- *
- * - Production (*.doublefin.com): calls are passed through to the native
- *   `fetch` with no modifications.
- * - Development (localhost, etc.): the request URL is prepended with the
- *   dev API base URL, and the `X-doublefin-api-key` header is injected
- *   for authentication.
- *
- * Use this wrapper everywhere instead of calling `fetch` directly.
- *
- * @example
- * // Works in both production and development automatically:
- * const res = await orcaFetch("/orcaagents/db/workspace/doc/read", {
- *   method: "POST",
- *   headers: headers(),
- *   credentials: "include",
- *   body: JSON.stringify({ docId: "apps/myapp" }),
- * });
+ * Unified fetch client for OrcaAgents APIs.
  */
-async function orcaFetch(
+export async function orcaFetch(
   path: string,
   init?: RequestInit
 ): Promise<Response> {
   if (isProduction()) {
-    // Same-origin request — pass through unchanged
     return fetch(path, init);
   }
 
-  // Development: proxy to dev API, inject auth header, and strip credentials
-  // (cross-origin cookie auth doesn't apply — the API key header handles it)
+  // Development environment proxying:
   const url = `${DEV_API_BASE}${path}`;
   const { credentials: _unused, ...rest } = init ?? {};
-  const devHeaders = {
+  const devHeaders: Record<string, string> = {
     ...(rest.headers as Record<string, string>),
     "X-doublefin-api-key": DEV_API_KEY,
   };
+
   return fetch(url, { ...rest, headers: devHeaders });
 }
 ```
 
 ---
 
-## Role-Based Access
+## 4. Real-Time SSE Stream Consumption (`orcaEventStream`)
 
-| Role | Access Level |
-|------|-------------|
-| **System Admin** | Full system access, all admin endpoints |
-| **Customer Admin** | Workspace-scoped admin operations (app registry, feature flags, etc.) |
-| **Authenticated User** | Read operations, user-scoped writes, approval participation |
+For long-lived streaming endpoints (e.g. `POST /orcaagents/app/run`), consume Server-Sent Events using this async generator:
 
-Admin-only endpoints are gated by `RequireAdmin()` middleware or inline `claims.IsAdmin()` checks.
+```ts
+export interface SSEEvent {
+  event: string;
+  data: string;
+}
 
----
+/**
+ * Consumes an SSE stream as an asynchronous iterable of events.
+ */
+export async function* orcaEventStream(
+  path: string,
+  body: unknown,
+  signal?: AbortSignal
+): AsyncGenerator<SSEEvent, void, unknown> {
+  const res = await orcaFetch(path, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify(body),
+    signal,
+  });
 
-## Error Handling
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(errorBody.error || `HTTP ${res.status}`);
+  }
 
-All endpoints return errors in a consistent JSON shape:
+  const reader = res.body?.getReader();
+  if (!reader) throw new Error("Response body is not readable");
 
-```json
-{ "error": "human-readable error message" }
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      let currentEvent = "message";
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        if (trimmed.startsWith("event:")) {
+          currentEvent = trimmed.slice(6).trim();
+        } else if (trimmed.startsWith("data:")) {
+          const data = trimmed.slice(5).trim();
+          if (data === "[DONE]") return;
+          yield { event: currentEvent, data };
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+}
 ```
 
-| Status | Meaning |
-|--------|---------|
-| `400` | Bad Request — missing or malformed request body |
-| `401` | Unauthorized — JWT missing, invalid, or expired |
-| `403` | Forbidden — caller lacks required permission |
-| `404` | Not Found — resource does not exist |
-| `409` | Conflict — duplicate item or invalid state transition |
-| `500` | Internal Error — unexpected server error |
-| `502` | Bad Gateway — upstream service failure |
+---
+
+## 5. Role-Based Access Control (RBAC)
+
+| Role | Scope | Permitted Capabilities |
+|------|-------|------------------------|
+| **System Admin** | Global / Platform-wide | LLM hot-reload, log level adjustment, global feature flags, full cross-tenant read/write |
+| **Customer Admin** | Workspace | App registry config, workspace feature toggles, user/role assignment, CSV mapping & ingestion |
+| **Authenticated User** | Workspace / User | Chat execution, document storage, reading assigned records, participating in approval workflows |
 
 ---
 
-## Cross-Cutting Concerns
+## 6. Error Handling Standard
 
-### Workspace Scoping
+All backend endpoints format errors as:
 
-Most services scope data to the caller's workspace (`claims.WorkspaceID`). Non-admin users can only access resources within their workspace.
+```json
+{
+  "error": "human-readable description of the error"
+}
+```
 
-### CORS
+Standard error consumption pattern:
 
-All endpoints include permissive CORS headers (`Access-Control-Allow-Origin: *`). Preflight `OPTIONS` requests are answered with `200`.
-
-### Content Type
-
-All request and response bodies use `application/json` unless otherwise specified (e.g., file download logs use `text/plain`).
-
----
-
-## How to Use These Skills
-
-Each skill document provides:
-1. **Service overview** — what the service does and when to use it
-2. **Endpoint reference** — complete list of endpoints with methods, paths, and descriptions
-3. **Request/response examples** — TypeScript code snippets showing how to call each endpoint
-4. **TypeScript types** — interface definitions for request/response payloads
-5. **Error scenarios** — service-specific error conditions and their HTTP status codes
-
-Start with the service index table above, then drill into the specific skill guide for the service you need to integrate with.
+```ts
+if (!res.ok) {
+  const errorData = await res.json().catch(() => ({ error: "Unknown error occurred" }));
+  throw new Error(errorData.error || `Request failed with status ${res.status}`);
+}
+```
