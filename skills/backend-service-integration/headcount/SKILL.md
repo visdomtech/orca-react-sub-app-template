@@ -16,7 +16,8 @@ The **Headcount Service** is the central workforce planning and organization hie
 - **Base URL**: Set via `ORCA_API_BASE` or defaults to `/orcaagents/headcount`
 - **Auth & RBAC**:
   - Employee/Requisition/OrgTree reads: Authenticated workspace users (visibility filtering applies based on relationships & access rules)
-  - Write/Mutation endpoints: Require **`ADMIN`** or **`SYSTEM_ADMIN`** role (`requireHeadcountAdmin`)
+  - Write/Mutation endpoints: Require **`CUSTOMER_ADMIN`** or **`SYSTEM_ADMIN`** role (`requireHeadcountAdmin`)
+  - **Uniform rule**: All POST/PUT/PATCH/DELETE endpoints under `/headcount` require admin, including `map-one` (preview) and `/admin/*` GET endpoints (e.g. `headcountGetMappingTargetFields`)
 - **Key Sub-Domains**:
   1. **Org Hierarchy & Employees**: Tree calculation, employee records, multi-assignment job history
   2. **Requisitions**: Job requisitions, approval status transitions
