@@ -1,6 +1,6 @@
 const DEFAULT_TIMEOUT = 30_000;
 const DEV_API_BASE = "https://devorcaapi.doublefin.com";
-const DEV_API_KEY = "mgyyywu3ntetnzizms00yjfkltkwmwetmwrlmduzzjzmztmw";
+const DEV_API_KEY = "fill with your doublefin orca api key";
 
 export class HttpError extends Error {
   response?: { code?: string; message?: string; error?: string };
