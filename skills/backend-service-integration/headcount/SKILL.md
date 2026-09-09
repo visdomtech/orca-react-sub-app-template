@@ -1,6 +1,6 @@
 ---
 name: headcount-service-integration
-description: "Integrate with the Orca Headcount & Organization Management API (`/orcaagents/headcount`). See endpoint table for full operation list."
+description: "Integrate with the Orca Headcount & Organization Management API (`/orcaagents/headcount`). CSV import pipeline, org tree, requisitions, FX rates, taxonomies. Shared datamodel endpoints (employee list, ReBAC, scopes, custom attributes, object types) delegate to the Datamodel Guide."
 compatibility: "Orcaagents backend v2+ (Huma OpenAPI compliant)"
 ---
 
@@ -13,7 +13,6 @@ The **Headcount Service** is the central workforce planning and organization hie
 ## 1. Overview & Scope
 
 - **Route Prefix**: `/orcaagents/headcount`
-- **Base URL**: Set via `ORCA_API_BASE` or defaults to `/orcaagents/headcount`
 - **Auth & RBAC**:
   - Employee/Requisition/OrgTree reads: Authenticated workspace users (visibility filtering applies based on relationships & access rules)
   - Write/Mutation endpoints: Require **`CUSTOMER_ADMIN`** or **`SYSTEM_ADMIN`** role (`requireHeadcountAdmin`)
@@ -28,16 +27,39 @@ The **Headcount Service** is the central workforce planning and organization hie
 
 ---
 
-## 2. Endpoint Reference Table
+## 2. Cross-References
+
+Many headcount endpoints are shared infrastructure with the datamodel layer.
+For canonical documentation (SQL schema, semantics, worked examples), see:
+
+| Endpoint Group | Canonical Reference |
+|---|---|
+| Employee list & filters | [`datamodel/employee-list.md`](../datamodel/employee-list.md) |
+| Relationship types, access rules, item relationships | [`datamodel/rebac.md`](../datamodel/rebac.md) |
+| Scoped object records, custom attributes, object types | [`datamodel/scoped-object-crud.md`](../datamodel/scoped-object-crud.md) |
+| Employee schema, native fields, identity link | [`datamodel/employee-object.md`](../datamodel/employee-object.md) |
+
+---
+
+## 3. Endpoint Reference Table
+
+Endpoints marked *(→ datamodel)* are canonically documented in the linked datamodel guide; the row is retained here for route completeness.
+
+### Org Hierarchy & Employees
 
 | Method | Path | Operation ID | Summary |
 |---|---|---|---|
 | `GET` | `/orcaagents/headcount/org-tree` | `headcountGetOrgTree` | Get organizational hierarchy tree |
-| `GET` | `/orcaagents/headcount/employees` | `headcountListEmployees` | List employees with visibility scoping |
-| `GET` | `/orcaagents/headcount/employees/managers` | `headcountListManagerCodes` | List employee codes of managers |
-| `GET` | `/orcaagents/headcount/employees/{employeeCode}` | `headcountGetEmployee` | Get employee by code |
+| `GET` | `/orcaagents/headcount/employees` | `headcountListEmployees` | List employees with visibility scoping *(→ [employee-list.md](../datamodel/employee-list.md))* |
+| `GET` | `/orcaagents/headcount/employees/managers` | `headcountListManagerCodes` | List employee codes of managers *(→ [employee-list.md §4](../datamodel/employee-list.md#4-related-read-endpoints))* |
+| `GET` | `/orcaagents/headcount/employees/{employeeCode}` | `headcountGetEmployee` | Get employee by code *(→ [employee-list.md §4](../datamodel/employee-list.md#4-related-read-endpoints))* |
 | `POST` | `/orcaagents/headcount/employees` | `headcountCreateEmployee` | Create a new employee with allocation |
 | `POST` | `/orcaagents/headcount/employees/{employeeCode}/assignments` | `headcountCreateAssignment` | Create a new job assignment |
+
+### 3-Phase CSV Import Pipeline
+
+| Method | Path | Operation ID | Summary |
+|---|---|---|---|
 | `POST` | `/orcaagents/headcount/imports/csv` | `headcountUploadCSV` | Upload and stage CSV file for import |
 | `POST` | `/orcaagents/headcount/imports/csv/{id}/process` | `headcountProcessCSVImport` | Enqueue CSV processing (legacy pipeline) |
 | `POST` | `/orcaagents/headcount/imports/csv/{id}/map` | `headcountMapCSVImport` | Enqueue CSV map phase |
@@ -50,12 +72,23 @@ The **Headcount Service** is the central workforce planning and organization hie
 | `GET` | `/orcaagents/headcount/imports/csv` | `headcountListCSVImports` | List CSV imports for workspace |
 | `GET` | `/orcaagents/headcount/imports/csv/{id}/records` | `headcountListCSVImportRecords` | List raw CSV import records |
 | `POST` | `/orcaagents/headcount/imports/csv/{id}/retry` | `headcountRetryCSVImport` | Retry CSV import error rows |
+| `GET` | `/orcaagents/headcount/imports/csv/{id}/download` | `headcountDownloadCSVImport` | Get signed download URL for the original CSV file |
 | `GET` | `/orcaagents/headcount/admin/mapping-target-fields` | `headcountGetMappingTargetFields` | Get mapping target fields for an object type |
 | `GET` | `/orcaagents/headcount/imports/csv/{id}/source-fields` | `headcountGetSourceFields` | Get source headers/fields from CSV |
 | `PUT` | `/orcaagents/headcount/imports/csv/{id}/mapping` | `headcountSaveImportMapping` | Save field mapping configuration |
+
+### Requisitions
+
+| Method | Path | Operation ID | Summary |
+|---|---|---|---|
 | `POST` | `/orcaagents/headcount/requisitions` | `headcountCreateRequisition` | Create a new job requisition |
 | `GET` | `/orcaagents/headcount/requisitions` | `headcountListRequisitions` | List job requisitions |
 | `POST` | `/orcaagents/headcount/requisitions/{reqCode}/transition` | `headcountTransitionRequisition` | Transition requisition status |
+
+### Relationships & Access Rules *(→ [rebac.md](../datamodel/rebac.md))*
+
+| Method | Path | Operation ID | Summary |
+|---|---|---|---|
 | `GET` | `/orcaagents/headcount/employees/{employeeCode}/relationships` | `headcountGetEmployeeRelationships` | Get relationships for an employee |
 | `POST` | `/orcaagents/headcount/employees/{employeeCode}/relationships` | `headcountAssignEmployeeRelationship` | Assign a relationship to an employee |
 | `GET` | `/orcaagents/headcount/departments/{departmentCode}/relationships` | `headcountGetDepartmentRelationships` | Get relationships for a department |
@@ -67,19 +100,29 @@ The **Headcount Service** is the central workforce planning and organization hie
 | `GET` | `/orcaagents/headcount/admin/access-rules` | `headcountListAccessRules` | List relationship access rules |
 | `POST` | `/orcaagents/headcount/admin/access-rules` | `headcountUpsertAccessRule` | Upsert relationship access rule |
 | `DELETE` | `/orcaagents/headcount/admin/access-rules/{ruleId}` | `headcountDeleteAccessRule` | Delete relationship access rule |
+| `GET` | `/orcaagents/headcount/admin/item-relationships` | `headcountListAllItemRelationships` | List all item relationships |
+| `POST` | `/orcaagents/headcount/admin/item-relationships` | `headcountAssignItemRelationship` | Assign an item relationship |
+| `DELETE` | `/orcaagents/headcount/admin/item-relationships/{id}` | `headcountDeleteItemRelationship` | Delete an item relationship |
+
+### Scopes *(→ [concepts.md](../datamodel/concepts.md))*
+
+| Method | Path | Operation ID | Summary |
+|---|---|---|---|
 | `GET` | `/orcaagents/headcount/admin/scopes` | `headcountListScopes` | List scope codes |
 | `POST` | `/orcaagents/headcount/admin/scopes` | `headcountCreateScope` | Create scope code |
 | `GET` | `/orcaagents/headcount/admin/scopes/{code}` | `headcountGetScope` | Get scope code details |
 | `PATCH` | `/orcaagents/headcount/admin/scopes/{code}` | `headcountUpdateScope` | Update scope code |
 | `DELETE` | `/orcaagents/headcount/admin/scopes/{code}` | `headcountDeleteScope` | Delete scope code |
-| `GET` | `/orcaagents/headcount/admin/item-relationships` | `headcountListAllItemRelationships` | List all item relationships |
-| `POST` | `/orcaagents/headcount/admin/item-relationships` | `headcountAssignItemRelationship` | Assign an item relationship |
-| `DELETE` | `/orcaagents/headcount/admin/item-relationships/{id}` | `headcountDeleteItemRelationship` | Delete an item relationship |
+
+### Admin CRUD *(→ [scoped-object-crud.md](../datamodel/scoped-object-crud.md), [employee-object.md](../datamodel/employee-object.md))*
+
+| Method | Path | Operation ID | Summary |
+|---|---|---|---|
 | `GET` | `/orcaagents/headcount/admin/custom-attributes` | `headcountListCustomAttributes` | List custom attribute definitions |
 | `POST` | `/orcaagents/headcount/admin/custom-attributes` | `headcountCreateCustomAttribute` | Create custom attribute definition |
 | `PUT` | `/orcaagents/headcount/admin/custom-attributes/{code}` | `headcountUpdateCustomAttribute` | Update custom attribute definition |
 | `DELETE` | `/orcaagents/headcount/admin/custom-attributes/{code}` | `headcountDeleteCustomAttribute` | Delete custom attribute definition |
-| `GET` | `/orcaagents/headcount/admin/employee-types` | `headcountListEmployeeTypes` | List employee types |
+| `GET` | `/orcaagents/headcount/admin/employee-types` | `headcountListEmployeeTypes` | List employee types *(→ [employee-object.md §7](../datamodel/employee-object.md#7-employee-types-variants))* |
 | `POST` | `/orcaagents/headcount/admin/employee-types` | `headcountCreateEmployeeType` | Create employee type |
 | `PUT` | `/orcaagents/headcount/admin/employee-types/{code}` | `headcountUpdateEmployeeType` | Update employee type |
 | `DELETE` | `/orcaagents/headcount/admin/employee-types/{code}` | `headcountDeleteEmployeeType` | Delete employee type |
@@ -90,8 +133,18 @@ The **Headcount Service** is the central workforce planning and organization hie
 | `PUT` | `/orcaagents/headcount/admin/requisition-types/{code}` | `headcountUpdateRequisitionType` | Update requisition type |
 | `DELETE` | `/orcaagents/headcount/admin/requisition-types/{code}` | `headcountDeleteRequisitionType` | Delete requisition type |
 | `POST` | `/orcaagents/headcount/admin/requisition-types/{code}/status` | `headcountSetRequisitionTypeStatus` | Set requisition type status |
+
+### FX Rates
+
+| Method | Path | Operation ID | Summary |
+|---|---|---|---|
 | `GET` | `/orcaagents/headcount/admin/fx-rates` | `headcountListFXRates` | List historical FX rates |
 | `POST` | `/orcaagents/headcount/admin/fx-rates` | `headcountCreateFXRate` | Create historical FX rate |
+
+### Taxonomies
+
+| Method | Path | Operation ID | Summary |
+|---|---|---|---|
 | `GET` | `/orcaagents/headcount/admin/taxonomies` | `headcountListTaxonomies` | List taxonomies |
 | `POST` | `/orcaagents/headcount/admin/taxonomies` | `headcountCreateTaxonomy` | Create taxonomy |
 | `PUT` | `/orcaagents/headcount/admin/taxonomies/{code}` | `headcountUpdateTaxonomy` | Update taxonomy |
@@ -100,61 +153,28 @@ The **Headcount Service** is the central workforce planning and organization hie
 | `POST` | `/orcaagents/headcount/admin/taxonomies/{taxonomyCode}/topics` | `headcountCreateTaxonomyTopic` | Create taxonomy topic |
 | `PUT` | `/orcaagents/headcount/admin/taxonomies/{taxonomyCode}/topics/{topicCode}` | `headcountUpdateTaxonomyTopic` | Update taxonomy topic |
 | `DELETE` | `/orcaagents/headcount/admin/taxonomies/{taxonomyCode}/topics/{topicCode}` | `headcountDeleteTaxonomyTopic` | Delete taxonomy topic |
+
+### User ↔ Employee Link *(→ [employee-object.md §6](../datamodel/employee-object.md#6-user--employee-identity-link))*
+
+| Method | Path | Operation ID | Summary |
+|---|---|---|---|
 | `POST` | `/orcaagents/headcount/users-employees` | `headcountLinkUserEmployee` | Link user email to employee code |
 | `GET` | `/orcaagents/headcount/users-employees` | `headcountGetUserEmployeeLink` | Get or list user employee links |
 | `DELETE` | `/orcaagents/headcount/users-employees` | `headcountUnlinkUserEmployee` | Unlink user from employee |
 
 ---
 
-### `headcountListEmployees` Query Parameters
+### Employee List Query Parameters
 
-| Param | Type | Description |
-|---|---|---|
-| `department` | `string` | Filter by department code |
-| `status` | `string` | Filter by employment status (e.g. `ACTIVE`, `TERMINATED`, `ON_LEAVE`) |
-| `search` | `string` | Search by name, email, or employee code (ILIKE) |
-| `scope` | `string` | Datamodel scope (default `global`) |
-| `manager` | `string` | Filter to direct reports of this employee code (`manager_employee_code = value`) |
-| `team` | `string` | Filter to direct + indirect reports of this employee code (uses `employee_allocation_path`) |
-| `costCenter` | `string` | Filter by cost center code |
-| `page` | `int` | Page number (1-based, default 1) |
-| `pageSize` | `int` | Page size (default 25, max 100) |
-
-All filter params are optional and composable (AND semantics). ReBAC row-level visibility remains enforced regardless of filters.
+For the full `headcountListEmployees` query parameter table (7 composable filters),
+response envelope (`EmployeeListResult`), and TypeScript types (`EmployeeListRow`),
+see [employee-list.md §1](../datamodel/employee-list.md#1-get-orcaagentsheadcountemployees).
 
 ---
 
-## 3. TypeScript Interfaces & Enums
+## 4. TypeScript Interfaces
 
 ```typescript
-export interface Employee {
-  employeeCode: string;
-  workspaceId: string;
-  firstName: string;
-  lastName: string;
-  preferredName?: string;
-  email: string;
-  status: 'ACTIVE' | 'TERMINATED' | 'LEAVE' | string;
-  typeCode: string;
-  hireDate: string; // YYYY-MM-DD
-  terminationDate?: string;
-  managerCode?: string;
-  allocationPath?: string;
-  customAttributes?: Record<string, any>;
-  assignments?: Assignment[];
-}
-
-export interface Assignment {
-  id: number;
-  employeeCode: string;
-  jobTitle: string;
-  departmentCode: string;
-  locationCode: string;
-  fte: number;
-  startDate: string; // YYYY-MM-DD
-  endDate?: string;
-}
-
 export interface OrgTreeNode {
   employeeCode: string;
   name: string;
@@ -177,16 +197,20 @@ export interface CreateFXRateRequest {
   baseCurrency: string;
   targetCurrency: string;
   fxRate: number;
-  effectiveDate: string; // YYYY-MM-DD or RFC3339
+  effectiveDate: string; // YYYY-MM-DD
 }
 ```
 
+Employee types (`EmployeeListRow`, `EmployeeListResult`) are defined in
+[employee-list.md §1](../datamodel/employee-list.md#1-get-orcaagentsheadcountemployees).
+
 ---
 
-## 4. Client SDK / Integration Functions
+## 5. Client SDK / Integration Functions
 
 ```typescript
 import { orcaFetch } from '../common';
+// Employee types: see datamodel/employee-list.md
 
 export const headcountClient = {
   /**
@@ -199,45 +223,24 @@ export const headcountClient = {
   },
 
   /**
-   * List employees with optional filters.
+   * Get employee details by code.
+   * Returns EmployeeListRow (→ datamodel/employee-list.md).
    */
-  async listEmployees(params?: Record<string, string>): Promise<Employee[]> {
-    const sp = new URLSearchParams(params);
-    const qs = sp.toString();
-    const suffix = qs ? '?' + qs : '';
-    return orcaFetch<Employee[]>('/orcaagents/headcount/employees' + suffix, {
+  async getEmployee(employeeCode: string): Promise<any> {
+    return orcaFetch(`/orcaagents/headcount/employees/${encodeURIComponent(employeeCode)}`, {
       method: 'GET',
-    });
-  },
-
-  /**
-   * Get employee details and assignment history by code.
-   */
-  async getEmployee(employeeCode: string): Promise<Employee> {
-    return orcaFetch<Employee>(`/orcaagents/headcount/employees/${encodeURIComponent(employeeCode)}`, {
-      method: 'GET',
-    });
-  },
-
-  /**
-   * Create a new employee record.
-   */
-  async createEmployee(employee: Partial<Employee>): Promise<Employee> {
-    return orcaFetch<Employee>('/orcaagents/headcount/employees', {
-      method: 'POST',
-      body: JSON.stringify(employee),
     });
   },
 
   /**
    * Upload CSV file to stage a new headcount import.
-   * Form fields: file (CSV), object_code (default: "employee"), field_mapping (optional JSON), supplement (optional).
+   * Form fields: file (CSV), object_code (default: "employee"),
+   *   field_mapping (optional JSON), supplement (optional).
    */
   async uploadCSV(file: File, objectCode = 'employee'): Promise<{ importId: string; status: string }> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('object_code', objectCode);
-
     return orcaFetch<{ importId: string; status: string }>('/orcaagents/headcount/imports/csv', {
       method: 'POST',
       body: formData,
@@ -257,9 +260,10 @@ export const headcountClient = {
 
 ---
 
-## 5. Code Examples & Real-World Flows
+## 6. Code Examples & Real-World Flows
 
 ### Flow: Uploading, Mapping, and Ingesting Employee CSV
+
 ```typescript
 import { headcountClient } from './headcountClient';
 import { orcaFetch } from '../common';
@@ -288,7 +292,7 @@ async function importEmployeesFromCSV(file: File) {
 
 ---
 
-## 6. Common Gotchas & Edge Cases
+## 7. Common Gotchas & Edge Cases
 
 1. **Date Formatting**: All date inputs (`effectiveDate`, `hireDate`, `startDate`) expect format `YYYY-MM-DD`. Do not send RFC 3339 timestamps for date fields.
 2. **Visibility Scoping**: Non-admin users only see employees and requisitions within their allowed manager hierarchy chain or granted by explicit Access Rules.

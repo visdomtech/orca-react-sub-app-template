@@ -1,6 +1,12 @@
+---
+name: datamodel-rebac
+description: "Relationship-Based Access Control (ReBAC): relationship types (HRBP, DIRECT_MANAGER, RECRUITER), access matrix (per-type x attribute VIEW/EDIT/ADMIN/NONE rules), item relationships with validity periods, scoped-object ReBAC extensions (object-level gating, per-record access policy, CREATOR, self-view bypass). Tables: orca.relationship_types, orca.relationship_access_rules, orca.item_relationships. SQL functions: orca.employee_list(), orca.scoped_object_list(). Applies to both employee reads and scoped-object record reads."
+parent: datamodel-guide
+---
+
 # ReBAC: Relationship-Based Access Control
 
-> Part of the [Datamodel Guide](SKILL.md). ReBAC decides **who sees which employees and which fields** on every employee read. The model has three pillars — exactly the three tabs of the frontend **Relationships** admin page (`frontend/orca/src/features/headcount/pages/RelationshipsPage.tsx`): **Relationship Types**, **Access Matrix**, and **Item Relationships**.
+> Part of the [Datamodel Guide](SKILL.md). ReBAC decides **who sees which records and which fields** on every employee and scoped-object read. The model has three pillars — exactly the three tabs of the frontend **Relationships** admin page (`frontend/orca/src/features/headcount/pages/RelationshipsPage.tsx`): **Relationship Types**, **Access Matrix**, and **Item Relationships**.
 
 ---
 
@@ -98,32 +104,33 @@ One rule = a visibility decision for **(relationship type × attribute)** within
 rule_id         BIGSERIAL PK,
 workspace_id    text,                  -- NULL = system-level rule
 relationship_type text NOT NULL,
-attribute_code  text NOT NULL,         -- native field key or custom attribute code
+object_code     text,                  -- NULL = attribute-level rule (legacy); non-NULL = object-level rule
+attribute_code  text,                  -- NULL for object-level rules
 attribute_scope text NOT NULL DEFAULT 'NATIVE' CHECK (IN ('NATIVE','CUSTOM')),
 scope           text NOT NULL DEFAULT 'global',
-can_view        boolean NOT NULL DEFAULT true,
+access          text NOT NULL DEFAULT 'VIEW' CHECK (IN ('VIEW','EDIT','ADMIN','NONE')),
 created_at      timestamptz
--- unique per (workspace_id, scope, relationship_type, attribute_code, attribute_scope)
+-- unique per (workspace_id, scope, relationship_type, object_code, attribute_code, attribute_scope) NULLS NOT DISTINCT
 ```
 
 - `attribute_scope = 'NATIVE'` targets the maskable native fields: `first_name`, `last_name`, `work_email`, `hire_date`, `termination_date`, `manager_employee_code`, `cost_center_code`, `pay_rate_amount`, `pay_rate_currency`, `fx_rate_to_base`.
 - `attribute_scope = 'CUSTOM'` targets any `attribute_definitions.code`.
 - Never maskable (identifiers): `employee_code`, `department_code`, `employee_type_code`, `status`.
-- **System seeds**: `can_view=true` on the three pay attributes for all six seeded types; `can_view=false` for `FPA` on `first_name`, `last_name`, `work_email` (finance sees money, not names).
+- **System seeds**: `access='VIEW'` on the three pay attributes for all six seeded types; `access='NONE'` for `FPA` on `first_name`, `last_name`, `work_email` (finance sees money, not names).
 
 ### 3.2 The precedence formula
 
 For each attribute on each returned row:
 
 ```
-visibility = COALESCE(bool_and(rule.can_view) over matched relationships, access_policy = 'PUBLIC')
+visibility = COALESCE(min(access_level_rank(rule.access)) >= 1 over matched relationships, access_policy = 'PUBLIC')
 ```
 
-- Any matching rule **overrides** the attribute's `access_policy` default; deny wins across multiple matched relationships (`bool_and`).
+- Any matching rule **overrides** the attribute's `access_policy` default; most-restrictive-wins across multiple matched relationships (`min(rank)`). Visibility requires effective level ≥ VIEW (rank ≥ 1).
 - No matching rule → fall back to the definition's `access_policy` (`PUBLIC` shows, `REBAC_REQUIRED` hides).
 - Masked values: strings → `''`, dates/numbers/nullables → `NULL` (field omitted in JSON via `omitempty`).
 
-The frontend Access Matrix tab mirrors this exactly: rows = relationship types, columns = attributes, cells cycle **visible (green) → hidden (red) → undefined ("Attribute Default", dashed)**. Click-cycling a cell maps to: no rule → `POST can_view=true`; system rule → `POST` a workspace override (never delete system rules); workspace `true` → `POST false`; workspace `false` → `DELETE` (back to default).
+The frontend Access Matrix tab mirrors this exactly: rows = relationship types, columns = attributes, cells cycle **visible (green) → hidden (red) → undefined ("Attribute Default", dashed)**. Click-cycling a cell maps to: no rule → `POST access=VIEW`; system rule → `POST` a workspace override (never delete system rules); workspace `VIEW` → `POST NONE`; workspace `NONE` → `DELETE` (back to default).
 
 ### 3.3 Endpoints (all admin)
 
@@ -138,15 +145,16 @@ export interface RelationshipAccessRule {
   ruleId: string;                 // int64 serialized as string
   workspaceId: string | null;
   relationshipType: string;       // '' = global pseudo-rule (read-only in UI)
-  attributeCode: string;          // e.g. 'pay_rate_amount' or a custom code
+  objectCode?: string;            // object-level rule target (null for attribute-level)
+  attributeCode?: string;         // e.g. 'pay_rate_amount' or a custom code (null for object-level)
   attributeScope: 'NATIVE' | 'CUSTOM';
   scope: string;
-  canView: boolean;
+  access: 'VIEW' | 'EDIT' | 'ADMIN' | 'NONE';
   createdAt: string;
 }
 
-// Upsert body (POST): { ruleId?, relationshipType, attributeCode, attributeScope, scope?, canView }
-// ON CONFLICT (workspace_id, scope, relationship_type, attribute_code, attribute_scope) DO UPDATE SET can_view
+// Upsert body (POST): { ruleId?, relationshipType, objectCode?, attributeCode?, attributeScope, scope?, access }
+// ON CONFLICT (workspace_id, scope, relationship_type, object_code, attribute_code, attribute_scope) NULLS NOT DISTINCT DO UPDATE SET access
 ```
 
 ---
@@ -230,7 +238,7 @@ Every employee read (list and get-by-code) calls `ListEmployeesWithVisibility` �
 
 1. **Requester resolution** — `orca.headcount_users_employees` maps the caller's email to an employee code; unlinked callers resolve to `''` and match no relationships.
 2. **Relationship match** — stored (assignable) ∪ computed, per §5.
-3. **Attribute masking** — per field: `CASE WHEN COALESCE(rule_can_view, access_policy='PUBLIC') THEN value ELSE '' / NULL END`. Custom attributes are filtered key-by-key out of the JSONB map.
+3. **Attribute masking** — per field: `CASE WHEN COALESCE(min(rule_access_rank) >= 1, access_policy='PUBLIC') THEN value ELSE '' / NULL END`. Custom attributes are filtered key-by-key out of the JSONB map.
 4. **Row gate (`REBAC_REQUIRED`)** — active only when at least one attribute definition in scope has `access_policy='REBAC_REQUIRED'`:
 
 ```sql
@@ -255,7 +263,7 @@ POST /orcaagents/headcount/admin/relationship-types
 # 2. (Admin) Grant mentors visibility into job_level (a custom attribute), nothing else new
 POST /orcaagents/headcount/admin/access-rules
 { "relationshipType": "MENTOR", "attributeCode": "job_level",
-  "attributeScope": "CUSTOM", "canView": true }
+  "attributeScope": "CUSTOM", "access": "VIEW" }
 
 # 3. (Admin) Assign E-010 as mentor of employee E-100 for this year
 POST /orcaagents/headcount/employees/E-100/relationships
@@ -280,3 +288,20 @@ The **Relationships** admin page (`?tab=types|matrix|items`, with a page-level s
 | Item Relationships | `GET /admin/item-relationships` | `POST /admin/item-relationships` (type dropdown filtered to `assignable` only), `DELETE /admin/item-relationships/{id}` |
 
 Next: consuming the visibility-aware list API — [employee-list.md](employee-list.md).
+
+---
+
+## 9. Scoped-Object ReBAC Extensions
+
+The scoped-object visibility engine (`orca.scoped_object_list()`) extends the employee ReBAC model with **four additional mechanisms** that do not exist for employee reads. For the full record CRUD reference, see [scoped-object-crud.md](scoped-object-crud.md).
+
+| Extension | Description | Employee model equivalent |
+|---|---|---|
+| **Object-level gating** | `access_policy` on `orca.objects` gates the entire record when `REBAC_REQUIRED` | No equivalent (employees are always visible when row-gate passes) |
+| **Per-record access policy** | Each `orca.scoped_objects` row carries its own `access_policy` (PUBLIC or REBAC_REQUIRED) | No per-employee access_policy |
+| **CREATOR computed relationship** | Record creator auto-gains CREATOR-type relationship access | No creator concept |
+| **Self-view bypass** | Record's `employee_code` matching requester → full unmasked data | No self-view special case |
+| **Four-level access model** | NONE < VIEW < EDIT < ADMIN (write ops require EDIT/ADMIN, verified in-transaction) | VIEW-only on reads |
+| **Empty-data filtering** | Records where masking leaves `masked_data = '{}'` are omitted | Employees always appear (never filtered by masking alone) |
+
+The base ReBAC chain (requester resolution → relationship match → attribute masking) is identical to `employee_list()` (§6). The scoped-object chain adds per-record type matching, object-level rules, and the CREATOR/self-view bypass on top. Full 16-CTE chain: [scoped-object-crud.md §7](scoped-object-crud.md#7-visibility-engine----orcascoped_object_list).

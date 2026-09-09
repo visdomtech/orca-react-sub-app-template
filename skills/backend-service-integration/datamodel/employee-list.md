@@ -1,3 +1,9 @@
+---
+name: datamodel-employee-list
+description: "Employee list endpoint reference: GET /orcaagents/headcount/employees with 7 composable filters (department, status, search, manager, team, costCenter, scope), ReBAC-masked results, paginated envelope. Operation ID: headcountListEmployees. Related: headcountGetEmployee, headcountListManagerCodes, headcountGetOrgTree."
+parent: datamodel-guide
+---
+
 # Employee List & Filters
 
 > Part of the [Datamodel Guide](SKILL.md). This is the canonical way for any sub-app to read the shared employee data: one endpoint, composable filters, ReBAC-masked results, stable pagination.

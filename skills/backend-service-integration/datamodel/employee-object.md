@@ -1,3 +1,9 @@
+---
+name: datamodel-employee-object
+description: "Schema reference for the builtin employee object: 13 native fields, pay allocation ledger (pay_rate_amount, pay_rate_currency, fx_rate_to_base in orca.employee_allocations), custom attributes, CSV ingest pipeline, user-employee identity link (orca.headcount_users_employees). Tables: orca.employees, orca.employee_allocations, orca.employee_allocation_path."
+parent: datamodel-guide
+---
+
 # The Global Employee Object
 
 > Part of the [Datamodel Guide](SKILL.md). The `employee` object is the most important object in the platform: **every sub-app must read the same centrally-ingested employee data** instead of maintaining its own copy. This file is the schema reference for that shared record.

@@ -43,18 +43,19 @@ All backend services are organized 1:1 by their sublauncher keyword:
 | 21 | `jurisdiction` | `/orcaagents/jurisdictions` | [`jurisdiction/SKILL.md`](jurisdiction/SKILL.md) | US employment-law jurisdiction tree (Federal, State, City) |
 | 22 | `mcp` | `/orcaagents/mcp` | [`mcp/SKILL.md`](mcp/SKILL.md) | MCP streamable HTTP endpoint with `regulation_qa` tool for AI agent clients |
 | 23 | `notification` | `/orcaagents/notification` | [`notification/SKILL.md`](notification/SKILL.md) | Slack OAuth2 integration and transactional notifications |
-| 24 | `objects` | `/orcaagents/objects` | [`objects/SKILL.md`](objects/SKILL.md) | Generic dynamic object datamodel, variants, schema rules, and layout editor |
+| 24 | `objects` | `/orcaagents/objects` | [`objects/SKILL.md`](objects/SKILL.md) | Generic dynamic object datamodel — delegation index to `datamodel/scoped-object-crud.md` |
 | 25 | `personio` | `/orcaagents/personio` | [`personio/SKILL.md`](personio/SKILL.md) | Personio HRIS integration — connection management and employee retrieval |
 | 26 | `policy` | `/orcaagents/orca` | [`policy/SKILL.md`](policy/SKILL.md) | Multi-turn AI policy generation, drafting, versioning, and PDF export |
 | 27 | `proxy` | `/orcaagents/proxy` | [`proxy/SKILL.md`](proxy/SKILL.md) | External HTTP forwarding proxy and RSS feed aggregation |
 | 28 | `ragagent` | `/orcaagents/ragagent` | [`ragagent/SKILL.md`](ragagent/SKILL.md) | Dynamic RAG agent configurations with metadata filters |
-| 29 | `regulation` | `/orcaagents/regulations` | [`regulation/SKILL.md`](regulation/SKILL.md) | Canonical labor regulations repository with AI batch multimodal ingestion |
-| 30 | `renderconfig` | `/orcaagents/renderconfig` | [`renderconfig/SKILL.md`](renderconfig/SKILL.md) | JsonLogic render configurations for dynamic agent event presentation |
-| 31 | `rippling` | `/orcaagents/rippling` | [`rippling/SKILL.md`](rippling/SKILL.md) | Rippling HRIS integration — connection management and employee retrieval |
-| 32 | `structuredlaw` | `/orcaagents/structuredlaw` | [`structuredlaw/SKILL.md`](structuredlaw/SKILL.md) | Structured statutory legal rules, exposure nodes, and citations |
-| 33 | `vertexai` | `/orcaagents/vertexai` | [`vertexai/SKILL.md`](vertexai/SKILL.md) | Google Vertex AI RAG corpus metadata mirror and sync pipeline |
-| 34 | `workday` | `/orcaagents/workday` | [`workday/SKILL.md`](workday/SKILL.md) | Workday HRIS integration — connection management and worker retrieval |
-| 35 | `workflow` | `/orcaagents/workflow` | [`workflow/SKILL.md`](workflow/SKILL.md) | Transactional email delivery via Mailgun |
+| 29 | `ragmeta` | `/orcaagents/ragmeta` | *(see root AGENTS.md §45)* | RAG metadata schema registry, corpus file metadata mirror, and write-back |
+| 30 | `regulation` | `/orcaagents/regulations` | [`regulation/SKILL.md`](regulation/SKILL.md) | Canonical labor regulations repository with AI batch multimodal ingestion |
+| 31 | `renderconfig` | `/orcaagents/renderconfig` | [`renderconfig/SKILL.md`](renderconfig/SKILL.md) | JsonLogic render configurations for dynamic agent event presentation |
+| 32 | `rippling` | `/orcaagents/rippling` | [`rippling/SKILL.md`](rippling/SKILL.md) | Rippling HRIS integration — connection management and employee retrieval |
+| 33 | `structuredlaw` | `/orcaagents/structuredlaw` | [`structuredlaw/SKILL.md`](structuredlaw/SKILL.md) | Structured statutory legal rules, exposure nodes, and citations |
+| 34 | `vertexai` | `/orcaagents/vertexai` | [`vertexai/SKILL.md`](vertexai/SKILL.md) | Google Vertex AI RAG corpus metadata mirror and sync pipeline |
+| 35 | `workday` | `/orcaagents/workday` | [`workday/SKILL.md`](workday/SKILL.md) | Workday HRIS integration — connection management and worker retrieval |
+| 36 | `workflow` | `/orcaagents/workflow` | [`workflow/SKILL.md`](workflow/SKILL.md) | Transactional email delivery via Mailgun |
 
 ### Cross-Cutting Guides
 

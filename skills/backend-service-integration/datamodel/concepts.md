@@ -1,6 +1,12 @@
+---
+name: datamodel-concepts
+description: "Defines scopes, objects, and attributes — the three foundational vocabulary terms of the Orca datamodel. Tables: orca.scopes, orca.objects, orca.object_types, orca.attribute_definitions. Admin endpoints: /orcaagents/headcount/admin/scopes, /orcaagents/headcount/admin/custom-attributes."
+parent: datamodel-guide
+---
+
 # Concepts: Scopes, Objects & Attributes
 
-> Part of the [Datamodel Guide](SKILL.md). This file defines the three foundational vocabulary terms every other datamodel topic uses.
+> Part of the [Datamodel Guide](SKILL.md). This file defines the three foundational vocabulary terms every other datamodel topic uses. For help choosing between the three storage models (Firestore, Employee Data Model, Scoped Objects), see [storage-models.md](storage-models.md).
 
 ---
 
@@ -23,7 +29,7 @@ CREATE TABLE orca.scopes (
 - **`global` is the default and is immutable** — updating or deleting it returns `403` (`ErrScopeImmutable`).
 - Empty scope input defaults to `global` everywhere (HTTP query params, service methods).
 - Write paths **validate scope existence**: referencing a phantom scope code is rejected.
-- **Delete is guarded**: a scope referenced by any of `objects`, `object_types`, `attribute_definitions`, `relationship_types`, `relationship_access_rules`, `attribute_values`, or `employee_scoped_attribute_values` cannot be deleted (`409` in-use).
+- **Delete is guarded**: a scope referenced by any of `objects`, `object_types`, `attribute_definitions`, `relationship_types`, `relationship_access_rules`, `attribute_values`, or `scoped_objects` cannot be deleted (`409` in-use).
 
 ### 1.2 Admin CRUD — `/orcaagents/headcount/admin/scopes`
 
@@ -49,7 +55,7 @@ export interface Scope {
 Passing `?scope=` on read APIs switches three things at once:
 
 1. **Which definitions resolve** — objects, types, attribute definitions, relationship types, and access rules are all filtered to `scope = S` (with workspace-over-system shadow resolution, see §2.2).
-2. **Where custom attribute values come from** — `global` reads `employees.custom_attributes` JSONB directly; any other scope reads the trigger-maintained snapshot `orca.employee_scoped_attribute_values` for that scope (backed by the temporal `orca.attribute_values` table).
+2. **Where custom attribute values come from** — `global` reads `employees.custom_attributes` JSONB directly; any other scope reads the trigger-maintained snapshot `orca.scoped_objects` for that scope (keyed `(workspace_id, object_code, code_value, scope)`, employees resolve via `object_code = 'employee'`; backed by the temporal `orca.attribute_values` table).
 3. **Which ReBAC rules apply** — relationship types and access rules are scope-specific. (Computed manager relationships are the exception: they are scope-independent — see [rebac.md](rebac.md#5-computed-vs-assigned-relationships).)
 
 ---
@@ -125,7 +131,7 @@ Objects carry two kinds of attributes:
 | Kind | Defined by | Stored in | Examples |
 |---|---|---|---|
 | **Native** | The backend's per-object registry (`service/headcount/employee_native_fields.go`) | Real columns (`orca.employees`, `orca.employee_allocations`) | `first_name`, `hire_date`, `pay_rate_amount` |
-| **Custom** | `orca.attribute_definitions` rows (system-seeded or workspace-created) | `employees.custom_attributes` JSONB (`global` scope) or `orca.attribute_values` (other scopes) | `job_title`, `job_level`, `confidential` |
+| **Custom** | `orca.attribute_definitions` rows (system-seeded or workspace-created) | `employees.custom_attributes` JSONB (`global` scope) or `orca.attribute_values` (other scopes, any object code) | `job_title`, `job_level`, `confidential` |
 
 ### 3.1 Attribute definitions (`orca.attribute_definitions`)
 
@@ -186,7 +192,7 @@ export interface CustomAttributeDefinition {
 ### 3.3 Where values live
 
 - **Scope `global`**: flat `{code: value}` entries in `employees.custom_attributes` (GIN-indexed).
-- **Any other scope**: rows in `orca.attribute_values` (temporal, `valid_period daterange`, overlap-excluded), materialized by trigger into `orca.employee_scoped_attribute_values (workspace_id, employee_code, scope) → data jsonb` — the snapshot `employee_list()` reads for non-global scopes.
+- **Any other scope**: rows in `orca.attribute_values` (temporal, `valid_period daterange`, overlap-excluded), materialized by trigger into `orca.scoped_objects (workspace_id, object_code, code_value, scope) → data jsonb` — the snapshot `employee_list()` reads for non-global scopes. Storage is object-generic: `code_value` carries the object's `id_attribute` value (e.g. `employee_code`, `req_code`). `scoped_objects` also carries `created` (creator email) and `access_policy` (PUBLIC/REBAC_REQUIRED) columns for per-record access control.
 - Values only appear in API responses when their definition resolves for the `(workspace, scope)` and survives the access-policy/ReBAC check.
 
 ### 3.4 Restricting attributes per employee type
