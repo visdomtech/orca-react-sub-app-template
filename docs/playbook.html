@@ -54,6 +54,70 @@
     .sidebar::-webkit-scrollbar { width: 4px; }
     .sidebar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
 
+    /* --- Search box --- */
+    .search-box {
+      padding: 0 16px 12px;
+      border-bottom: 1px solid var(--c-border);
+      margin-bottom: 8px;
+    }
+    .search-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      color: var(--c-text-muted);
+      pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      padding: 8px 32px 8px 32px;
+      border: 1px solid var(--c-border);
+      border-radius: 6px;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      color: var(--c-text);
+      background: #fff;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .search-input::placeholder { color: #b0b7c0; }
+    .search-input:focus {
+      border-color: var(--c-accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .search-clear {
+      position: absolute;
+      right: 6px;
+      width: 20px;
+      height: 20px;
+      border: none;
+      background: var(--c-code-bg);
+      color: var(--c-text-muted);
+      border-radius: 50%;
+      font-size: 13px;
+      line-height: 1;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .search-clear:hover { background: #e2e6ea; }
+    .search-box.has-query .search-clear { display: flex; }
+    .search-count {
+      font-size: 11px;
+      color: var(--c-text-muted);
+      padding: 6px 4px 0;
+      min-height: 22px;
+    }
+
+    /* --- TOC filter states --- */
+    .toc li.toc-hidden { display: none; }
+    .toc li.toc-match > a { color: var(--c-accent); font-weight: 500; }
+
     .toc-title {
       font-size: 11px;
       font-weight: 600;
@@ -224,6 +288,20 @@
     }
     .content li { margin: 4px 0; }
 
+    /* --- Content highlight marks --- */
+    mark.search-hl {
+      background: #fde68a;
+      color: inherit;
+      padding: 1px 2px;
+      border-radius: 2px;
+      box-shadow: 0 0 0 1px #fbbf24;
+    }
+    mark.search-hl.current {
+      background: #f97316;
+      color: #fff;
+      box-shadow: 0 0 0 2px #f97316;
+    }
+
     /* --- Mobile --- */
     @media (max-width: 768px) {
       .sidebar { display: none; }
@@ -240,7 +318,15 @@
 </head>
 <body>
   <aside class="sidebar">
-    <nav class="toc">
+    <div class="search-box">
+  <div class="search-wrap">
+    <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="search" class="search-input" placeholder="Search playbook…" autocomplete="off" spellcheck="false">
+    <button id="search-clear" class="search-clear" title="Clear">×</button>
+  </div>
+  <div id="search-count" class="search-count"></div>
+</div>
+<nav class="toc">
 <div class="toc-title">Contents</div>
 <ul>
 <li class="toc-h1"><a href="#orca-sub-app-playbook">Orca Sub-App Playbook</a></li>
@@ -893,34 +979,166 @@ You don&#39;t need to read 49 individual skill files. Start here.</p>
   </main>
 
   <script>
-    // Highlight active TOC item on scroll
-    const headings = document.querySelectorAll('.content h1, .content h2, .content h3');
-    const tocLinks = document.querySelectorAll('.toc a');
+// Browser-side JS for playbook search/filter
+// This file is read by render-playbook.mjs and inlined into the HTML.
+// No template-literal escaping needed!
 
-    function updateActive() {
-      let current = '';
-      headings.forEach(h => {
-        if (h.getBoundingClientRect().top <= 100) current = h.id;
-      });
-      tocLinks.forEach(a => {
-        a.classList.toggle('active', a.getAttribute('href') === '#' + current);
-      });
-    }
+(function () {
+  // --- DOM refs ---
+  const headings = document.querySelectorAll('.content h1, .content h2, .content h3');
+  const tocLinks = document.querySelectorAll('.toc a');
+  const tocItems = document.querySelectorAll('.toc li');
+  const searchInput = document.getElementById('search');
+  const searchClear = document.getElementById('search-clear');
+  const searchCount = document.getElementById('search-count');
+  const searchBox = document.querySelector('.search-box');
+  const contentEl = document.querySelector('.content');
 
-    window.addEventListener('scroll', updateActive, { passive: true });
-    updateActive();
-
-    // Smooth scroll on TOC click
-    tocLinks.forEach(a => {
-      a.addEventListener('click', e => {
-        e.preventDefault();
-        const target = document.getElementById(a.getAttribute('href').slice(1));
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          history.pushState(null, '', a.getAttribute('href'));
-        }
-      });
+  // --- Scroll-spy: highlight active TOC item ---
+  function updateActive() {
+    let current = '';
+    headings.forEach(function (h) {
+      if (h.getBoundingClientRect().top <= 100) current = h.id;
     });
+    tocLinks.forEach(function (a) {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  }
+  window.addEventListener('scroll', updateActive, { passive: true });
+  updateActive();
+
+  // --- Smooth scroll on TOC click ---
+  tocLinks.forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      e.preventDefault();
+      var target = document.getElementById(a.getAttribute('href').slice(1));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.pushState(null, '', a.getAttribute('href'));
+      }
+    });
+  });
+
+  // --- Search: filter TOC + highlight content ---
+  var originalHTML = contentEl.innerHTML;
+
+  function escapeRegExp(s) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  // Walk text nodes and wrap matches in <mark>, skip <pre>, <code>, <script>, <style>, <mark>
+  function highlightText(root, regex) {
+    var SKIP = { PRE: 1, CODE: 1, SCRIPT: 1, STYLE: 1, MARK: 1 };
+    var count = 0;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (node) {
+        return SKIP[node.parentElement.tagName] ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+      }
+    });
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    for (var i = 0; i < nodes.length; i++) {
+      var textNode = nodes[i];
+      var text = textNode.textContent;
+      if (!regex.test(text)) continue;
+      regex.lastIndex = 0;
+      var frag = document.createDocumentFragment();
+      var lastIdx = 0;
+      var m;
+      while ((m = regex.exec(text)) !== null) {
+        if (m.index > lastIdx) frag.appendChild(document.createTextNode(text.slice(lastIdx, m.index)));
+        var mark = document.createElement('mark');
+        mark.className = 'search-hl';
+        mark.textContent = m[0];
+        frag.appendChild(mark);
+        count++;
+        lastIdx = regex.lastIndex;
+      }
+      if (lastIdx < text.length) frag.appendChild(document.createTextNode(text.slice(lastIdx)));
+      textNode.parentNode.replaceChild(frag, textNode);
+    }
+    return count;
+  }
+
+  function clearHighlights() {
+    contentEl.innerHTML = originalHTML;
+  }
+
+  function filterToc(query) {
+    var q = query.toLowerCase();
+    var visibleCount = 0;
+    tocItems.forEach(function (li) {
+      var text = li.textContent.toLowerCase();
+      var match = !q || text.includes(q);
+      li.classList.toggle('toc-hidden', !match);
+      li.classList.toggle('toc-match', match && !!q);
+      if (match) visibleCount++;
+    });
+    return visibleCount;
+  }
+
+  var debounceTimer;
+  searchInput.addEventListener('input', function () {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function () {
+      var query = searchInput.value.trim();
+      searchBox.classList.toggle('has-query', !!query);
+
+      // Reset content to original before re-highlighting
+      clearHighlights();
+
+      if (!query) {
+        filterToc('');
+        searchCount.textContent = '';
+        return;
+      }
+
+      // Filter TOC
+      var tocVisible = filterToc(query);
+
+      // Highlight content
+      var regex = new RegExp(escapeRegExp(query), 'gi');
+      var matchCount = highlightText(contentEl, regex);
+
+      // Update count
+      if (matchCount > 0) {
+        searchCount.textContent = matchCount + ' match' + (matchCount !== 1 ? 'es' : '') + ' \u00b7 ' + tocVisible + ' sections';
+      } else {
+        searchCount.textContent = 'No matches \u00b7 ' + tocVisible + ' sections';
+      }
+
+      // Scroll to first match
+      var firstMark = contentEl.querySelector('mark.search-hl');
+      if (firstMark) {
+        firstMark.classList.add('current');
+        firstMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 150);
+  });
+
+  // Clear button
+  searchClear.addEventListener('click', function () {
+    searchInput.value = '';
+    searchInput.dispatchEvent(new Event('input'));
+    searchInput.focus();
+  });
+
+  // Keyboard: Ctrl/Cmd+K to focus search, Escape to clear
+  document.addEventListener('keydown', function (e) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+    }
+    if (e.key === 'Escape' && document.activeElement === searchInput) {
+      searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input'));
+      searchInput.blur();
+    }
+  });
+})();
+
   </script>
 </body>
 </html>

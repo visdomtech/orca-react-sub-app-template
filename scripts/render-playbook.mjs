@@ -20,6 +20,9 @@ const OUT_PATH = join(OUT_DIR, "playbook.html");
 // --- Read markdown ---
 const md = readFileSync(MD_PATH, "utf-8");
 
+// --- Read browser-side search JS (inlined into HTML, no template-literal escaping issues) ---
+const searchJs = readFileSync(join(__dirname, "playbook-search.js"), "utf-8");
+
 // --- Extract TOC from headings ---
 const tocEntries = [];
 const headingRegex = /^(#{1,3})\s+(.+)$/gm;
@@ -56,7 +59,15 @@ const bodyHtml = marked(md, { renderer, gfm: true, breaks: false });
 
 // --- Build sidebar TOC HTML ---
 function buildToc(entries) {
-  let html = '<nav class="toc">\n<div class="toc-title">Contents</div>\n<ul>\n';
+  let html = '<div class="search-box">\n';
+  html += '  <div class="search-wrap">\n';
+  html += '    <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>\n';
+  html += '    <input type="text" id="search" class="search-input" placeholder="Search playbook\u2026" autocomplete="off" spellcheck="false">\n';
+  html += '    <button id="search-clear" class="search-clear" title="Clear">\u00d7</button>\n';
+  html += '  </div>\n';
+  html += '  <div id="search-count" class="search-count"></div>\n';
+  html += '</div>\n';
+  html += '<nav class="toc">\n<div class="toc-title">Contents</div>\n<ul>\n';
   for (const entry of entries) {
     const indent = entry.level === 1 ? "" : entry.level === 2 ? "  " : "    ";
     const cls =
@@ -129,6 +140,70 @@ const html = `<!DOCTYPE html>
 
     .sidebar::-webkit-scrollbar { width: 4px; }
     .sidebar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+
+    /* --- Search box --- */
+    .search-box {
+      padding: 0 16px 12px;
+      border-bottom: 1px solid var(--c-border);
+      margin-bottom: 8px;
+    }
+    .search-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      color: var(--c-text-muted);
+      pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      padding: 8px 32px 8px 32px;
+      border: 1px solid var(--c-border);
+      border-radius: 6px;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      color: var(--c-text);
+      background: #fff;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .search-input::placeholder { color: #b0b7c0; }
+    .search-input:focus {
+      border-color: var(--c-accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .search-clear {
+      position: absolute;
+      right: 6px;
+      width: 20px;
+      height: 20px;
+      border: none;
+      background: var(--c-code-bg);
+      color: var(--c-text-muted);
+      border-radius: 50%;
+      font-size: 13px;
+      line-height: 1;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .search-clear:hover { background: #e2e6ea; }
+    .search-box.has-query .search-clear { display: flex; }
+    .search-count {
+      font-size: 11px;
+      color: var(--c-text-muted);
+      padding: 6px 4px 0;
+      min-height: 22px;
+    }
+
+    /* --- TOC filter states --- */
+    .toc li.toc-hidden { display: none; }
+    .toc li.toc-match > a { color: var(--c-accent); font-weight: 500; }
 
     .toc-title {
       font-size: 11px;
@@ -300,6 +375,20 @@ const html = `<!DOCTYPE html>
     }
     .content li { margin: 4px 0; }
 
+    /* --- Content highlight marks --- */
+    mark.search-hl {
+      background: #fde68a;
+      color: inherit;
+      padding: 1px 2px;
+      border-radius: 2px;
+      box-shadow: 0 0 0 1px #fbbf24;
+    }
+    mark.search-hl.current {
+      background: #f97316;
+      color: #fff;
+      box-shadow: 0 0 0 2px #f97316;
+    }
+
     /* --- Mobile --- */
     @media (max-width: 768px) {
       .sidebar { display: none; }
@@ -323,34 +412,7 @@ const html = `<!DOCTYPE html>
   </main>
 
   <script>
-    // Highlight active TOC item on scroll
-    const headings = document.querySelectorAll('.content h1, .content h2, .content h3');
-    const tocLinks = document.querySelectorAll('.toc a');
-
-    function updateActive() {
-      let current = '';
-      headings.forEach(h => {
-        if (h.getBoundingClientRect().top <= 100) current = h.id;
-      });
-      tocLinks.forEach(a => {
-        a.classList.toggle('active', a.getAttribute('href') === '#' + current);
-      });
-    }
-
-    window.addEventListener('scroll', updateActive, { passive: true });
-    updateActive();
-
-    // Smooth scroll on TOC click
-    tocLinks.forEach(a => {
-      a.addEventListener('click', e => {
-        e.preventDefault();
-        const target = document.getElementById(a.getAttribute('href').slice(1));
-        if (target) {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          history.pushState(null, '', a.getAttribute('href'));
-        }
-      });
-    });
+${searchJs}
   </script>
 </body>
 </html>`;
