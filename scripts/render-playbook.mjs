@@ -91,32 +91,29 @@ const html = `<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Orca Sub-App Playbook</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
       --sidebar-w: 280px;
-      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+      --font-serif: 'Times New Roman', Times, Georgia, serif;
+      --font-mono: Monaco, 'Courier New', monospace;
       --c-bg: #ffffff;
       --c-sidebar: #f8f9fa;
       --c-border: #e2e6ea;
-      --c-text: #1a1a2e;
+      --c-text: #171717;
       --c-text-muted: #6b7280;
-      --c-accent: #2563eb;
-      --c-accent-light: #eff6ff;
-      --c-code-bg: #f3f4f6;
-      --c-blockquote: #f0f4ff;
-      --c-table-header: #f8f9fa;
-      --c-table-border: #e5e7eb;
-      --c-highlight: #fefce8;
+      --c-accent: #0369a1;
+      --c-accent-hover: #0c4a6e;
+      --c-accent-light: color-mix(in srgb, #0369a1 10%, #ffffff);
+      --c-code-bg: #f5f5f5;
+      --c-table-header: #e5e5e5;
+      --c-table-border: #a3a3a3;
     }
 
     body {
-      font-family: var(--font-sans);
-      font-size: 15px;
+      font-family: var(--font-serif);
+      font-size: 16px;
       line-height: 1.7;
       color: var(--c-text);
       background: var(--c-bg);
@@ -136,6 +133,7 @@ const html = `<!DOCTYPE html>
       overflow-y: auto;
       padding: 24px 0;
       flex-shrink: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
     .sidebar::-webkit-scrollbar { width: 4px; }
@@ -163,7 +161,7 @@ const html = `<!DOCTYPE html>
       padding: 8px 32px 8px 32px;
       border: 1px solid var(--c-border);
       border-radius: 6px;
-      font-family: var(--font-sans);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       font-size: 13px;
       color: var(--c-text);
       background: #fff;
@@ -173,7 +171,7 @@ const html = `<!DOCTYPE html>
     .search-input::placeholder { color: #b0b7c0; }
     .search-input:focus {
       border-color: var(--c-accent);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      box-shadow: 0 0 0 3px color-mix(in srgb, #0369a1 12%, transparent);
     }
     .search-clear {
       position: absolute;
@@ -250,107 +248,104 @@ const html = `<!DOCTYPE html>
     .content {
       flex: 1;
       max-width: 820px;
-      padding: 48px 56px 80px;
+      padding: 40px 56px 80px;
       margin: 0 auto;
     }
 
     /* --- Typography --- */
     .content h1 {
-      font-size: 2.2em;
-      font-weight: 700;
-      margin: 0 0 8px;
-      letter-spacing: -0.02em;
-      line-height: 1.2;
+      font-family: var(--font-serif);
+      font-size: 34.67px;
+      font-weight: bold;
+      color: var(--c-text);
+      text-align: center;
+      margin: 0 0 18.67px;
+      line-height: 1.3;
     }
 
     .content h2 {
-      font-size: 1.5em;
-      font-weight: 700;
-      margin: 48px 0 16px;
-      padding-top: 24px;
-      border-top: 1px solid var(--c-border);
-      letter-spacing: -0.01em;
+      font-family: var(--font-serif);
+      font-size: 28px;
+      font-weight: bold;
+      color: var(--c-text);
+      margin: 26.67px 0 13.33px;
     }
 
-    .content h2:first-of-type { border-top: none; margin-top: 32px; }
-
     .content h3 {
-      font-size: 1.15em;
-      font-weight: 600;
-      margin: 32px 0 12px;
+      font-family: var(--font-serif);
+      font-size: 22.67px;
+      font-weight: bold;
+      color: var(--c-text);
+      margin: 21.33px 0 10.67px;
     }
 
     .content p {
-      margin: 0 0 16px;
+      margin: 0 0 13.33px;
+      text-indent: 2em;
     }
 
-    .content strong { font-weight: 600; }
+    .content li p { text-indent: 0; }
+    .content blockquote p { text-indent: 0; }
+
+    .content strong { font-weight: bold; }
     .content em { font-style: italic; }
 
     .content a {
       color: var(--c-accent);
       text-decoration: none;
-      border-bottom: 1px solid transparent;
-      transition: border-color 0.15s;
     }
-    .content a:hover { border-bottom-color: var(--c-accent); }
+    .content a:hover { color: var(--c-accent-hover); }
 
-    /* --- Blockquotes (callout boxes) --- */
+    /* --- Blockquotes --- */
     .content blockquote {
-      background: var(--c-blockquote);
-      border-left: 3px solid var(--c-accent);
-      padding: 16px 20px;
-      margin: 20px 0;
-      border-radius: 0 8px 8px 0;
-      font-size: 14px;
+      margin: 16px 0;
+      padding: 2.67px 18.67px;
+      border-left: 4px solid #a3a3a3;
+      background-color: #f5f5f5;
     }
-    .content blockquote p { margin: 0; }
-    .content blockquote strong { color: var(--c-accent); }
 
     /* --- Tables --- */
     .content table {
-      width: 100%;
       border-collapse: collapse;
-      margin: 16px 0 24px;
-      font-size: 14px;
+      width: fit-content;
+      max-width: 100%;
+      margin: 0 auto 16px;
+      overflow-x: auto;
+      display: block;
+    }
+
+    .content th,
+    .content td {
+      padding: 8pt;
+      border: 1px solid var(--c-table-border);
     }
 
     .content th {
-      background: var(--c-table-header);
-      font-weight: 600;
-      text-align: left;
-      padding: 10px 14px;
-      border: 1px solid var(--c-table-border);
-      font-size: 13px;
-      text-transform: none;
+      background-color: var(--c-table-header);
+      color: var(--c-text);
+      font-weight: bold;
     }
 
-    .content td {
-      padding: 10px 14px;
-      border: 1px solid var(--c-table-border);
-      vertical-align: top;
-    }
-
-    .content tr:hover td { background: #fafbfc; }
+    .content tr:nth-child(even) { background-color: #fafafa; }
+    .content tr:nth-child(odd) { background-color: #ffffff; }
 
     /* --- Code --- */
     .content code {
       font-family: var(--font-mono);
-      font-size: 0.88em;
-      background: var(--c-code-bg);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-weight: 400;
+      font-size: 0.9167em;
+      background-color: var(--c-code-bg);
+      padding: 1px 4px;
+      border-radius: 3px;
     }
 
     .content pre {
-      background: #1e1e2e;
-      color: #cdd6f4;
+      background-color: var(--c-code-bg);
+      color: #24292e;
       padding: 16px 20px;
-      border-radius: 8px;
+      border-radius: 4px;
       overflow-x: auto;
-      margin: 16px 0 24px;
-      font-size: 13px;
+      margin: 0 0 16px;
+      font-size: 14.67px;
       line-height: 1.6;
     }
 
@@ -364,8 +359,8 @@ const html = `<!DOCTYPE html>
     /* --- Horizontal rules --- */
     .content hr {
       border: none;
-      border-top: 1px solid var(--c-border);
-      margin: 32px 0;
+      border-top: 1px solid #d1d5db;
+      margin: 26.67px 0;
     }
 
     /* --- Lists --- */
@@ -373,7 +368,7 @@ const html = `<!DOCTYPE html>
       padding-left: 24px;
       margin: 0 0 16px;
     }
-    .content li { margin: 4px 0; }
+    .content li { margin: 0 0 4px; margin-left: 2em; }
 
     /* --- Content highlight marks --- */
     mark.search-hl {
