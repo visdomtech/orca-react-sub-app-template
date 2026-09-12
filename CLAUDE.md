@@ -68,7 +68,7 @@ Never skip layers: pages must not import from `api.ts` directly.
 ### Styling
 
 - **MUI-first with `sx` + theme tokens** (Mercury Console design system)
-- See `skills/orca-fe/styles.md` for the full design specification
+- See the [Mercury Console design specification](https://docs.doublefin.com/skills/orca-fe-liquid/styles.md) for the full design system
 - Import UI kit components from `@doublefin/orca-ui` (or `~/shared/ui` re-export shim) (AdminTable, PageHeader, DetailLayout, StatusPill, etc.)
 - Use theme tokens (`divider`, `text.secondary`, `background.paper`, `primary.main`) - no raw hex values
 - Single accent: indigo (`primary.main` = #4f46e5). No violet/purple.
@@ -122,7 +122,7 @@ export function OrcaApp() {
 }
 ```
 
-See `skills/orca-fe/styles.md` for the full design spec and `skills/orca-fe/SKILL.md` for the migration guide.
+See the [Mercury Console design specification](https://docs.doublefin.com/skills/orca-fe-liquid/styles.md) and the [orca-fe-liquid skill guide](https://docs.doublefin.com/skills/orca-fe-liquid/SKILL.md) for migration.
 
 ## Adding internal routing
 

@@ -645,7 +645,7 @@ export function ShowcaseLiquidPage() {
 
           <Alert severity="info">
             This page is the living reference of the Liquid Metal design system - token rules,
-            tone mappings, and migration checklists live in skills/orca-fe-liquid/styles.md.
+            tone mappings, and migration checklists live at https://docs.doublefin.com/skills/orca-fe-liquid/styles.md.
           </Alert>
         </Section>
       </Box>
